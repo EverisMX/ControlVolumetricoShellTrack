@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Runtime.Serialization;
+
+namespace ControlVolumetricoShellWS.Dominio
+{
+    [DataContract]
+    public class Salida_getProductInfo
+    {
+        [DataMember]
+        public Boolean Resultado { get; set; }
+        [DataMember]
+        public string Msj { get; set; }
+        [DataMember]
+        public string producto { get; set; }
+        [DataMember]
+        public decimal importe { get; set; }
+        [DataMember]
+        public decimal precio_Uni { get; set; }
+        [DataMember]
+        public string mensajePromocion { get; set; }
+    }
+}

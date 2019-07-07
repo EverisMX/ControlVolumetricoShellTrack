@@ -1,0 +1,12 @@
+C:\Users\efelipel\Desktop\webservices_soap\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\efelipel\Desktop\webservices_soap\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb
+C:\Users\efelipel\Desktop\webservices_soap\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csprojAssemblyReference.cache
+C:\Users\efelipel\Desktop\webservices_soap\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csproj.CoreCompileInputs.cache
+C:\Users\efelipel\Desktop\webservices_soap\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\efelipel\Desktop\webservices_soap\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csprojAssemblyReference.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csproj.CoreCompileInputs.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb

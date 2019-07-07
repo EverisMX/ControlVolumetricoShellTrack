@@ -1,0 +1,13 @@
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\ConectionHubbleWS.dll.config
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\ConectionHubbleWS.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\ConectionHubbleWS.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\Newtonsoft.Json.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\System.Net.Http.Extensions.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\System.Net.Http.Formatting.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\System.Net.Http.Primitives.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\bin\Debug\Newtonsoft.Json.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csprojAssemblyReference.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CoreCompileInputs.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CopyComplete
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.pdb

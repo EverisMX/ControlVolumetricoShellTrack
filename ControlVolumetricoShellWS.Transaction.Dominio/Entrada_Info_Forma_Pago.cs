@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Serialization;
 
 namespace ControlVolumetricoShellWS.Dominio
@@ -10,14 +7,46 @@ namespace ControlVolumetricoShellWS.Dominio
     [DataContract]
     public class Entrada_Info_Forma_Pagos
     {
+        /// <summary>
+        /// Número de operación de la bomba enviado en el método Obtiene_Tran
+        /// </summary>
         [DataMember]
         public string Id_Transaccion { get; set; }
+
+        /// <summary>
+        /// Lista de formas de pagos 
+        /// </summary>
         [DataMember]
         public IList<Entrada_Info_Forma_Pago_List> Info_Forma_Pago { get; set; } = new List<Entrada_Info_Forma_Pago_List>();
+
+        /// <summary>
+        /// Lista de los pagos totales en la venta.
+        /// </summary>
         [DataMember]
-        public Boolean parciales { get; set; }
+        public IList<Info_Pagos_Parciales> Info_Pagos_Parciales { get; set; } = new List<Info_Pagos_Parciales>();
+
+        /// <summary>
+        /// Número de estación por parte de PC
+        /// </summary>
         [DataMember]
         public int nHD { get; set; }
 
+        /// <summary>
+        /// Número de carga (Bomba).
+        /// </summary>
+        [DataMember]
+        public int Pos_Carga { get; set; }
+
+        /// <summary>
+        /// Identificador de usuario.
+        /// </summary>
+        [DataMember]
+        public string Id_teller { get; set; }
+
+        /// <summary>
+        /// Id POS
+        /// </summary>
+        [DataMember]
+        public string idpos { get; set; }
     }
 }

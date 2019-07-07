@@ -42,6 +42,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Info_Pagos_Parciales.cs" />
     <Compile Include="Salida_Electronic_billing.cs" />
     <Compile Include="Entrada_Electronic_billing.cs" />
     <Compile Include="Salida_getProductInfo.cs" />

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace ControlVolumetricoShellWS.Dominio
 {
@@ -24,6 +19,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public string pss { get; set; }
         [DataMember]
         public string IdProduct { get; set; }
-
+        [DataMember]
+        public string Id_teller { get; set; }
     }
 }

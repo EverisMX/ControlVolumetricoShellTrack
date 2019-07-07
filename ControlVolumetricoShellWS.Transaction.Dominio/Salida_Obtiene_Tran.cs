@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Serialization;
 namespace ControlVolumetricoShellWS.Dominio
 {
@@ -18,9 +14,9 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public string Producto { get; set; }
         [DataMember]
-        public double importe { get; set; }
+        public double Importe { get; set; }
         [DataMember]
-        public int PosID {get; set;}
+        public int PosID { get; set; }
         [DataMember]
         public long Num_Operacion { get; set; }
         [DataMember]
@@ -31,7 +27,5 @@ namespace ControlVolumetricoShellWS.Dominio
         public long ID_Interno { get; set; }
         [DataMember]
         public Boolean Parcial { get; set; }
-
-
-}
+    }
 }

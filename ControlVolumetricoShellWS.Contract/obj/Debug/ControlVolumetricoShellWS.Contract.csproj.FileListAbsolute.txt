@@ -16,3 +16,12 @@ C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVo
 C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.csproj.CopyComplete
 C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.dll
 C:\Users\jalvareh\Documents\SHELL\WebService\ControlVolumetricoShellWS\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.pdb
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\bin\Debug\ControlVolumetricoShellWS.Contract.dll
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\bin\Debug\ControlVolumetricoShellWS.Contract.pdb
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.csprojAssemblyReference.cache
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.csproj.CoreCompileInputs.cache
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.csproj.CopyComplete
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.dll
+C:\Users\Spectre\Documents\SHELL\GIT_NET\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Contract\obj\Debug\ControlVolumetricoShellWS.Contract.pdb

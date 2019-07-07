@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.Serialization;
 
 namespace ControlVolumetricoShellWS.Dominio
@@ -13,17 +9,75 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public Boolean Resultado { get; set; }
         [DataMember]
-        public string Msj { get; set; }
+        public string RFC { get; set; }
         [DataMember]
-        public string Text { get; set; }
-    }
-    [DataContract]
-    public class Electronic_billingJSON
-    {
+        public string RazonSocial { get; set; }
+        [DataMember]
+        public string Msj { get; set; }
+
+        #region PATRONES SAT
+        public string FolioFiscal { get; set; }
+        [DataMember]
+        public string NumCertificado { get; set; }
+        [DataMember]
+        public string DateCertificacion { get; set; }
+        [DataMember]
+        public string RFCProveedorCert { get; set; }
+        [DataMember]
+        public string SelloDigitaSAT { get; set; }
+        [DataMember]
+        public string SelloDigitaCFDI { get; set; }
+        [DataMember]
+        public string CadenaOrigTimbre { get; set; }
+        #endregion
+
+        #region PINTADO DE TICKET IMPRESION
+        [DataMember]
+        public string Estacion { get; set; }
         [DataMember]
         public string Tienda { get; set; }
         [DataMember]
+        public string NombreCompania { get; set; }
+        [DataMember]
+        public string DireccionCompania { get; set; }
+        [DataMember]
+        public string ColoniaCompania { get; set; }
+        [DataMember]
+        public string MunicipioCompania { get; set; }
+        [DataMember]
+        public string EstadoCompania { get; set; }
+        [DataMember]
+        public string PaisCompania { get; set; }
+        [DataMember]
+        public string CodigoPostalCompania { get; set; }
+        [DataMember]
+        public string RfcCompania { get; set; }
+        [DataMember]
+        public string PermisoCRE { get; set; }
+        [DataMember]
         public string RegFiscal { get; set; }
+        [DataMember]
+        public string ExpedicionTienda { get; set; }
+        [DataMember]
+        public string DireccionTienda { get; set; }
+        [DataMember]
+        public string ColoniaTienda { get; set; }
+        [DataMember]
+        public string MunicipioTienda { get; set; }
+        [DataMember]
+        public string EstadoTienda { get; set; }
+        [DataMember]
+        public string PaisTienda { get; set; }
+        [DataMember]
+        public string CodigoPostalTienda { get; set; }
+        [DataMember]
+        public string HeaderTick1 { get; set; }
+        [DataMember]
+        public string HeaderTick2 { get; set; }
+        [DataMember]
+        public string HeaderTick3 { get; set; }
+        [DataMember]
+        public string HedaerTick4 { get; set; }
         [DataMember]
         public string Ticket { get; set; }
         [DataMember]
@@ -47,19 +101,18 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public decimal Total { get; set; }
         [DataMember]
-        public string FolioFiscal { get; set; }
+        public string ImporteEnLetra { get; set; }
         [DataMember]
-        public string NumSat { get; set; }
+        public string FooterTick1 { get; set; }
         [DataMember]
-        public string DatetimeCert { get; set; }
+        public string FooterTick2 { get; set; }
         [DataMember]
-        public string RfcPro { get; set; }
+        public string FooterTick3 { get; set; }
         [DataMember]
-        public string SelloSat { get; set; }
+        public string FooterTick4 { get; set; }
         [DataMember]
-        public string SelloCdfi { get; set; }
-        [DataMember]
-        public string Timbre { get; set; }
+        public string FooterTick5 { get; set; }
+        #endregion
     }
 
     [DataContract]
@@ -72,6 +125,6 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public decimal Precio { get; set; }
         [DataMember]
-        public decimal Importe { get; set; }
+        public decimal Precioimporte { get; set; }
     }
 }

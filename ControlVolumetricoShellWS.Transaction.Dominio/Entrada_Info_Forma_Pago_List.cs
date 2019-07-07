@@ -1,22 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace ControlVolumetricoShellWS.Dominio
 {
     [DataContract]
     public class Entrada_Info_Forma_Pago_List
     {
+        /// <summary>
+        /// Número de autorización 
+        /// </summary>
         [DataMember]
-        string nNum_autorizacions { get; set; }
+        public string nNum_autorizacions { get; set; }
+
+        /// <summary>
+        /// Últimos cuatro dígitos de la tarjeta 
+        /// </summary>
         [DataMember]
-        string Ultimos_Digitoss { get; set; }
+        public string Ultimos_Digitoss { get; set; }
+
+        /// <summary>
+        /// Forma de pago
+        /// </summary>
         [DataMember]
-        string formapagos { get; set; }
+        public string formapagos { get; set; }
+
+        /// <summary>
+        /// IVA del producto.
+        /// </summary>
         [DataMember]
-        double importes { get; set; }
+        public int IvaProducto { get; set; }
+
+        /// <summary>
+        /// Identificador de producto
+        /// </summary>
+        [DataMember]
+        public int Id_product { get; set; }
+
+        /// <summary>
+        /// Cantidad en litros.
+        /// </summary>
+        [DataMember]
+        public decimal Cantidad { get; set; }
+
+        /// <summary>
+        /// importe
+        /// </summary>
+        [DataMember]
+        public decimal Importe_Unitario { get; set; }
+
+        /// <summary>
+        /// Importe.
+        /// </summary>
+        [DataMember]
+        public decimal Importetotal { get; set; }
     }
 }

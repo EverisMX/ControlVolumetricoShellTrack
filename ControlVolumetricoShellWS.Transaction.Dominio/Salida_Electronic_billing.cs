@@ -16,6 +16,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Msj { get; set; }
 
         #region PATRONES SAT
+        [DataMember]
         public string FolioFiscal { get; set; }
         [DataMember]
         public string NumCertificado { get; set; }
@@ -126,5 +127,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public decimal Precio { get; set; }
         [DataMember]
         public decimal Precioimporte { get; set; }
+        [DataMember]
+        public decimal IvaProducto { get; set; }
     }
 }

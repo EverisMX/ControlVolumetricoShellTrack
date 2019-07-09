@@ -269,7 +269,10 @@ namespace ControlVolumetricoShellWS.Implementation
                 Nombre = "Producto" + b,
                 Cantidad = 0,
                 Precioimporte = Convert.ToDecimal(num),
-                Precio = Convert.ToDecimal(a)
+                Precio = Convert.ToDecimal(a),
+                IvaProducto = Convert.ToDecimal(16)
+                
+                
             };
 
             var salida = new Salida_Electronic_billing

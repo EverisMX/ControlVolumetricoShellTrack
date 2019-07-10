@@ -8,6 +8,7 @@ using System.Web.Script.Serialization;
 using ControlVolumetricoShellWS.Contract;
 using ControlVolumetricoShellWS.Dominio;
 using Conection.HubbleWS;
+using Conection.HubbleWS.Models.Facturacion;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -243,7 +244,7 @@ namespace ControlVolumetricoShellWS.Implementation
             return salida;
         }
 
-        public Salida_Electronic_billing Electronic_billing(Entrada_Electronic_billing request)
+        public async Task<Salida_Electronic_billing> Electronic_billing(Entrada_Electronic_billing request)
         {
             Entrada_Electronic_billing requestNew = new Entrada_Electronic_billing
             {
@@ -259,76 +260,140 @@ namespace ControlVolumetricoShellWS.Implementation
                 TipoOperacion = request.TipoOperacion
             };
 
-            Random r = new Random();
-            double a = r.NextDouble();
-            int b = r.Next(100, 999);
-
-            double num = (Math.Truncate(a * 100) / 100);
-            Productos productos = new Productos
-            {
-                Nombre = "Producto" + b,
-                Cantidad = 0,
-                Precioimporte = Convert.ToDecimal(num),
-                Precio = Convert.ToDecimal(a),
-                IvaProducto = Convert.ToDecimal(16)
-                
-                
+//se nesesitan estos datos para facturar agregamos
+            var res = new ListTicketDAO {
+                EESS = request.EESS,
+                NTicket = request.Nticket,
+                RFC = "AAA010101AAA",
+                WebID = request.WebID
             };
 
-            var salida = new Salida_Electronic_billing
-            {
-                Msj = "Impresion de prueva",
-                Resultado = true,
-                RazonSocial = "Punto Clave",
-                RFC = "PC0001",
-                SelloDigitaSAT = "",
-                CadenaOrigTimbre = "",
-                DateCertificacion = "",
-                FolioFiscal = "",
-                NumCertificado = "",
-                RFCProveedorCert = "",
-                SelloDigitaCFDI = "",
-                CodigoPostalCompania = "37238",
-                CodigoPostalTienda = "03310",
-                ColoniaCompania = "CANADA DE ALFARO",
-                ColoniaTienda = "SANTA CRUZ ATOYAC",
-                DireccionCompania = "BLVD. JOSE MARIA MORELOS 3702",
-                DireccionTienda = "AV. POPOCATEPETL",
-                Estacion = "P00963",
-                EstadoCompania = "GUANAJUATO",
-                EstadoTienda = "CIUDAD DE MEXICO",
-                ExpedicionTienda = "03310",
-                FooterTick1 = "GRACIAS POR SU PREFERENCIA",
-                FooterTick2 = "FACTURACION EN LINEA",
-                FooterTick3 = "https//www.shell.com.mx",
-                FooterTick4 = "Descarga FACTURAS",
-                FooterTick5 = "facturar donde sea.",
-                HeaderTick1 = "Clientes dudas respecto a nuestros productos y servicios?",
-                HeaderTick2 = "Ingresa a:",
-                HeaderTick3 = " https://support.shell.com.mx/hces-mx",
-                HedaerTick4 = "y responde tus dudas en Soporte Shell",
-                MunicipioCompania = "LEON",
-                MunicipioTienda = "BENITO JUEREZ",
-                NombreCompania = "MEGA GASOLINERAS SA DE CV",
-                PaisCompania = "MEXICO",
-                PaisTienda = "MEXICO",
-                PermisoCRE = "PL/963/EXP/ES/2015",
-                RfcCompania = "MGA110810CC3",
-                Fecha = "",
-                Folio = "",
-                FormaPago = "",
-                Iva = 0,
-                Operador = "",
-                Producto = productos,
-                RegFiscal = "",
-                Subtotal = 0,
-                Terminal = "",
-                Ticket = "",
-                Tienda = "SHELL POPO",
-                Total = 0,
-                WebID = "",
-                ImporteEnLetra = ""
+            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+
+            GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice {
+                EmpresaPortal = "01",
+                ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
+                EESS =res.EESS,
+                NTicket=res.NTicket,
+                RFC=res.RFC,
+                WebID=res.WebID} }
             };
+
+
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+
+
+
+            Salida_Electronic_billing salida = new Salida_Electronic_billing {
+
+                SelloDigitaSAT = responsefacturacion.SelloDigitaSAT,
+                SelloDigitaCFDI=responsefacturacion.SelloDigitaCFDI,
+                CadenaOrigTimbre=responsefacturacion.CadenaOrigTimbre,
+                FolioFiscal = responsefacturacion.FolioFiscal,
+                RFCProveedorCert = responsefacturacion.RFCProveedorCert,
+                NumCertificado = responsefacturacion.NumCertificado,
+                DateCertificacion=responsefacturacion.DateCertificacion
+            };
+
+            //if (responsefacturacion.SelloDigitaSAT !=null)
+            //{
+                
+            //    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
+            //    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
+               
+            //}
+
+
+
+            //var aaa = new Salida_Electronic_billing {
+            //    SelloDigitaSAT=responsefacturacion.SelloDigitaSAT
+
+
+            //};
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //Random r = new Random();
+            //double a = r.NextDouble();
+            //int b = r.Next(100, 999);
+
+            //double num = (Math.Truncate(a * 100) / 100);
+            //Productos productos = new Productos
+            //{
+            //    Nombre = "Producto" + b,
+            //    Cantidad = 0,
+            //    Precioimporte = Convert.ToDecimal(num),
+            //    Precio = Convert.ToDecimal(a),
+            //    IvaProducto = Convert.ToDecimal(16)
+                
+                
+            //};
+
+            //var salida = new Salida_Electronic_billing
+            //{
+            //    Msj = "Impresion de prueva",
+            //    Resultado = true,
+            //    RazonSocial = "Punto Clave",
+            //    RFC = "PC0001",
+            //    SelloDigitaSAT = "",
+            //    CadenaOrigTimbre = "",
+            //    DateCertificacion = "",
+            //    FolioFiscal = "",
+            //    NumCertificado = "",
+            //    RFCProveedorCert = "",
+            //    SelloDigitaCFDI = "",
+            //    CodigoPostalCompania = "37238",
+            //    CodigoPostalTienda = "03310",
+            //    ColoniaCompania = "CANADA DE ALFARO",
+            //    ColoniaTienda = "SANTA CRUZ ATOYAC",
+            //    DireccionCompania = "BLVD. JOSE MARIA MORELOS 3702",
+            //    DireccionTienda = "AV. POPOCATEPETL",
+            //    Estacion = "P00963",
+            //    EstadoCompania = "GUANAJUATO",
+            //    EstadoTienda = "CIUDAD DE MEXICO",
+            //    ExpedicionTienda = "03310",
+            //    FooterTick1 = "GRACIAS POR SU PREFERENCIA",
+            //    FooterTick2 = "FACTURACION EN LINEA",
+            //    FooterTick3 = "https//www.shell.com.mx",
+            //    FooterTick4 = "Descarga FACTURAS",
+            //    FooterTick5 = "facturar donde sea.",
+            //    HeaderTick1 = "Clientes dudas respecto a nuestros productos y servicios?",
+            //    HeaderTick2 = "Ingresa a:",
+            //    HeaderTick3 = " https://support.shell.com.mx/hces-mx",
+            //    HedaerTick4 = "y responde tus dudas en Soporte Shell",
+            //    MunicipioCompania = "LEON",
+            //    MunicipioTienda = "BENITO JUEREZ",
+            //    NombreCompania = "MEGA GASOLINERAS SA DE CV",
+            //    PaisCompania = "MEXICO",
+            //    PaisTienda = "MEXICO",
+            //    PermisoCRE = "PL/963/EXP/ES/2015",
+            //    RfcCompania = "MGA110810CC3",
+            //    Fecha = "",
+            //    Folio = "",
+            //    FormaPago = "",
+            //    Iva = 0,
+            //    Operador = "",
+            //    Producto = productos,
+            //    RegFiscal = "",
+            //    Subtotal = 0,
+            //    Terminal = "",
+            //    Ticket = "",
+            //    Tienda = "SHELL POPO",
+            //    Total = 0,
+            //    WebID = "",
+            //    ImporteEnLetra = ""
+            //};
             return salida;
         }
     }

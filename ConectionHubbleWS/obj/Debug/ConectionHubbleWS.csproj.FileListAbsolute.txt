@@ -35,6 +35,7 @@ C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\
 C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Microsoft.AspNet.SignalR.Client.pdb
 C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Microsoft.AspNet.SignalR.Client.xml
 C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Newtonsoft.Json.xml
+C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csprojAssemblyReference.cache
 C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CoreCompileInputs.cache
 C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CopyComplete
 C:\Users\efelipel\Desktop\ws-Controlvolumetrico-pc\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.dll

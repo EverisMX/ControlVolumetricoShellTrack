@@ -21,6 +21,6 @@ namespace ControlVolumetricoShellWS.Contract
         Task<Salida_getProductInfo> getProductInfo(Entrada_getProductInfo request);
         //Salida_getProductInfo getProductInfo(Entrada_ValidCustumer request);
         [OperationContract]
-        Salida_Electronic_billing Electronic_billing(Entrada_Electronic_billing request);
+        Task<Salida_Electronic_billing> Electronic_billing(Entrada_Electronic_billing request);
     }
 }

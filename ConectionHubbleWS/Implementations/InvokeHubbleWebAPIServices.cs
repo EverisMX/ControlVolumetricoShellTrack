@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using Newtonsoft.Json;
+using Conection.HubbleWS.Models.Facturacion;
 
 namespace Conection.HubbleWS
 {
@@ -29,7 +30,7 @@ namespace Conection.HubbleWS
                     if (response.IsSuccessStatusCode)
                     {
                         var responseJson = response.Content.ReadAsStringAsync().Result;
-
+                       
                         //SHELLMX- Se desSerializa para transformarlo en un Objeto.
                         GetProductForSaleResponse deserializeJson = JsonConvert.DeserializeObject<GetProductForSaleResponse>(responseJson);
 
@@ -41,5 +42,50 @@ namespace Conection.HubbleWS
             }
         }
         #endregion
+
+        #region
+        public async Task<facresponse> tpvfacturacionn(GenerateElectronicInvoice requestfac)
+        {
+
+
+
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:8091");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
+                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/Electronicbill", requestfac))
+                {
+                    
+                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseJson = response.Content.ReadAsStringAsync().Result;
+                        //como es un objeto nos genera basura por lo que la remplazamos 
+                        string responsejsonn = responseJson.Replace("\\","").Replace("\"{", "{").Replace("}\"", "}");
+                        //SHELLMX- Se desSerializa para transformarlo en un Objeto.
+                        facresponse deserializeJson = JsonConvert.DeserializeObject<facresponse>(responsejsonn);
+
+
+                        return deserializeJson;
+
+                        
+                    }
+                    else
+                        return null;
+                }
+               
+            }
+
+        }
+
+
+
+        #endregion
+
+
+
     }
 }

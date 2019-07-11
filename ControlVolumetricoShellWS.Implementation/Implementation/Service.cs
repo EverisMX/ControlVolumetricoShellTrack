@@ -14,7 +14,7 @@ namespace ControlVolumetricoShellWS.Implementation
 {
     public class Service : IService
     {
-        public Salida_Obtiene_Tran Obtiene_Tran(Entrada_Obtiene_Tran request)
+        public async Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request)
         {
             Entrada_Obtiene_Tran requestNew = new Entrada_Obtiene_Tran
             {
@@ -28,10 +28,10 @@ namespace ControlVolumetricoShellWS.Implementation
 
             };
 
-            Random r = new Random();
+            #region CODIGO MOCK
+            /*Random r = new Random();
             double a = r.NextDouble();
             int b = r.Next(1001, 5890);
-
             double num = (Math.Truncate(a * 20000) / 100);
             double lit = (Math.Truncate(a * 10000) / 100);
             int variableA = r.Next(1, 4);
@@ -51,50 +51,6 @@ namespace ControlVolumetricoShellWS.Implementation
                     type = "UNDEFINED";
                     break;
             }
-
-            // SHELLMX- Al momento de traer la informacion sobre la transaccion que hay en parte sobre un surtidor, bloquea en el TVP que Action lo este usando, Se contruye el objeto
-            //          a llenar de lock para traer la demas informacion sobre la transaccion del Surtidor seleccinado.
-
-            /*ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
-            var lockTransactionInformation = conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint("");
-            Salida_Obtiene_Tran salida_Obtiene_Tran;
-
-            if (!lockTransactionInformation.Equals("ERROR"))
-            {
-                salida_Obtiene_Tran = new Salida_Obtiene_Tran
-                {
-                    Resultado = true,
-                    ID_Interno = 0,
-                    Msj = lockTransactionInformation,
-                    Estacion = 1213,
-                    Importe = 0,
-                    Litros = 0,
-                    Num_Operacion = 0,
-                    Parcial = false,
-                    PosID = 0,
-                    Precio_Uni = 0,
-                    Producto = ""
-                };
-            }
-            else
-            {
-                LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPointResponse = JsonConvert.DeserializeObject<LockSupplyTransactionOfFuellingPointResponse>(lockTransactionInformation);
-                salida_Obtiene_Tran = new Salida_Obtiene_Tran
-                {
-                    Resultado = true,
-                    ID_Interno = b,
-                    Msj = "mensaje",
-                    Estacion = 1213,
-                    Importe = num,
-                    Litros = lit,
-                    Num_Operacion = b,
-                    Parcial = true,
-                    PosID = b + 1,
-                    Precio_Uni = num,
-                    Producto = type
-                };
-            }*/
-
             Salida_Obtiene_Tran salida_Obtiene_Tran = new Salida_Obtiene_Tran
             {
                 Resultado = true,
@@ -108,7 +64,70 @@ namespace ControlVolumetricoShellWS.Implementation
                 PosID = b + 1,
                 Precio_Uni = num,
                 Producto = type
-            };
+            };*/
+            #endregion
+
+            // SHELLMX- Al momento de traer la informacion sobre la transaccion que hay en parte sobre un surtidor, bloquea en el TVP que Action lo este usando, Se contruye el objeto
+            //          a llenar de lock para traer la demas informacion sobre la transaccion del Surtidor seleccinado.
+
+            ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+            // SHELLMX- Se manda a consumir el Identity del POS a activar.
+            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+
+            LockSupplyTransactionOfFuellingPointResponse lockTransactionInformation = await conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint(bsObj.Identity, request.Pos_Carga);
+            Salida_Obtiene_Tran salida_Obtiene_Tran;
+
+            if (!lockTransactionInformation.Equals("ERROR"))
+            {
+                //LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPointResponse = JsonConvert.DeserializeObject<LockSupplyTransactionOfFuellingPointResponse>(lockTransactionInformation);
+                salida_Obtiene_Tran = new Salida_Obtiene_Tran
+                {
+                    Resultado = true,
+                    ID_Interno = 0,
+                    Msj = "mensaje",
+                    Estacion = 1213,
+                    Importe = 2.2,
+                    Litros = 0,
+                    Num_Operacion = 0,
+                    Parcial = true,
+                    PosID = 1,
+                    Precio_Uni = 0,
+                    Producto = ""
+                };
+
+                salida_Obtiene_Tran = new Salida_Obtiene_Tran
+                {
+                    Resultado = true,
+                    ID_Interno = 0,
+                    Msj = "",
+                    Estacion = 1213,
+                    Importe = 0,
+                    Litros = 0,
+                    Num_Operacion = 0,
+                    Parcial = false,
+                    PosID = 0,
+                    Precio_Uni = 0,
+                    Producto = ""
+                };
+            }
+            else
+            {
+                salida_Obtiene_Tran = new Salida_Obtiene_Tran
+                {
+                    Resultado = true,
+                    ID_Interno = 0,
+                    Msj = "",
+                    Estacion = 1213,
+                    Importe = 0,
+                    Litros = 0,
+                    Num_Operacion = 0,
+                    Parcial = false,
+                    PosID = 0,
+                    Precio_Uni = 0,
+                    Producto = ""
+                };
+            }
             return salida_Obtiene_Tran;
         }
 

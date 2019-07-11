@@ -12,7 +12,8 @@ namespace ControlVolumetricoShellWS.Contract
     public interface IService
     {
         [OperationContract]
-        Salida_Obtiene_Tran Obtiene_Tran(Entrada_Obtiene_Tran request);
+        //Salida_Obtiene_Tran Obtiene_Tran(Entrada_Obtiene_Tran request);
+        Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request);
         [OperationContract]
         Salida_Info_Forma_Pago Info_Forma_Pago(Entrada_Info_Forma_Pagos request);
         [OperationContract]

@@ -1,7 +1,7 @@
 ﻿
 namespace ControlVolumetricoShellWS.Implementation
 {
-    public class LockSupplyTransactionOfFuellingPointResponse
+    public class LockSupplyTransactionOfFuellingPointResponse : BaseResponse
     {
         public string ProductReference { get; set; }
         public string ProductName { get; set; }

@@ -65,6 +65,9 @@
     <Compile Include="Models\Facturacion\GenerateElectronicInvoice.cs" />
     <Compile Include="Models\Facturacion\ListTicketDAO.cs" />
     <Compile Include="Models\Hubble\BaseRequest.cs" />
+    <Compile Include="Models\Hubble\BaseResponse.cs" />
+    <Compile Include="Models\Hubble\GetPOSConfigurationRequest.cs" />
+    <Compile Include="Models\Hubble\GetPOSConfigurationResponse.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleRequest.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

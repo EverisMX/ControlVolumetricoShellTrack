@@ -52,5 +52,11 @@ namespace ControlVolumetricoShellWS.Dominio
         /// </summary>
         [DataMember]
         public decimal Importetotal { get; set; }
+
+        /// <summary>
+        /// Importe.
+        /// </summary>
+        [DataMember]
+        public decimal montoPagadoParcial { get; set; }
     }
 }

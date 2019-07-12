@@ -20,10 +20,10 @@ namespace ControlVolumetricoShellWS.Dominio
         public IList<Entrada_Info_Forma_Pago_List> Info_Forma_Pago { get; set; } = new List<Entrada_Info_Forma_Pago_List>();
 
         /// <summary>
-        /// Lista de los pagos totales en la venta.
+        /// Número de estación por parte de PC
         /// </summary>
         [DataMember]
-        public IList<Info_Pagos_Parciales> Info_Pagos_Parciales { get; set; } = new List<Info_Pagos_Parciales>();
+        public decimal PorpagarEntrada { get; set; }
 
         /// <summary>
         /// Número de estación por parte de PC

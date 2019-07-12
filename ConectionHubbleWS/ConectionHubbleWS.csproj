@@ -66,10 +66,16 @@
     <Compile Include="Models\Facturacion\ListTicketDAO.cs" />
     <Compile Include="Models\Hubble\BaseRequest.cs" />
     <Compile Include="Models\Hubble\BaseResponse.cs" />
+    <Compile Include="Models\Hubble\GetOperatorRequest.cs" />
+    <Compile Include="Models\Hubble\GetOperatorResponse.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationRequest.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationResponse.cs" />
+    <Compile Include="Models\Hubble\GetPosInformationRequest.cs" />
+    <Compile Include="Models\Hubble\GetPOSInformationResponse.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleRequest.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleResponse.cs" />
+    <Compile Include="Models\Hubble\Operator.cs" />
+    <Compile Include="Models\Hubble\POSInformation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

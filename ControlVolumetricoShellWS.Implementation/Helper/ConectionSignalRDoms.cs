@@ -11,6 +11,7 @@ namespace ControlVolumetricoShellWS.Implementation
         public string serverAddress = "http://localhost:8092/signalr";
         public event Action OnConnected;
         public event Action OnDisconnected;
+        public short Status = 0;
 
         public ConectionSignalRDoms()
         {
@@ -25,6 +26,8 @@ namespace ControlVolumetricoShellWS.Implementation
             hubConnection = new HubConnection(serverAddress);
             hubProxy = hubConnection.CreateHubProxy("pssHub");
             bool isConnected = false;
+            StatusConectionHubble(0);
+
             while (!isConnected)
             {
                 try
@@ -35,13 +38,24 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     isConnected = true;
                     OnConnected?.Invoke();
+                    StatusConectionHubble(1);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
-                    throw e;
-                    //LogError("Connection to server failed: " + e.Message);
+                    StatusConectionHubble(-1);
+                    Console.WriteLine(e);
+                    return;
                 }
             }
+        }
+
+        private void StatusConectionHubble(short statutus)
+        {
+            Status = statutus;
+        }
+        public short StatusConectionHubbleR()
+        {
+            return Status;
         }
 
         private void OnHubConnectionClosed()
@@ -62,6 +76,11 @@ namespace ControlVolumetricoShellWS.Implementation
             OnDisconnected?.Invoke();
         }
 
+        public void CleanObject()
+        {
+
+        }
+
         public async Task<LockSupplyTransactionOfFuellingPointResponse> LockSupplyTransactionOfFuellingPoint(string identity , int fuellingPointId)
         {
             try
@@ -69,7 +88,6 @@ namespace ControlVolumetricoShellWS.Implementation
                 // SHELLMX- Se manda a consumir el metodo para traer la informacion del Operador-
                 // 1- Para el Proceso se debe traer en primera instancia el operador en turno.
                 // 2- Debe de estar almacenado en una proceso o proyecto. 
-                // * SE COLOCARA EN DURO EL PROCESO PARA PRUEBAS.
 
                 // Se pregunta si esta conecta
                 if (!IsConnected())
@@ -92,8 +110,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     supplyTransactionOfFuellingPoint = null;
                     supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                    LockSupplyTransactionOfFuellingPointResponse lockSupply = new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message, Status = supplyTransactionOfFuellingPoint.Status };
-                    return lockSupply;
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message, Status = supplyTransactionOfFuellingPoint.Status };
                 }
 
                 // SHELLMX- Se manda a traer la informacion sobre el Cliente Contado para este proceso.
@@ -111,12 +128,16 @@ namespace ControlVolumetricoShellWS.Implementation
                     OperatorId = request.OperatorId
                 };
 
+                decimal gradeUnitPrice = 0.0M;
                 foreach (var supply in supplyTransactionOfFuellingPoint.SupplyTransactionList)
                 {
                     lockRequest.SupplyTransactionId = supply.Id;
+                    gradeUnitPrice = supply.GradeUnitPrice;
                 }
 
                 LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPoint = hubProxy.Invoke<LockSupplyTransactionOfFuellingPointResponse>("LockSupplyTransactionOfFuellingPoint", lockRequest).Result;
+                lockSupplyTransactionOfFuellingPoint.Id = lockRequest.SupplyTransactionId;
+                lockSupplyTransactionOfFuellingPoint.GradeUnitPrice = gradeUnitPrice;
                 //lockSupplyTransaction = JsonConvert.SerializeObject(lockSupplyTransactionOfFuellingPoint);
 
                 return lockSupplyTransactionOfFuellingPoint;
@@ -127,5 +148,28 @@ namespace ControlVolumetricoShellWS.Implementation
                 //OnConnectionFailed?.Invoke(e.Message);
             }
         }
+
+        //SHELLMX- Metodo SignalR para la cancelacion de la autorizacion en la parte del concepto de la liberacion de surtidor.
+        /*public async Task CancelAuthorizationOfFuellingPoint(string identity, int fuellingPointId)
+        {
+            try
+            {
+                // SHELLMX- Se revisa la conexion en la parte del psshub. 
+                // Se pregunta si esta conecta
+                if (!IsConnected())
+                {
+                    ConnectToServer();
+                }
+
+                //SHELLMX- Se invoca la cancelacion sobre el surtidor.
+                hubProxy.On<>("Receive", message => OnReceive(message));
+            }
+            catch (Exception e)
+            {
+                throw e;
+                //OnConnectionFailed?.Invoke(e.Message);
+            }
+        }*/
+
     }
 }

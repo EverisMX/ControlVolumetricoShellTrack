@@ -11,5 +11,13 @@ namespace ControlVolumetricoShellWS.Implementation
         public decimal DiscountedAmount { get; set; }
         public decimal FinalAmount { get; set; }
         public decimal TaxPercentage { get; set; }
+        /// <summary>
+        /// Identificador de la trnnsaccion del surtidor.
+        /// </summary>
+        public int Id { get; set; }
+        /// <summary>
+        /// Price of grade
+        /// </summary>
+        public decimal GradeUnitPrice { get; set; }
     }
 }

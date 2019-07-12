@@ -14,15 +14,17 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public string Producto { get; set; }
         [DataMember]
-        public double Importe { get; set; }
+        public decimal Importe { get; set; }
         [DataMember]
         public int PosID { get; set; }
         [DataMember]
         public long Num_Operacion { get; set; }
         [DataMember]
-        public double Precio_Uni { get; set; }
+        public decimal Precio_Uni { get; set; }
         [DataMember]
-        public double Litros { get; set; }
+        public decimal IvaPorcentaje { get; set; }
+        [DataMember]
+        public decimal Litros { get; set; }
         [DataMember]
         public long ID_Interno { get; set; }
         [DataMember]

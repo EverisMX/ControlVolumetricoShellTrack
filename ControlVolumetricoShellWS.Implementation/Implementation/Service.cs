@@ -71,69 +71,95 @@ namespace ControlVolumetricoShellWS.Implementation
             //          a llenar de lock para traer la demas informacion sobre la transaccion del Surtidor seleccinado.
 
             ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+            Salida_Obtiene_Tran salida_Obtiene_Tran;
+
+            if (conectionSignalRDoms.StatusConectionHubbleR() < 0)
+            {
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    ID_Interno = -1,
+                    Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
+                    Estacion = -1,
+                    Importe = -1,
+                    Litros = -1,
+                    IvaPorcentaje = -1,
+                    Num_Operacion = -1,
+                    Parcial = false,
+                    PosID = -1,
+                    Precio_Uni = -1,
+                    Producto = ""
+                };
+            }
+
             // SHELLMX- Se manda a consumir el Identity del POS a activar.
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
 
             LockSupplyTransactionOfFuellingPointResponse lockTransactionInformation = await conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint(bsObj.Identity, request.Pos_Carga);
-            Salida_Obtiene_Tran salida_Obtiene_Tran;
+            //Salida_Obtiene_Tran salida_Obtiene_Tran;
 
-            if (!lockTransactionInformation.Equals("ERROR"))
+            if (lockTransactionInformation.Status < 0)
             {
-                //LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPointResponse = JsonConvert.DeserializeObject<LockSupplyTransactionOfFuellingPointResponse>(lockTransactionInformation);
                 salida_Obtiene_Tran = new Salida_Obtiene_Tran
                 {
-                    Resultado = true,
-                    ID_Interno = 0,
-                    Msj = "mensaje",
-                    Estacion = 1213,
-                    Importe = 2.2,
-                    Litros = 0,
-                    Num_Operacion = 0,
-                    Parcial = true,
-                    PosID = 1,
-                    Precio_Uni = 0,
-                    Producto = ""
-                };
-
-                salida_Obtiene_Tran = new Salida_Obtiene_Tran
-                {
-                    Resultado = true,
-                    ID_Interno = 0,
-                    Msj = "",
-                    Estacion = 1213,
-                    Importe = 0,
-                    Litros = 0,
-                    Num_Operacion = 0,
+                    Resultado = false,
+                    ID_Interno = -1,
+                    Msj = lockTransactionInformation.Message,
+                    Estacion = -1,
+                    Importe = -1,
+                    Litros = -1,
+                    Num_Operacion = -1,
+                    IvaPorcentaje = -1,
                     Parcial = false,
-                    PosID = 0,
-                    Precio_Uni = 0,
+                    PosID = -1,
+                    Precio_Uni = -1,
                     Producto = ""
                 };
             }
             else
             {
+                var nameProduct = "";
+                switch (lockTransactionInformation.ProductName)
+                {
+                    case "Super":
+                        nameProduct = "95";
+                        break;
+                    case "V-Power":
+                        nameProduct = "97";
+                        break;
+                    case "Diesel":
+                        nameProduct = "90";
+                        break;
+                    default:
+                        break;
+                }
+
+                InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
+                GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
                 salida_Obtiene_Tran = new Salida_Obtiene_Tran
                 {
                     Resultado = true,
-                    ID_Interno = 0,
-                    Msj = "",
-                    Estacion = 1213,
-                    Importe = 0,
-                    Litros = 0,
-                    Num_Operacion = 0,
+                    ID_Interno = lockTransactionInformation.Id,
+                    Msj = lockTransactionInformation.Message,
+                    Estacion = Convert.ToInt32(getPOSInformationResponse.PosInformation.ShopCode),
+                    Importe = lockTransactionInformation.FinalAmount,
+                    Litros = lockTransactionInformation.CorrespondingVolume,
+                    Num_Operacion = request.Pos_Carga,
                     Parcial = false,
-                    PosID = 0,
-                    Precio_Uni = 0,
-                    Producto = ""
+                    PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
+                    Precio_Uni = lockTransactionInformation.GradeUnitPrice,
+                    IvaPorcentaje = lockTransactionInformation.TaxPercentage,
+                    Producto = nameProduct,
                 };
             }
             return salida_Obtiene_Tran;
         }
 
-        public Salida_Info_Forma_Pago Info_Forma_Pago(Entrada_Info_Forma_Pagos request)
+        public async Task<Salida_Info_Forma_Pago> Info_Forma_Pago(Entrada_Info_Forma_Pagos request)
         {
-            Entrada_Info_Forma_Pagos requestNew = new Entrada_Info_Forma_Pagos
+            /*Entrada_Info_Forma_Pagos requestNew = new Entrada_Info_Forma_Pagos
             {
                 Id_Transaccion = request.Id_Transaccion,
                 Info_Forma_Pago = request.Info_Forma_Pago,
@@ -142,7 +168,39 @@ namespace ControlVolumetricoShellWS.Implementation
                 Pos_Carga = request.Pos_Carga,
                 idpos = request.idpos,
                 Id_teller = request.Id_teller,
-            };
+            };*/
+
+            if(request.Id_teller == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- ERROR OPERADOR ESTA VACIO EN LA ENTRADA",
+                };
+            }
+
+            //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
+            // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
+            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
+            GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
+
+            if(getOperatorResponse.Operator == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- ERROR OPERADOR NO EXISTE",
+                };
+            }
+
+            //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
+
             //SHELLMX - Se verifica si es parcial la venta.
             /*if(request.parciales)
             {
@@ -182,15 +240,13 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public Salida_LiberaCarga LiberaCarga(Entrada_LiberaCarga request)
         {
-            Entrada_LiberaCarga requestNew = new Entrada_LiberaCarga
-            {
-                idpos = request.idpos,
-                Pos_Carga = request.Pos_Carga,
-                nHD = request.nHD,
-                pss = request.pss,
-                PTID = request.PTID,
-                serial = request.serial
-            };
+            // SHELLMX- Se manda a consumir el Identity del POS a activar.
+            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+
+            //ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+            //await conectionSignalRDoms.CancelAuthorizationOfFuellingPoint("", 4);
+
             var salida = new Salida_LiberaCarga
             {
                 Msj = "Liberacion de bomba",

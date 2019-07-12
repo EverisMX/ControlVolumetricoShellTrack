@@ -110,7 +110,10 @@ namespace ControlVolumetricoShellWS.Implementation
                     supplyTransactionOfFuellingPoint = null;
                     supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                    return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message, Status = supplyTransactionOfFuellingPoint.Status };
+                    if(supplyTransactionOfFuellingPoint.Status < 0)
+                    {
+                        return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " |SHELLMX- ERROR FATAL supplyTransactionOfFuellingPoint IN IDTRANSACTION @115", Status = supplyTransactionOfFuellingPoint.Status };
+                    }
                 }
 
                 // SHELLMX- Se manda a traer la informacion sobre el Cliente Contado para este proceso.
@@ -136,6 +139,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
 
                 LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPoint = hubProxy.Invoke<LockSupplyTransactionOfFuellingPointResponse>("LockSupplyTransactionOfFuellingPoint", lockRequest).Result;
+
+                if(lockSupplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " |SHELLMX- ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145", Status = supplyTransactionOfFuellingPoint.Status };
+                }
+
                 lockSupplyTransactionOfFuellingPoint.Id = lockRequest.SupplyTransactionId;
                 lockSupplyTransactionOfFuellingPoint.GradeUnitPrice = gradeUnitPrice;
                 //lockSupplyTransaction = JsonConvert.SerializeObject(lockSupplyTransactionOfFuellingPoint);

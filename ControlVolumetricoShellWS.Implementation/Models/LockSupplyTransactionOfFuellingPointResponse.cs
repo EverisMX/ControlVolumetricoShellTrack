@@ -19,5 +19,9 @@ namespace ControlVolumetricoShellWS.Implementation
         /// Price of grade
         /// </summary>
         public decimal GradeUnitPrice { get; set; }
+        /// <summary>
+        /// Gets or sets the grade identifier.
+        /// </summary>
+        public int GradeId { get; set; }
     }
 }

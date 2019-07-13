@@ -131,23 +131,25 @@ namespace ControlVolumetricoShellWS.Implementation
                     OperatorId = request.OperatorId
                 };
 
+                int grade = 0;
                 decimal gradeUnitPrice = 0.0M;
                 foreach (var supply in supplyTransactionOfFuellingPoint.SupplyTransactionList)
                 {
                     lockRequest.SupplyTransactionId = supply.Id;
                     gradeUnitPrice = supply.GradeUnitPrice;
+                    grade = supply.GradeId;
                 }
 
                 LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPoint = hubProxy.Invoke<LockSupplyTransactionOfFuellingPointResponse>("LockSupplyTransactionOfFuellingPoint", lockRequest).Result;
 
                 if (lockSupplyTransactionOfFuellingPoint.Status < 0)
                 {
-                    return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " |SHELLMX- ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145", Status = supplyTransactionOfFuellingPoint.Status };
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " | SHELLMX- ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145", Status = supplyTransactionOfFuellingPoint.Status };
                 }
 
                 lockSupplyTransactionOfFuellingPoint.Id = lockRequest.SupplyTransactionId;
                 lockSupplyTransactionOfFuellingPoint.GradeUnitPrice = gradeUnitPrice;
-                //lockSupplyTransaction = JsonConvert.SerializeObject(lockSupplyTransactionOfFuellingPoint);
+                lockSupplyTransactionOfFuellingPoint.GradeId = grade;
 
                 return lockSupplyTransactionOfFuellingPoint;
             }

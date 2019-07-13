@@ -28,13 +28,13 @@ edite el archivo MSBuild. Visite https://go.microsoft.com/fwlink/?LinkID=208121 
       <publishTime>07/12/2019 11:21:48</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Implementation.dll">
-      <publishTime>07/12/2019 17:49:13</publishTime>
+      <publishTime>07/12/2019 20:35:54</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Implementation.dll.config">
       <publishTime>07/12/2019 11:21:48</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Implementation.pdb">
-      <publishTime>07/12/2019 17:49:13</publishTime>
+      <publishTime>07/12/2019 20:35:54</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Transaction.Dominio.dll">
       <publishTime>07/12/2019 10:58:55</publishTime>
@@ -46,10 +46,10 @@ edite el archivo MSBuild. Visite https://go.microsoft.com/fwlink/?LinkID=208121 
       <publishTime>07/12/2019 10:58:55</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.WCFService.dll">
-      <publishTime>07/12/2019 17:49:14</publishTime>
+      <publishTime>07/12/2019 20:35:55</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.WCFService.pdb">
-      <publishTime>07/12/2019 17:49:14</publishTime>
+      <publishTime>07/12/2019 20:35:55</publishTime>
     </File>
     <File Include="bin/Microsoft.AspNet.SignalR.Client.dll">
       <publishTime>07/12/2019 10:44:57</publishTime>
@@ -85,7 +85,7 @@ edite el archivo MSBuild. Visite https://go.microsoft.com/fwlink/?LinkID=208121 
       <publishTime>07/12/2019 10:44:59</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>07/12/2019 17:58:48</publishTime>
+      <publishTime>07/12/2019 20:36:35</publishTime>
     </File>
     <File Include="Service1.svc">
       <publishTime>07/12/2019 10:44:36</publishTime>

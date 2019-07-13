@@ -126,21 +126,21 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
-                    Msj = lockTransactionInformation.Message,
+                    Msj = "@ SHELLMX - ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145",
                 };
             }
             else
             {
                 var nameProduct = "";
-                switch (lockTransactionInformation.ProductName)
+                switch (lockTransactionInformation.GradeId)
                 {
-                    case "Super":
+                    case 1:
                         nameProduct = "95";
                         break;
-                    case "V-Power":
+                    case 2:
                         nameProduct = "97";
                         break;
-                    case "Diesel":
+                    case 3:
                         nameProduct = "90";
                         break;
                     default:

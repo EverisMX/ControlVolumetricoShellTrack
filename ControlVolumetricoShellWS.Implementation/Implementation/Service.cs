@@ -9,7 +9,6 @@ using ControlVolumetricoShellWS.Contract;
 using ControlVolumetricoShellWS.Dominio;
 using Conection.HubbleWS;
 using Conection.HubbleWS.Models.Facturacion;
-using Conection.HubbleWS.Models.Hubble;
 
 namespace ControlVolumetricoShellWS.Implementation
 {

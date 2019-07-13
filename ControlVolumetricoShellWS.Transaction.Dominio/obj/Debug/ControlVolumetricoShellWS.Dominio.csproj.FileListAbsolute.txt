@@ -61,3 +61,26 @@ C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\
 C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csproj.CopyComplete
 C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
 C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll.config
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\Microsoft.AspNet.SignalR.Client.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\Newtonsoft.Json.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Net.Http.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Net.Http.Extensions.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Net.Http.Primitives.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Security.Cryptography.Algorithms.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Security.Cryptography.Encoding.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Security.Cryptography.Primitives.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Security.Cryptography.X509Certificates.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\Microsoft.AspNet.SignalR.Client.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\Microsoft.AspNet.SignalR.Client.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\Newtonsoft.Json.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Net.Http.Extensions.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\bin\Debug\System.Net.Http.Primitives.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csproj.App.config
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csprojAssemblyReference.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csproj.CoreCompileInputs.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Dominio.csproj.CopyComplete
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ControlVolumetricoShellWS.Transaction.Dominio\obj\Debug\ControlVolumetricoShellWS.Transaction.Dominio.pdb

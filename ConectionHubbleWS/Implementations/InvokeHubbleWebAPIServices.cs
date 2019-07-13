@@ -111,7 +111,7 @@ namespace Conection.HubbleWS
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
                 //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
-                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetPOSConfiguration", getPosInformationRequest))
+                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetPOSInformation", getPosInformationRequest))
                 {
                     response.EnsureSuccessStatusCode();
                     if (response.IsSuccessStatusCode)

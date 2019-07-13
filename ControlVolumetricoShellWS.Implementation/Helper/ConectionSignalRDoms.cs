@@ -81,7 +81,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
         }
 
-        public async Task<LockSupplyTransactionOfFuellingPointResponse> LockSupplyTransactionOfFuellingPoint(string identity , int fuellingPointId)
+        public async Task<LockSupplyTransactionOfFuellingPointResponse> LockSupplyTransactionOfFuellingPoint(string identity, GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
 
                 //string lockSupplyTransaction = "";
-                GetAllSupplyTransactionsOfFuellingPointRequest request = new GetAllSupplyTransactionsOfFuellingPointRequest() { FuellingPointId = fuellingPointId };
+                GetAllSupplyTransactionsOfFuellingPointRequest request = new GetAllSupplyTransactionsOfFuellingPointRequest() { OperatorId = getAllSupplyTransactionsOfFuellingPointRequest.OperatorId, FuellingPointId = getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId };
 
                 // SHELLMX- Se invoca al cliente de SignalR para el consumo del PSS, que se necesita para las transaccion que se tiene en el surtidor seleccinado.
                 //        donde se entrega un objeto de la transaccion que esta habilitado en un surtudor. 
@@ -105,12 +105,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
                 //SHELLMX- Si no entrega ninguna informacion mandamos una segunda INVOCACION AL DOMS.
-                if(supplyTransactionOfFuellingPoint.Status < 0)
+                if (supplyTransactionOfFuellingPoint.Status < 0)
                 {
                     supplyTransactionOfFuellingPoint = null;
                     supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                    if(supplyTransactionOfFuellingPoint.Status < 0)
+                    if (supplyTransactionOfFuellingPoint.Status < 0)
                     {
                         return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " |SHELLMX- ERROR FATAL supplyTransactionOfFuellingPoint IN IDTRANSACTION @115", Status = supplyTransactionOfFuellingPoint.Status };
                     }
@@ -140,7 +140,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPoint = hubProxy.Invoke<LockSupplyTransactionOfFuellingPointResponse>("LockSupplyTransactionOfFuellingPoint", lockRequest).Result;
 
-                if(lockSupplyTransactionOfFuellingPoint.Status < 0)
+                if (lockSupplyTransactionOfFuellingPoint.Status < 0)
                 {
                     return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " |SHELLMX- ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145", Status = supplyTransactionOfFuellingPoint.Status };
                 }
@@ -157,6 +157,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 //OnConnectionFailed?.Invoke(e.Message);
             }
         }
+
+
 
         //SHELLMX- Metodo SignalR para la cancelacion de la autorizacion en la parte del concepto de la liberacion de surtidor.
         /*public async Task CancelAuthorizationOfFuellingPoint(string identity, int fuellingPointId)

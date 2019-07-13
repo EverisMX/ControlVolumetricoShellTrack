@@ -16,6 +16,8 @@ namespace ControlVolumetricoShellWS.Implementation
     {
         public async Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request)
         {
+            #region CODIGO MOCK
+            /*
             Entrada_Obtiene_Tran requestNew = new Entrada_Obtiene_Tran
             {
                 idpos = request.idpos,
@@ -27,9 +29,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 serial = request.serial
 
             };
-
-            #region CODIGO MOCK
-            /*Random r = new Random();
+            Random r = new Random();
             double a = r.NextDouble();
             int b = r.Next(1001, 5890);
             double num = (Math.Truncate(a * 20000) / 100);
@@ -78,43 +78,55 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
-                    ID_Interno = -1,
                     Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
-                    Estacion = -1,
-                    Importe = -1,
-                    Litros = -1,
-                    IvaPorcentaje = -1,
-                    Num_Operacion = -1,
-                    Parcial = false,
-                    PosID = -1,
-                    Precio_Uni = -1,
-                    Producto = ""
                 };
             }
 
-            // SHELLMX- Se manda a consumir el Identity del POS a activar.
+            //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
+            // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
 
-            LockSupplyTransactionOfFuellingPointResponse lockTransactionInformation = await conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint(bsObj.Identity, request.Pos_Carga);
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
+            GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
+
+            if (getOperatorResponse.Operator == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                };
+            }else if(request.Pos_Carga <= 0)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el tipo de surtidor.
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- ERROR NO SE HA INSERTADO UN SURTIDOR NUMBER CORRECTO VERIFICAR!"
+                };
+            }
+
+            GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest = new GetAllSupplyTransactionsOfFuellingPointRequest { OperatorId = request.Id_teller, FuellingPointId = request.Pos_Carga };
+            LockSupplyTransactionOfFuellingPointResponse lockTransactionInformation = await conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPointRequest);
             //Salida_Obtiene_Tran salida_Obtiene_Tran;
 
             if (lockTransactionInformation.Status < 0)
             {
-                salida_Obtiene_Tran = new Salida_Obtiene_Tran
+                return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
-                    ID_Interno = -1,
                     Msj = lockTransactionInformation.Message,
-                    Estacion = -1,
-                    Importe = -1,
-                    Litros = -1,
-                    Num_Operacion = -1,
-                    IvaPorcentaje = -1,
-                    Parcial = false,
-                    PosID = -1,
-                    Precio_Uni = -1,
-                    Producto = ""
+                };
+            }
+            else if (lockTransactionInformation.CorrespondingVolume == 0 && lockTransactionInformation.DiscountedAmount == 0 && lockTransactionInformation.DiscountPercentage == 0 && lockTransactionInformation.FinalAmount == 0 && lockTransactionInformation.ProductName == null && lockTransactionInformation.ProductReference == null)
+            {
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    Msj = lockTransactionInformation.Message,
                 };
             }
             else
@@ -135,7 +147,6 @@ namespace ControlVolumetricoShellWS.Implementation
                         break;
                 }
 
-                InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
                 GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                 GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
                 salida_Obtiene_Tran = new Salida_Obtiene_Tran
@@ -195,7 +206,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "SHELLMX- ERROR OPERADOR NO EXISTE",
+                    Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
             }
 

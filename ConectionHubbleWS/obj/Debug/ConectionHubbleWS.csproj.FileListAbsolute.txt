@@ -56,3 +56,19 @@ C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\
 C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CopyComplete
 C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.dll
 C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\ConectionHubbleWS.dll.config
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\ConectionHubbleWS.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\ConectionHubbleWS.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Microsoft.AspNet.SignalR.Client.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Newtonsoft.Json.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\System.Net.Http.Extensions.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\System.Net.Http.Formatting.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\System.Net.Http.Primitives.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Microsoft.AspNet.SignalR.Client.pdb
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Microsoft.AspNet.SignalR.Client.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\bin\Debug\Newtonsoft.Json.xml
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csprojAssemblyReference.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CoreCompileInputs.cache
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.csproj.CopyComplete
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.dll
+C:\Users\jalvareh\Documents\SHELL\WebService\GITWS\GIT 12 julio\ControlVolumetricoShellTrack\ConectionHubbleWS\obj\Debug\ConectionHubbleWS.pdb

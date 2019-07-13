@@ -72,6 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helper\ConectionSignalRDoms.cs" />
+    <Compile Include="Helper\FacturacionElectronicaws.cs" />
     <Compile Include="Models\BaseResponse.cs" />
     <Compile Include="Models\GetAllSupplyTransactionsOfFuellingPointRequest.cs" />
     <Compile Include="Models\GetAllSupplyTransactionsOfFuellingPointResponse.cs" />

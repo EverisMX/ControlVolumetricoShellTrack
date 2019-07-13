@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace ControlVolumetricoShellWS.Dominio
@@ -94,7 +95,12 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public string FormaPago { get; set; }
         [DataMember]
-        public Productos Producto { get; set; }
+
+
+        //public List<Productos>productos
+       public IList<Productos> productos { get; set; } = new List<Productos>();
+
+        // public Productos Producto { get; set; }
         [DataMember]
         public decimal Subtotal { get; set; }
         [DataMember]
@@ -120,14 +126,14 @@ namespace ControlVolumetricoShellWS.Dominio
     public class Productos
     {
         [DataMember]
-        public string Nombre { get; set; }
+        public string ProductName { get; set; }
+
         [DataMember]
-        public decimal Cantidad { get; set; }
+        public decimal Quantity { get; set; }
         [DataMember]
-        public decimal Precio { get; set; }
+        public decimal UnitaryPriceWithTax { get; set; }
         [DataMember]
-        public decimal Precioimporte { get; set; }
-        [DataMember]
-        public decimal IvaProducto { get; set; }
+        public decimal TotalAmountWithTax { get; set; }
+        
     }
 }

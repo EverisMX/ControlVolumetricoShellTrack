@@ -61,9 +61,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementations\InvokeHubbleWebAPIServices.cs" />
+    <Compile Include="Models\Facturacion\Address.cs" />
+    <Compile Include="Models\Facturacion\AddressType.cs" />
+    <Compile Include="Models\Facturacion\converletra.cs" />
+    <Compile Include="Models\Facturacion\Customer.cs" />
+    <Compile Include="Models\Facturacion\Document.cs" />
+    <Compile Include="Models\Facturacion\DocumentLine.cs" />
+    <Compile Include="Models\Facturacion\DocumentLinePromotion.cs" />
+    <Compile Include="Models\Facturacion\DocumentPaymentDetail.cs" />
+    <Compile Include="Models\Facturacion\DocumentUsageType.cs" />
     <Compile Include="Models\Facturacion\facresponse.cs" />
+    <Compile Include="Models\Facturacion\footeresponse.cs" />
     <Compile Include="Models\Facturacion\GenerateElectronicInvoice.cs" />
+    <Compile Include="Models\Facturacion\GetCustomerRequest.cs" />
+    <Compile Include="Models\Facturacion\GetCustomerResponse.cs" />
+    <Compile Include="Models\Facturacion\GetDocumentRequest.cs" />
+    <Compile Include="Models\Facturacion\GetDocumentResponse.cs" />
+    <Compile Include="Models\Facturacion\GetPrintingConfigurationRequest.cs" />
+    <Compile Include="Models\Facturacion\GetPrintingConfigurationResponse.cs" />
+    <Compile Include="Models\Facturacion\GlobalSettingss.cs" />
+    <Compile Include="Models\Facturacion\Headeresponse.cs" />
     <Compile Include="Models\Facturacion\ListTicketDAO.cs" />
+    <Compile Include="Models\Facturacion\PosCommands.cs" />
+    <Compile Include="Models\Facturacion\PrintingTemplate.cs" />
+    <Compile Include="Models\Facturacion\SeriesType.cs" />
+    <Compile Include="Models\Facturacion\UsecasePrintingConfiguration.cs" />
     <Compile Include="Models\Hubble\BaseRequest.cs" />
     <Compile Include="Models\Hubble\BaseResponse.cs" />
     <Compile Include="Models\Hubble\GetOperatorRequest.cs" />

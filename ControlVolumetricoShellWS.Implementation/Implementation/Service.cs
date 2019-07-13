@@ -9,6 +9,7 @@ using ControlVolumetricoShellWS.Contract;
 using ControlVolumetricoShellWS.Dominio;
 using Conection.HubbleWS;
 using Conection.HubbleWS.Models.Facturacion;
+using Conection.HubbleWS.Models.Hubble;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -332,62 +333,327 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_Electronic_billing> Electronic_billing(Entrada_Electronic_billing request)
         {
-            Entrada_Electronic_billing requestNew = new Entrada_Electronic_billing
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            Salida_Electronic_billing salida = new Salida_Electronic_billing();
+
+            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+            bool isFacturar = false;
+
+            if(request.NoCliente == null)
             {
-                NoCliente = request.NoCliente,
-                nHD = request.nHD,
-                pss = request.pss,
-                PTID = request.PTID,
-                Serial = request.Serial,
-                idpos = request.idpos,
-                Nticket = request.Nticket,
-                WebID = request.WebID,
-                EESS = request.EESS,
-                TipoOperacion = request.TipoOperacion
+                isFacturar = false;
+            }
+            if (request.TipoOperacion == 0)
+            {
+                return salida;
+            }
+
+            #region cliente
+            GetCustomerRequest resquestcustomer = new GetCustomerRequest
+            {
+                Id = request.NoCliente,
+                Identity = bsObj.Identity
             };
 
-//se nesesitan estos datos para facturar agregamos
-            var res = new ListTicketDAO {
-                EESS = request.EESS,
-                NTicket = request.Nticket,
-                RFC = "AAA010101AAA",
-                WebID = request.WebID
-            };
+            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices.GetCustomer(resquestcustomer);
 
-            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+            if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
+            {
+                isFacturar = false;
+            }
+    
+            #endregion
+            if (request.TipoOperacion == 1)
+            {
+                isFacturar = false;
+                salida.RazonSocial = responsecustomer.Customer.BusinessName;
+                salida.RFC = responsecustomer.Customer.TIN;
+            }else if(request.TipoOperacion == 2)
+            {
+                isFacturar = true;
+                salida.RazonSocial = responsecustomer.Customer.BusinessName;
+                salida.RFC = responsecustomer.Customer.TIN;
+            }
 
-            GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice {
-                EmpresaPortal = "01",
-                ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
+            if (isFacturar)
+            {
+                #region facturacion
+                //se nesesitan estos datos para facturar agregamos
+                var res = new ListTicketDAO
+                {
+                    EESS = request.EESS,
+                    NTicket = request.Nticket,
+                    RFC = "AAA010101AAA",
+                    WebID = request.WebID
+                };
+
+                //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+
+                GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
+                {
+                    EmpresaPortal = "01",
+                    ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
                 EESS =res.EESS,
                 NTicket=res.NTicket,
                 RFC=res.RFC,
                 WebID=res.WebID} }
+                };
+
+
+
+                facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+                if (responsefacturacion == null)
+                {
+                    return new Salida_Electronic_billing();
+                }
+                else
+                {
+                    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
+                    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
+                    salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
+                    salida.FolioFiscal = responsefacturacion.FolioFiscal;
+                    salida.RFCProveedorCert = responsefacturacion.RFCProveedorCert;
+                    salida.NumCertificado = responsefacturacion.NumCertificado;
+                    salida.DateCertificacion = responsefacturacion.DateCertificacion;
+                }
+                #endregion
+            }
+          
+            #region GetDocument
+
+            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+                GetDocumentRequest requesgetdocument = new GetDocumentRequest
+                {
+                    Identity = bsObj.Identity,
+                    Id = request.Nticket,
+                    UsageType = DocumentUsageType.PrintCopy,
+                };
+
+                GetDocumentResponse responsegetdocument = await invokeHubbleWebAPIServices.GetDocument(requesgetdocument);
+
+            if(responsegetdocument.Document.Id == null && responsegetdocument.Document.OperatorId == null && responsegetdocument.Document.LineList == null)
+            {
+                salida.FormaPago = null;
+                salida.Subtotal = 0;
+                salida.Terminal = null;
+                salida.Operador = null;
+                salida.Total = 0;
+            }
+
+
+            string nticketorigin = responsegetdocument.Document.Id;
+            int ntiquetn = nticketorigin.Length;
+            string Folioidticket = nticketorigin.Substring((ntiquetn - 9), 9);
+
+
+            decimal conletra = responsegetdocument.Document.TotalAmountWithTax;
+
+            double numletra = Convert.ToDouble(conletra);
+            string letraconvert = converletra.numbersToLetter(numletra);
+
+            decimal caliva = (responsegetdocument.Document.TotalAmountWithTax) - (responsegetdocument.Document.TaxableAmount);
+
+
+            //responseGetPrinting.GlobalSettings.Values;
+
+            IList<Productos> listan = new List<Productos>();
+            //lista = responsegetdocument.Document.LineList();
+            foreach (DocumentLine item in responsegetdocument.Document.LineList)
+            {
+                listan.Add(new Productos { ProductName = item.ProductName, Quantity = item.Quantity, TotalAmountWithTax = item.TotalAmountWithTax, UnitaryPriceWithTax = item.UnitaryPriceWithTax });
+            }
+
+
+
+            string formatofecha = Convert.ToString(responsegetdocument.Document.EmissionLocalDateTime);
+            DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
+            string fechaticket = Convert.ToString(fechaticketstring.DateTime);
+
+            //string horaorig = "2019 - 07 - 12T10: 28:50";
+
+            //DateTimeOffset formatoffset = DateTimeOffset.Parse(horaorig);
+            //string horaformatnew = Convert.ToString(formatoffset.DateTime);
+
+
+            string nticketco = responsegetdocument.Document.Id;
+            string horaformatnews = fechaticket.Replace(" ", "");
+
+            string wid = horaformatnews.Substring(10, 2);
+            string wid2 = nticketco.Substring(0, 5);
+            string wid3 = horaformatnews.Substring(13, 2);
+            string wid4 = nticketco.Substring(5, 4);
+            string wid5 = horaformatnews.Substring(16, 2);
+
+            string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
+            #endregion
+
+
+            #region getprintingconfiguration
+
+            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+            GetPrintingConfigurationRequest requesGetPrinting = new GetPrintingConfigurationRequest
+            {
+                Identity = bsObj.Identity,
+                UsecasesPrintingConfigurationList = new List<UsecasePrintingConfiguration> {
+                    new UsecasePrintingConfiguration {
+                        UseCase="SALE",
+                        PrintingTemplatePlatformType= "VENTA HUBBLEPOS",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "CLOSURE",
+                        PrintingTemplatePlatformType= "CIERRE DE CAJA",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "CASHBOX_RECORD",
+                          PrintingTemplatePlatformType= "MOVIMIENTO DE CAJA HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "FUELLINGPOINT_TEST",
+                          PrintingTemplatePlatformType= "SURTIDOR HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= false
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "REFUND",
+                          PrintingTemplatePlatformType= "ANULACION HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "RUNAWAY",
+                        PrintingTemplatePlatformType= "FUGA HUBBLEPOS",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+
+
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "COLLECTION",
+                        PrintingTemplatePlatformType= "JUSTIFICANTE DE PAGO",
+                        DefaultNumberOfCopies= 1,
+                        Required= false
+                    }
+
+                }
             };
 
 
-            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-            facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+
+            GetPrintingConfigurationResponse responseGetPrinting = await invokeHubbleWebAPIServices.GetPrintingConfiguration(requesGetPrinting);
+
+            #region recorrido del diccionario
+            //object ret = responseGetPrinting.GlobalSettings.Keys;
+
+            //if (responseGetPrinting.GlobalSettings == null)
+            //{
+            //    foreach (var keys in responseGetPrinting.GlobalSettings.Keys)
+            //    {
+            //        if (responseGetPrinting.GlobalSettings != null)
+            //        {
+            //            string a = responseGetPrinting.GlobalSettings[keys];
+
+            //            if (a == "text03")
+            //            {
+            //                ret = new { a };
+            //            }
+
+
+            //        }
+
+            //    }
+            //}
+            #endregion
+
+
+            List<string> listaPrinting = new List<string>();
+            string key;
+            foreach (var item in responseGetPrinting.GlobalSettings)
+            {
+                key = item.Value;
+                listaPrinting.Add(key);
+            }
+            listaPrinting.ToArray();
+
+            //string Headerprin = listaPrinting[1];
+
+            Headeresponse deserializeJsonheader = JsonConvert.DeserializeObject<Headeresponse>(listaPrinting[1]);
+            footeresponse deserializeJsonfooter = JsonConvert.DeserializeObject<footeresponse>(listaPrinting[2]);
 
 
 
-            Salida_Electronic_billing salida = new Salida_Electronic_billing {
+            // var responseGlobalSettings = responseGetPrinting.GlobalSettings.Values;
 
-                SelloDigitaSAT = responsefacturacion.SelloDigitaSAT,
-                SelloDigitaCFDI=responsefacturacion.SelloDigitaCFDI,
-                CadenaOrigTimbre=responsefacturacion.CadenaOrigTimbre,
-                FolioFiscal = responsefacturacion.FolioFiscal,
-                RFCProveedorCert = responsefacturacion.RFCProveedorCert,
-                NumCertificado = responsefacturacion.NumCertificado,
-                DateCertificacion=responsefacturacion.DateCertificacion
-            };
 
+            //string ess = Count[1]=responseGlobalSettings.Values;
+            #endregion
+
+            #region information
+            //// GetPOSInformationResponse  GetPOSInformation(GetPosInformationRequest getPosInformationRequest
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest {
+               Identity = bsObj.Identity };
+
+            //   //   InvokeHubbleWebAPIServices invokeHubbleWebAPIServices3 = new InvokeHubbleWebAPIServices();
+            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetPOSInformationResponse informationresponses = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+
+            #endregion
+
+            salida.HeaderTick1 = deserializeJsonheader.Header1;
+            salida.HeaderTick2 = deserializeJsonheader.Header2;
+            salida.HeaderTick3 = deserializeJsonheader.Header3;
+            salida.HedaerTick4 = deserializeJsonheader.Header4;
+            salida.FooterTick1 = deserializeJsonfooter.Footer1;
+            salida.FooterTick2 = deserializeJsonfooter.Footer2;
+            salida.FooterTick3 = deserializeJsonfooter.Footer3;
+            salida.FooterTick4 = deserializeJsonfooter.Footer4;
+            salida.FooterTick5 = deserializeJsonfooter.Footer5;
+            salida.CodigoPostalCompania = listaPrinting[17];
+            salida.CodigoPostalTienda = listaPrinting[27];
+            salida.ColoniaCompania = listaPrinting[16];
+            salida.ColoniaTienda = listaPrinting[29];
+            salida.DireccionCompania = listaPrinting[14];
+            salida.DireccionTienda = listaPrinting[24];
+            salida.EstadoCompania = listaPrinting[19];
+            salida.EstadoTienda = listaPrinting[31];
+            salida.ExpedicionTienda = listaPrinting[27];
+            salida.MunicipioCompania = listaPrinting[16];
+            salida.MunicipioTienda = listaPrinting[26];
+            salida.NombreCompania = listaPrinting[15];
+            salida.PaisCompania = listaPrinting[20];
+            salida.PaisTienda = listaPrinting[30];
+            salida.PermisoCRE = listaPrinting[32];
+            salida.Tienda = listaPrinting[33];
+            salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
+            salida.RfcCompania = listaPrinting[5];
+            salida.Ticket = request.Nticket;
+            salida.FormaPago = responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId;
+            salida.Subtotal = responsegetdocument.Document.TaxableAmount;
+            salida.Terminal = responsegetdocument.Document.PosId;
+            salida.Operador = responsegetdocument.Document.OperatorName;
+            salida.Folio = Folioidticket;
+            salida.Total = responsegetdocument.Document.TotalAmountWithTax;
+            salida.ImporteEnLetra = letraconvert;
+            salida.Iva = caliva;
+            salida.productos = listan;
+            salida.Fecha = fechaticket;
+            salida.WebID = webidnwe;
+            salida.Estacion = informationresponses.PosInformation.ShopCode;
+
+            #region comentarios
             //if (responsefacturacion.SelloDigitaSAT !=null)
             //{
-                
+
             //    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
             //    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
-               
+
             //}
 
 
@@ -422,8 +688,8 @@ namespace ControlVolumetricoShellWS.Implementation
             //    Precioimporte = Convert.ToDecimal(num),
             //    Precio = Convert.ToDecimal(a),
             //    IvaProducto = Convert.ToDecimal(16)
-                
-                
+
+
             //};
 
             //var salida = new Salida_Electronic_billing
@@ -470,7 +736,7 @@ namespace ControlVolumetricoShellWS.Implementation
             //    FormaPago = "",
             //    Iva = 0,
             //    Operador = "",
-            //    Producto = productos,
+             //   Producto = productos,
             //    RegFiscal = "",
             //    Subtotal = 0,
             //    Terminal = "",
@@ -480,6 +746,9 @@ namespace ControlVolumetricoShellWS.Implementation
             //    WebID = "",
             //    ImporteEnLetra = ""
             //};
+            #endregion
+
+
             return salida;
         }
     }

@@ -247,92 +247,114 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_Electronic_billing> Electronic_billing(Entrada_Electronic_billing request)
         {
-            Entrada_Electronic_billing requestNew = new Entrada_Electronic_billing
-            {
-                NoCliente = request.NoCliente,
-                nHD = request.nHD,
-                pss = request.pss,
-                PTID = request.PTID,
-                Serial = request.Serial,
-                idpos = request.idpos,
-                Nticket = request.Nticket,
-                WebID = request.WebID,
-                EESS = request.EESS,
-                TipoOperacion = request.TipoOperacion
-            };
-
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            Salida_Electronic_billing salida = new Salida_Electronic_billing();
 
+            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+            bool isFacturar = false;
 
-            #region facturacion
-            //se nesesitan estos datos para facturar agregamos
-            var res = new ListTicketDAO {
-                EESS = request.EESS,
-                NTicket = request.Nticket,
-                RFC = "AAA010101AAA",
-                WebID = request.WebID
+            if(request.NoCliente == null)
+            {
+                isFacturar = false;
+            }
+            if (request.TipoOperacion == 0)
+            {
+                return salida;
+            }
+
+            #region cliente
+            GetCustomerRequest resquestcustomer = new GetCustomerRequest
+            {
+                Id = request.NoCliente,
+                Identity = bsObj.Identity
             };
 
-            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
-            
-            GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice {
-                EmpresaPortal = "01",
-                ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
+            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices.GetCustomer(resquestcustomer);
+
+            if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
+            {
+                isFacturar = false;
+            }
+    
+            #endregion
+            if (request.TipoOperacion == 1)
+            {
+                isFacturar = false;
+                salida.RazonSocial = responsecustomer.Customer.BusinessName;
+                salida.RFC = responsecustomer.Customer.TIN;
+            }else if(request.TipoOperacion == 2)
+            {
+                isFacturar = true;
+                salida.RazonSocial = responsecustomer.Customer.BusinessName;
+                salida.RFC = responsecustomer.Customer.TIN;
+            }
+
+            if (isFacturar)
+            {
+                #region facturacion
+                //se nesesitan estos datos para facturar agregamos
+                var res = new ListTicketDAO
+                {
+                    EESS = request.EESS,
+                    NTicket = request.Nticket,
+                    RFC = "AAA010101AAA",
+                    WebID = request.WebID
+                };
+
+                //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+
+                GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
+                {
+                    EmpresaPortal = "01",
+                    ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
                 EESS =res.EESS,
                 NTicket=res.NTicket,
                 RFC=res.RFC,
                 WebID=res.WebID} }
-            };
+                };
 
 
-            
-            facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
-            if(responsefacturacion == null)
-            {
-                return new Salida_Electronic_billing();
+
+                facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+                if (responsefacturacion == null)
+                {
+                    return new Salida_Electronic_billing();
+                }
+                else
+                {
+                    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
+                    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
+                    salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
+                    salida.FolioFiscal = responsefacturacion.FolioFiscal;
+                    salida.RFCProveedorCert = responsefacturacion.RFCProveedorCert;
+                    salida.NumCertificado = responsefacturacion.NumCertificado;
+                    salida.DateCertificacion = responsefacturacion.DateCertificacion;
+                }
+                #endregion
             }
-            #endregion
-
-            #region cliente
-
-            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
-            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
-
-            GetCustomerRequest resquestcustomer = new GetCustomerRequest {
-                Id=request.NoCliente,
-                Identity=bsObj.Identity
-            };
-
-
-
-            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices2 = new InvokeHubbleWebAPIServices();
-            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-            GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices2.GetCustomer(resquestcustomer);
-
-
-
-            #endregion
-
+          
             #region GetDocument
 
-
             //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
-           
                 GetDocumentRequest requesgetdocument = new GetDocumentRequest
                 {
                     Identity = bsObj.Identity,
                     Id = request.Nticket,
                     UsageType = DocumentUsageType.PrintCopy,
-
-
                 };
 
-
-
-           
-            
-
                 GetDocumentResponse responsegetdocument = await invokeHubbleWebAPIServices.GetDocument(requesgetdocument);
+
+            if(responsegetdocument.Document.Id == null && responsegetdocument.Document.OperatorId == null && responsegetdocument.Document.LineList == null)
+            {
+                salida.FormaPago = null;
+                salida.Subtotal = 0;
+                salida.Terminal = null;
+                salida.Operador = null;
+                salida.Total = 0;
+            }
 
 
             string nticketorigin = responsegetdocument.Document.Id;
@@ -378,21 +400,15 @@ namespace ControlVolumetricoShellWS.Implementation
             string wid4 = nticketco.Substring(5, 4);
             string wid5 = horaformatnews.Substring(16, 2);
 
-
             string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
-
-
-
             #endregion
 
 
             #region getprintingconfiguration
 
             //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
-
             GetPrintingConfigurationRequest requesGetPrinting = new GetPrintingConfigurationRequest
             {
-               
                 Identity = bsObj.Identity,
                 UsecasesPrintingConfigurationList = new List<UsecasePrintingConfiguration> {
                     new UsecasePrintingConfiguration {
@@ -441,8 +457,6 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
 
                 }
-
-
             };
 
 
@@ -504,65 +518,49 @@ namespace ControlVolumetricoShellWS.Implementation
             //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             GetPOSInformationResponse informationresponses = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
-
-            
             #endregion
 
+            salida.HeaderTick1 = deserializeJsonheader.Header1;
+            salida.HeaderTick2 = deserializeJsonheader.Header2;
+            salida.HeaderTick3 = deserializeJsonheader.Header3;
+            salida.HedaerTick4 = deserializeJsonheader.Header4;
+            salida.FooterTick1 = deserializeJsonfooter.Footer1;
+            salida.FooterTick2 = deserializeJsonfooter.Footer2;
+            salida.FooterTick3 = deserializeJsonfooter.Footer3;
+            salida.FooterTick4 = deserializeJsonfooter.Footer4;
+            salida.FooterTick5 = deserializeJsonfooter.Footer5;
+            salida.CodigoPostalCompania = listaPrinting[17];
+            salida.CodigoPostalTienda = listaPrinting[27];
+            salida.ColoniaCompania = listaPrinting[16];
+            salida.ColoniaTienda = listaPrinting[29];
+            salida.DireccionCompania = listaPrinting[14];
+            salida.DireccionTienda = listaPrinting[24];
+            salida.EstadoCompania = listaPrinting[19];
+            salida.EstadoTienda = listaPrinting[31];
+            salida.ExpedicionTienda = listaPrinting[27];
+            salida.MunicipioCompania = listaPrinting[16];
+            salida.MunicipioTienda = listaPrinting[26];
+            salida.NombreCompania = listaPrinting[15];
+            salida.PaisCompania = listaPrinting[20];
+            salida.PaisTienda = listaPrinting[30];
+            salida.PermisoCRE = listaPrinting[32];
+            salida.Tienda = listaPrinting[33];
+            salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
+            salida.RfcCompania = listaPrinting[5];
+            salida.Ticket = request.Nticket;
+            salida.FormaPago = responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId;
+            salida.Subtotal = responsegetdocument.Document.TaxableAmount;
+            salida.Terminal = responsegetdocument.Document.PosId;
+            salida.Operador = responsegetdocument.Document.OperatorName;
+            salida.Folio = Folioidticket;
+            salida.Total = responsegetdocument.Document.TotalAmountWithTax;
+            salida.ImporteEnLetra = letraconvert;
+            salida.Iva = caliva;
+            salida.productos = listan;
+            salida.Fecha = fechaticket;
+            salida.WebID = webidnwe;
+            salida.Estacion = informationresponses.PosInformation.ShopCode;
 
-            Salida_Electronic_billing salida = new Salida_Electronic_billing {
-
-                SelloDigitaSAT = responsefacturacion.SelloDigitaSAT,
-                SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI,
-                CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre,
-                FolioFiscal = responsefacturacion.FolioFiscal,
-                RFCProveedorCert = responsefacturacion.RFCProveedorCert,
-                NumCertificado = responsefacturacion.NumCertificado,
-                DateCertificacion = responsefacturacion.DateCertificacion,
-                RazonSocial = responsecustomer.Customer.BusinessName,
-                RFC = responsecustomer.Customer.TIN,
-                HeaderTick1 = deserializeJsonheader.Header1,
-                HeaderTick2 = deserializeJsonheader.Header2,
-                HeaderTick3 = deserializeJsonheader.Header3,
-                HedaerTick4 = deserializeJsonheader.Header4,
-                FooterTick1 = deserializeJsonfooter.Footer1,
-                FooterTick2 = deserializeJsonfooter.Footer2,
-                FooterTick3 = deserializeJsonfooter.Footer3,
-                FooterTick4 = deserializeJsonfooter.Footer4,
-                FooterTick5 = deserializeJsonfooter.Footer5,
-                CodigoPostalCompania = listaPrinting[17],
-                CodigoPostalTienda = listaPrinting[27],
-                ColoniaCompania = listaPrinting[16],
-                ColoniaTienda = listaPrinting[29],
-                DireccionCompania = listaPrinting[14],
-                DireccionTienda = listaPrinting[24],
-                EstadoCompania = listaPrinting[19],
-                EstadoTienda = listaPrinting[31],
-                ExpedicionTienda = listaPrinting[27],
-                MunicipioCompania = listaPrinting[16],
-                MunicipioTienda = listaPrinting[26],
-                NombreCompania = listaPrinting[15],
-                PaisCompania = listaPrinting[20],
-                PaisTienda = listaPrinting[30],
-                PermisoCRE = listaPrinting[32],
-                Tienda = listaPrinting[33],
-                RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES",
-                RfcCompania = listaPrinting[5],
-                Ticket = request.Nticket,
-                FormaPago = responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId,
-                Subtotal = responsegetdocument.Document.TaxableAmount,
-                Terminal = responsegetdocument.Document.PosId,
-                Operador = responsegetdocument.Document.OperatorName,
-                Folio = Folioidticket,
-                Total = responsegetdocument.Document.TotalAmountWithTax,
-                ImporteEnLetra = letraconvert,
-                Iva = caliva,
-                productos=listan,
-                Fecha= fechaticket,
-                WebID= webidnwe,
-                Estacion= informationresponses.PosInformation.ShopCode,
-                //Estacion= informationresponsesr.PosInformation.ShopCode
-
-            };
             #region comentarios
             //if (responsefacturacion.SelloDigitaSAT !=null)
             //{

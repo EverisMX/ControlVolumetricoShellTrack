@@ -250,52 +250,54 @@ namespace ControlVolumetricoShellWS.Implementation
                 Products.Add(iva);
                 ProductsGlobal.Add(Products);
             }
-            int ij = productosName.Length;
+            int countProductoTotals = productosName.Length;
 
-            for(int w = 0; w < ij; w++)
+            for(int iteratorProducts = 0; iteratorProducts < countProductoTotals; iteratorProducts++)
             {
                 int flagContProduct = 0;
-                foreach (List<string[]> var in ProductsGlobal)
+                foreach (List<string[]> productsGlobals in ProductsGlobal)
                 {
-                    Products producto = null;
-                    foreach (string[] vas in Products)
+                    Products producto = new Products();
+                    foreach (string[] product in Products)
                     {
-                        for (int intValueProducts = 0; intValueProducts <= w; intValueProducts++)
+                        for (int intValueProducts = 0; intValueProducts <= iteratorProducts; intValueProducts++)
                         {
                             switch(flagContProduct)
                             {
                                 case 0:
-                                    producto.Id_producto = Convert.ToInt32(vas[intValueProducts]);
+                                    producto.Id_producto = Convert.ToInt32(product[intValueProducts]);
                                     break;
                                 case 1:
-                                    producto.Cantidad = Convert.ToDecimal(vas[intValueProducts]);
+                                    producto.Cantidad = Convert.ToDecimal(product[intValueProducts]);
                                     break;
                                 case 2:
-                                    producto.Importe_Unitario = Convert.ToDecimal(vas[intValueProducts]);
+                                    producto.Importe_Unitario = Convert.ToDecimal(product[intValueProducts]);
                                     break;
                                 case 3:
-                                    producto.Importe_Total = Convert.ToDecimal(vas[intValueProducts]);
+                                    producto.Importe_Total = Convert.ToDecimal(product[intValueProducts]);
                                     break;
                                 case 4:
-                                    producto.Forma_Pago = vas[intValueProducts];
+                                    producto.Forma_Pago = product[intValueProducts];
                                     break;
                                 case 5:
-                                    producto.Monto_Pagado = Convert.ToDecimal(vas[intValueProducts]);
+                                    producto.Monto_Pagado = Convert.ToDecimal(product[intValueProducts]);
                                     break;
                                 case 6:
-                                    producto.Iva_producto = Convert.ToInt32(vas[intValueProducts]);
+                                    producto.Iva_producto = Convert.ToInt32(product[intValueProducts]);
                                     break;
                                 default:
                                     break;
                             }
-                            InformListProducts.Add(producto);
-                            producto = null;
                         }
                         flagContProduct++;
                     }
+                    InformListProducts.Add(producto);
+                    producto = null;
                 }
             }
+            //END del Bucle de los productos.
     
+
 
             //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
 
@@ -426,12 +428,17 @@ namespace ControlVolumetricoShellWS.Implementation
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
             bool isFacturar = false;
 
-            if(request.NoCliente == null)
+            if (request.NoCliente == null)
             {
                 isFacturar = false;
+                salida.Msj = "INTRODUSCA UN NUMERO DE CLIENTE";
+                salida.Resultado = false;
+                return salida;
             }
             if (request.TipoOperacion == 0)
             {
+                salida.Msj = "INTRODUSCA UNA OPERACION VALIDA PORFAVOR";
+                salida.Resultado = false;
                 return salida;
             }
 
@@ -448,20 +455,26 @@ namespace ControlVolumetricoShellWS.Implementation
             if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
             {
                 isFacturar = false;
+                salida.Resultado = false;
+                salida.Msj = "NO SE PUDO ENCONTRAR LA INFORMACION DEL CLIENTE";
+                return salida;
             }
-    
+
             #endregion
-            if (request.TipoOperacion == 1)
+            /*if (request.TipoOperacion == 1)
             {
                 isFacturar = false;
                 salida.RazonSocial = responsecustomer.Customer.BusinessName;
                 salida.RFC = responsecustomer.Customer.TIN;
-            }else if(request.TipoOperacion == 2)
+                salida.Resultado = true;
+                salida.Msj = "OPERACION REALIZADA CON EXITO";
+            }
+            else if (request.TipoOperacion == 2)
             {
                 isFacturar = true;
                 salida.RazonSocial = responsecustomer.Customer.BusinessName;
                 salida.RFC = responsecustomer.Customer.TIN;
-            }
+            }*/
 
             if (isFacturar)
             {
@@ -471,7 +484,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     EESS = request.EESS,
                     NTicket = request.Nticket,
-                    RFC = "AAA010101AAA",
+                    //RFC = "AAA010101AAA",
+                    RFC = "XAXX010101000",
                     WebID = request.WebID
                 };
 
@@ -492,10 +506,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
                 if (responsefacturacion == null)
                 {
+                    salida.Msj = "NO SE PUDO REALIZARR LA FACTURACION INTENTELO MAS TARDE";
+                    salida.Resultado = false;
                     return new Salida_Electronic_billing();
+
                 }
                 else
                 {
+
                     salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
                     salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
                     salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
@@ -503,23 +521,26 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida.RFCProveedorCert = responsefacturacion.RFCProveedorCert;
                     salida.NumCertificado = responsefacturacion.NumCertificado;
                     salida.DateCertificacion = responsefacturacion.DateCertificacion;
+                    salida.Msj = "FACTURACION EXITOSA";
+                    salida.Resultado = true;
+
                 }
                 #endregion
             }
-          
+
             #region GetDocument
 
             //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
-                GetDocumentRequest requesgetdocument = new GetDocumentRequest
-                {
-                    Identity = bsObj.Identity,
-                    Id = request.Nticket,
-                    UsageType = DocumentUsageType.PrintCopy,
-                };
+            GetDocumentRequest requesgetdocument = new GetDocumentRequest
+            {
+                Identity = bsObj.Identity,
+                Id = request.Nticket,
+                UsageType = DocumentUsageType.PrintCopy,
+            };
 
-                GetDocumentResponse responsegetdocument = await invokeHubbleWebAPIServices.GetDocument(requesgetdocument);
+            GetDocumentResponse responsegetdocument = await invokeHubbleWebAPIServices.GetDocument(requesgetdocument);
 
-            if(responsegetdocument.Document.Id == null && responsegetdocument.Document.OperatorId == null && responsegetdocument.Document.LineList == null)
+            if (responsegetdocument.Document.Id == null && responsegetdocument.Document.OperatorId == null && responsegetdocument.Document.LineList == null)
             {
                 salida.FormaPago = null;
                 salida.Subtotal = 0;
@@ -683,8 +704,10 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #region information
             //// GetPOSInformationResponse  GetPOSInformation(GetPosInformationRequest getPosInformationRequest
-            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest {
-               Identity = bsObj.Identity };
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest
+            {
+                Identity = bsObj.Identity
+            };
 
             //   //   InvokeHubbleWebAPIServices invokeHubbleWebAPIServices3 = new InvokeHubbleWebAPIServices();
             //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
@@ -733,106 +756,7 @@ namespace ControlVolumetricoShellWS.Implementation
             salida.WebID = webidnwe;
             salida.Estacion = informationresponses.PosInformation.ShopCode;
 
-            #region comentarios
-            //if (responsefacturacion.SelloDigitaSAT !=null)
-            //{
 
-            //    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
-            //    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
-
-            //}
-
-
-
-            //var aaa = new Salida_Electronic_billing {
-            //    SelloDigitaSAT=responsefacturacion.SelloDigitaSAT
-
-
-            //};
-
-
-
-
-
-
-
-
-
-
-
-
-
-            //Random r = new Random();
-            //double a = r.NextDouble();
-            //int b = r.Next(100, 999);
-
-            //double num = (Math.Truncate(a * 100) / 100);
-            //Productos productos = new Productos
-            //{
-            //    Nombre = "Producto" + b,
-            //    Cantidad = 0,
-            //    Precioimporte = Convert.ToDecimal(num),
-            //    Precio = Convert.ToDecimal(a),
-            //    IvaProducto = Convert.ToDecimal(16)
-
-
-            //};
-
-            //var salida = new Salida_Electronic_billing
-            //{
-            //    Msj = "Impresion de prueva",
-            //    Resultado = true,
-            //    RazonSocial = "Punto Clave",
-            //    RFC = "PC0001",
-            //    SelloDigitaSAT = "",
-            //    CadenaOrigTimbre = "",
-            //    DateCertificacion = "",
-            //    FolioFiscal = "",
-            //    NumCertificado = "",
-            //    RFCProveedorCert = "",
-            //    SelloDigitaCFDI = "",
-            //    CodigoPostalCompania = "37238",
-            //    CodigoPostalTienda = "03310",
-            //    ColoniaCompania = "CANADA DE ALFARO",
-            //    ColoniaTienda = "SANTA CRUZ ATOYAC",
-            //    DireccionCompania = "BLVD. JOSE MARIA MORELOS 3702",
-            //    DireccionTienda = "AV. POPOCATEPETL",
-            //    Estacion = "P00963",
-            //    EstadoCompania = "GUANAJUATO",
-            //    EstadoTienda = "CIUDAD DE MEXICO",
-            //    ExpedicionTienda = "03310",
-            //    FooterTick1 = "GRACIAS POR SU PREFERENCIA",
-            //    FooterTick2 = "FACTURACION EN LINEA",
-            //    FooterTick3 = "https//www.shell.com.mx",
-            //    FooterTick4 = "Descarga FACTURAS",
-            //    FooterTick5 = "facturar donde sea.",
-            //    HeaderTick1 = "Clientes dudas respecto a nuestros productos y servicios?",
-            //    HeaderTick2 = "Ingresa a:",
-            //    HeaderTick3 = " https://support.shell.com.mx/hces-mx",
-            //    HedaerTick4 = "y responde tus dudas en Soporte Shell",
-            //    MunicipioCompania = "LEON",
-            //    MunicipioTienda = "BENITO JUEREZ",
-            //    NombreCompania = "MEGA GASOLINERAS SA DE CV",
-            //    PaisCompania = "MEXICO",
-            //    PaisTienda = "MEXICO",
-            //    PermisoCRE = "PL/963/EXP/ES/2015",
-            //    RfcCompania = "MGA110810CC3",
-            //    Fecha = "",
-            //    Folio = "",
-            //    FormaPago = "",
-            //    Iva = 0,
-            //    Operador = "",
-             //   Producto = productos,
-            //    RegFiscal = "",
-            //    Subtotal = 0,
-            //    Terminal = "",
-            //    Ticket = "",
-            //    Tienda = "SHELL POPO",
-            //    Total = 0,
-            //    WebID = "",
-            //    ImporteEnLetra = ""
-            //};
-            #endregion
 
 
             return salida;

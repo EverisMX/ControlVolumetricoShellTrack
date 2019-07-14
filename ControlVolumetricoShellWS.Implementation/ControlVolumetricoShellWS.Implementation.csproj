@@ -77,6 +77,7 @@
     <Compile Include="Models\GetAllSupplyTransactionsOfFuellingPointResponse.cs" />
     <Compile Include="Models\LockSupplyTransactionOfFuellingPointRequest.cs" />
     <Compile Include="Models\LockSupplyTransactionOfFuellingPointResponse.cs" />
+    <Compile Include="Models\Products.cs" />
     <Compile Include="Models\SupplyTransaction.cs" />
     <Compile Include="Models\TokenTPV.cs" />
     <Compile Include="Implementation\ControlVolumetricoShellMX.cs" />

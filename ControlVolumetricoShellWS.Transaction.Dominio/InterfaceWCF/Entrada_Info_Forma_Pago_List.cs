@@ -27,36 +27,43 @@ namespace ControlVolumetricoShellWS.Dominio
         /// IVA del producto.
         /// </summary>
         [DataMember]
-        public int IvaProducto { get; set; }
+        public string IvaProducto { get; set; }
 
         /// <summary>
         /// Identificador de producto
         /// </summary>
         [DataMember]
-        public int Id_product { get; set; }
+        public string Id_product { get; set; }
 
         /// <summary>
         /// Cantidad en litros.
         /// </summary>
         [DataMember]
-        public decimal Cantidad { get; set; }
+        public string Cantidad { get; set; }
 
         /// <summary>
         /// importe
         /// </summary>
         [DataMember]
-        public decimal Importe_Unitario { get; set; }
+        public string Importe_Unitario { get; set; }
 
         /// <summary>
         /// Importe.
         /// </summary>
         [DataMember]
-        public decimal Importetotal { get; set; }
+        public string Importetotal { get; set; }
+
 
         /// <summary>
         /// Importe.
         /// </summary>
         [DataMember]
-        public decimal montoPagadoParcial { get; set; }
+        public bool Producto { get; set; }
+
+        /// <summary>
+        /// Importe.
+        /// </summary>
+        [DataMember]
+        public string montoPagadoParcial { get; set; }
     }
 }

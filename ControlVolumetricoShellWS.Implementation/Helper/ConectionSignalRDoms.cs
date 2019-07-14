@@ -112,7 +112,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (supplyTransactionOfFuellingPoint.Status < 0)
                     {
-                        return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " |SHELLMX- ERROR FATAL supplyTransactionOfFuellingPoint IN IDTRANSACTION @115", Status = supplyTransactionOfFuellingPoint.Status };
+                        return new LockSupplyTransactionOfFuellingPointResponse { Message = "SHELLMX- No hay Transacciones en el surtidor: supplyTransactionOfFuellingPoint IN IDTRANSACTION @115 @" + supplyTransactionOfFuellingPoint.Message , Status = supplyTransactionOfFuellingPoint.Status };
                     }
                 }
 
@@ -144,7 +144,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (lockSupplyTransactionOfFuellingPoint.Status < 0)
                 {
-                    return new LockSupplyTransactionOfFuellingPointResponse { Message = supplyTransactionOfFuellingPoint.Message + " | SHELLMX- ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145", Status = supplyTransactionOfFuellingPoint.Status };
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "SHELLMX- No Existe el IdTransacton en el surtidor seleccionado: LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145" + supplyTransactionOfFuellingPoint.Message , Status = supplyTransactionOfFuellingPoint.Status };
                 }
 
                 lockSupplyTransactionOfFuellingPoint.Id = lockRequest.SupplyTransactionId;

@@ -97,7 +97,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
-                    Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                    Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
             }else if(request.Pos_Carga <= 0)
             {
@@ -105,7 +105,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
-                    Msj = "SHELLMX- ERROR NO SE HA INSERTADO UN SURTIDOR NUMBER CORRECTO VERIFICAR!"
+                    Msj = "SHELLMX- NO SE HA INSERTADO UN SURTIDOR NUMBER CORRECTO VERIFICAR!"
                 };
             }
 
@@ -126,7 +126,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
-                    Msj = "@ SHELLMX - ERROR FATAL LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145",
+                    Msj = "@ SHELLMX - Transaccion Bloqueada por otra Terminal: LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145",
                 };
             }
             else
@@ -187,7 +187,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "SHELLMX- ERROR OPERADOR ESTA VACIO EN LA ENTRADA",
+                    Msj = "@ SHELLMX-  OPERADOR ESTA VACIO EN LA ENTRADA VALIDAR",
                 };
             }
 
@@ -200,7 +200,7 @@ namespace ControlVolumetricoShellWS.Implementation
             GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
             GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
 
-            if(getOperatorResponse.Operator == null)
+            if (getOperatorResponse.Operator == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_Info_Forma_Pago
@@ -209,6 +209,93 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
             }
+
+            if (request.Info_Forma_Pago == null || request.Info_Forma_Pago.Count == 0)
+            {
+                //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@ SHELLMX- INFORM DE LA VENTA VACIO CARGAR LOS DATOS DE VENTA",
+                };
+            }
+
+            //SHELLMX- Se crea el vaciado de la informacion de la venta.
+            List<Products> InformListProducts = new List<Products>();
+            List<string[]> Products = new List<string[]>();
+            List<List<string[]>> ProductsGlobal = new List<List<string[]>>();
+            string[] productosName = null;
+            string[] cantidad = null;
+            string[] importe_Unitario = null;
+            string[] importe_Total = null;
+            string[] forma_Pago = null;
+            string[] monto_Pagado = null;
+            string[] iva = null;
+
+            foreach (Entrada_Info_Forma_Pago_List varPrincipal in request.Info_Forma_Pago)
+            {
+                productosName = varPrincipal.Id_product.Split('|');
+                cantidad = varPrincipal.Cantidad.Split('|');
+                importe_Unitario = varPrincipal.Importe_Unitario.Split('|');
+                importe_Total = varPrincipal.Importetotal.Split('|');
+                forma_Pago = varPrincipal.formapagos.Split('|');
+                monto_Pagado = varPrincipal.montoPagadoParcial.Split('|');
+                iva = varPrincipal.IvaProducto.Split('|');
+                Products.Add(productosName);
+                Products.Add(cantidad);
+                Products.Add(importe_Unitario);
+                Products.Add(importe_Total);
+                Products.Add(forma_Pago);
+                Products.Add(monto_Pagado);
+                Products.Add(iva);
+                ProductsGlobal.Add(Products);
+            }
+            int ij = productosName.Length;
+
+            for(int w = 0; w < ij; w++)
+            {
+                int flagContProduct = 0;
+                foreach (List<string[]> var in ProductsGlobal)
+                {
+                    Products producto = null;
+                    foreach (string[] vas in Products)
+                    {
+                        for (int intValueProducts = 0; intValueProducts <= w; intValueProducts++)
+                        {
+                            switch(flagContProduct)
+                            {
+                                case 0:
+                                    producto.Id_producto = Convert.ToInt32(vas[intValueProducts]);
+                                    break;
+                                case 1:
+                                    producto.Cantidad = Convert.ToDecimal(vas[intValueProducts]);
+                                    break;
+                                case 2:
+                                    producto.Importe_Unitario = Convert.ToDecimal(vas[intValueProducts]);
+                                    break;
+                                case 3:
+                                    producto.Importe_Total = Convert.ToDecimal(vas[intValueProducts]);
+                                    break;
+                                case 4:
+                                    producto.Forma_Pago = vas[intValueProducts];
+                                    break;
+                                case 5:
+                                    producto.Monto_Pagado = Convert.ToDecimal(vas[intValueProducts]);
+                                    break;
+                                case 6:
+                                    producto.Iva_producto = Convert.ToInt32(vas[intValueProducts]);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            InformListProducts.Add(producto);
+                            producto = null;
+                        }
+                        flagContProduct++;
+                    }
+                }
+            }
+    
 
             //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
 

@@ -71,18 +71,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Info_Pagos_Parciales.cs" />
-    <Compile Include="Salida_Electronic_billing.cs" />
-    <Compile Include="Entrada_Electronic_billing.cs" />
-    <Compile Include="Salida_getProductInfo.cs" />
-    <Compile Include="Entrada_getProductInfo.cs" />
-    <Compile Include="Entrada_LiberaCarga.cs" />
-    <Compile Include="Salida_LiberaCarga.cs" />
-    <Compile Include="Salida_Info_Forma_Pago.cs" />
-    <Compile Include="Entrada_Info_Forma_Pago.cs" />
-    <Compile Include="Entrada_Info_Forma_Pago_List.cs" />
-    <Compile Include="Salida_Obtiene_Tran.cs" />
-    <Compile Include="Entrada_Obtiene_Tran.cs" />
+    <Compile Include="InterfaceWCF\Info_Pagos_Parciales.cs" />
+    <Compile Include="InterfaceWCF\Salida_Electronic_billing.cs" />
+    <Compile Include="InterfaceWCF\Entrada_Electronic_billing.cs" />
+    <Compile Include="InterfaceWCF\Salida_getProductInfo.cs" />
+    <Compile Include="InterfaceWCF\Entrada_getProductInfo.cs" />
+    <Compile Include="InterfaceWCF\Entrada_LiberaCarga.cs" />
+    <Compile Include="InterfaceWCF\Salida_LiberaCarga.cs" />
+    <Compile Include="InterfaceWCF\Salida_Info_Forma_Pago.cs" />
+    <Compile Include="InterfaceWCF\Entrada_Info_Forma_Pago.cs" />
+    <Compile Include="InterfaceWCF\Entrada_Info_Forma_Pago_List.cs" />
+    <Compile Include="InterfaceWCF\Salida_Obtiene_Tran.cs" />
+    <Compile Include="InterfaceWCF\Entrada_Obtiene_Tran.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

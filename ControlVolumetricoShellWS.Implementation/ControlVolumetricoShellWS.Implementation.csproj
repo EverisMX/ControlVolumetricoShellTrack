@@ -79,7 +79,7 @@
     <Compile Include="Models\LockSupplyTransactionOfFuellingPointResponse.cs" />
     <Compile Include="Models\SupplyTransaction.cs" />
     <Compile Include="Models\TokenTPV.cs" />
-    <Compile Include="Implementation\Service.cs" />
+    <Compile Include="Implementation\ControlVolumetricoShellMX.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

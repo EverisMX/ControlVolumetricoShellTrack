@@ -298,16 +298,29 @@ namespace ControlVolumetricoShellWS.Implementation
             //END del Bucle de los productos.
 
             //SHELMX- Se realiza los calculos para el iva y el total de la venta y otros procesos para CreateD.
-            /*decimal totalAmountWithTax;
-            decimal totalTax;
-            string emissionLocalDateTime;
-            string emissionUTCDateTime;
+            //decimal totalAmountWithTax;
+            //decimal totalTax;
+            //string emissionLocalDateTime;
+            //string emissionUTCDateTime;
             string serieId;
-            decimal taxableAmount;
+            //decimal taxableAmount;
             string customerId;
-            string posId;*/
+            string posId;
 
+            GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
+            GetSeriesResponse getSeriesResponse = await invokeHubbleWebAPIServices.GetSeries(getSeriesRequest);
 
+            foreach(var series in getSeriesResponse.SeriesList)
+            {
+                serieId = series.Id;
+            }
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
+            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+            posId = getPOSInformationResponse.PosInformation.CashboxCode + getPOSInformationResponse.PosInformation.Code;
+
+            GetPOSConfigurationRequest getPOSConfigurationRequest = new GetPOSConfigurationRequest { Identity = bsObj.Identity };
+            GetPOSConfigurationResponse getPOSConfigurationResponse = await invokeHubbleWebAPIServices.GetPOSConfiguration(getPOSConfigurationRequest);
+            customerId = getPOSConfigurationResponse.UnknownCustomerId;
 
             //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
 
@@ -365,12 +378,25 @@ namespace ControlVolumetricoShellWS.Implementation
             return salida;
         }
 
-        //public async Task<Salida_getProductInfo> getProductInfo(Entrada_ValidCustumer request)
         public async Task<Salida_getProductInfo> getProductInfo(Entrada_getProductInfo request)
         {
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
+            GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
+
+            if (getOperatorResponse.Operator == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_getProductInfo
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                };
+            }
 
             GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest()
             {
@@ -378,7 +404,6 @@ namespace ControlVolumetricoShellWS.Implementation
                 Quantity = 1,
                 Identity = bsObj.Identity,
             };
-            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             GetProductForSaleResponse getProductForSaleResponse = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
 
             Salida_getProductInfo salida = new Salida_getProductInfo();
@@ -471,7 +496,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             #endregion
-            /*if (request.TipoOperacion == 1)
+            if (request.TipoOperacion == 1)
             {
                 isFacturar = false;
                 salida.RazonSocial = responsecustomer.Customer.BusinessName;
@@ -484,7 +509,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 isFacturar = true;
                 salida.RazonSocial = responsecustomer.Customer.BusinessName;
                 salida.RFC = responsecustomer.Customer.TIN;
-            }*/
+            }
 
             if (isFacturar)
             {

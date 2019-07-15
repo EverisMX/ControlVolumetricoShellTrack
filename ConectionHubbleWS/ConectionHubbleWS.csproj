@@ -88,6 +88,13 @@
     <Compile Include="Models\Facturacion\UsecasePrintingConfiguration.cs" />
     <Compile Include="Models\Hubble\BaseRequest.cs" />
     <Compile Include="Models\Hubble\BaseResponse.cs" />
+    <Compile Include="Models\Hubble\CreateDocumentDAO.cs" />
+    <Compile Include="Models\Hubble\CreateDocumentLineDAO.cs" />
+    <Compile Include="Models\Hubble\CreateDocumentLinePromotionDAO.cs" />
+    <Compile Include="Models\Hubble\CreateDocumentPaymentDetailDAO.cs" />
+    <Compile Include="Models\Hubble\CreateDocumentsRequest.cs" />
+    <Compile Include="Models\Hubble\CreateDocumentsResponse.cs" />
+    <Compile Include="Models\Hubble\CreatePaymentUsageType.cs" />
     <Compile Include="Models\Hubble\GetOperatorRequest.cs" />
     <Compile Include="Models\Hubble\GetOperatorResponse.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationRequest.cs" />
@@ -96,8 +103,12 @@
     <Compile Include="Models\Hubble\GetPOSInformationResponse.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleRequest.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleResponse.cs" />
+    <Compile Include="Models\Hubble\GetSeriesRequest.cs" />
+    <Compile Include="Models\Hubble\GetSeriesResponse.cs" />
     <Compile Include="Models\Hubble\Operator.cs" />
     <Compile Include="Models\Hubble\POSInformation.cs" />
+    <Compile Include="Models\Hubble\Series.cs" />
+    <Compile Include="Models\Hubble\SeriesType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

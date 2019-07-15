@@ -296,7 +296,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
             }
             //END del Bucle de los productos.
-    
+
+            //SHELMX- Se realiza los calculos para el iva y el total de la venta y otros procesos para CreateD.
+            /*decimal totalAmountWithTax;
+            decimal totalTax;
+            string emissionLocalDateTime;
+            string emissionUTCDateTime;
+            string serieId;
+            decimal taxableAmount;
+            string customerId;
+            string posId;*/
+
 
 
             //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.

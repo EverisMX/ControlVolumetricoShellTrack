@@ -322,29 +322,36 @@ namespace ControlVolumetricoShellWS.Implementation
             GetPOSConfigurationResponse getPOSConfigurationResponse = await invokeHubbleWebAPIServices.GetPOSConfiguration(getPOSConfigurationRequest);
             customerId = getPOSConfigurationResponse.UnknownCustomerId;
 
-            //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
+            //SHLMX - Se coloca la hora de la venta. 
+            DateTime horaCreacionVentalocal = DateTime.Now;
+            DateTime horaCreacionVentaUniversalUTC = horaCreacionVentalocal.ToUniversalTime();
 
-            //SHELLMX - Se verifica si es parcial la venta.
-            /*if(request.parciales)
-            {
+            Instant instant = Instant.FromUtc(horaconver.Year, horaconver.Month, horaconver.Day, horaconver.Hour, horaconver.Minute, horaconver.Second);
+         
 
-            }
-            else
-            {
-                // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
-                var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
-                TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+    //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
 
-                GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest()
-                {
-                    ProductId = request.IdProduct,
-                    Quantity = 1,
-                    Identity = bsObj.Identity,
-                };
-                InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-                GetProductForSaleResponse getProductForSaleResponse = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
-            }*/
-            var nticket = "";
+    //SHELLMX - Se verifica si es parcial la venta.
+    /*if(request.parciales)
+    {
+
+    }
+    else
+    {
+        // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
+        var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+        TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+
+        GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest()
+        {
+            ProductId = request.IdProduct,
+            Quantity = 1,
+            Identity = bsObj.Identity,
+        };
+        InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+        GetProductForSaleResponse getProductForSaleResponse = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
+    }*/
+    var nticket = "";
             Random r = new Random();
             int b = r.Next(1, 100);
 

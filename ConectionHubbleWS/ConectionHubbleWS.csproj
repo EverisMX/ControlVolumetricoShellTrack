@@ -97,6 +97,8 @@
     <Compile Include="Models\Hubble\CreatePaymentUsageType.cs" />
     <Compile Include="Models\Hubble\GetOperatorRequest.cs" />
     <Compile Include="Models\Hubble\GetOperatorResponse.cs" />
+    <Compile Include="Models\Hubble\GetPaymentMethodsRequest.cs" />
+    <Compile Include="Models\Hubble\GetPaymentMethodsResponse.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationRequest.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationResponse.cs" />
     <Compile Include="Models\Hubble\GetPosInformationRequest.cs" />
@@ -106,6 +108,8 @@
     <Compile Include="Models\Hubble\GetSeriesRequest.cs" />
     <Compile Include="Models\Hubble\GetSeriesResponse.cs" />
     <Compile Include="Models\Hubble\Operator.cs" />
+    <Compile Include="Models\Hubble\PaymentMethod.cs" />
+    <Compile Include="Models\Hubble\PaymentMethodType.cs" />
     <Compile Include="Models\Hubble\POSInformation.cs" />
     <Compile Include="Models\Hubble\Series.cs" />
     <Compile Include="Models\Hubble\SeriesType.cs" />

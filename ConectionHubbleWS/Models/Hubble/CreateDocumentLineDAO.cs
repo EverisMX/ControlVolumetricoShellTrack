@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     /// <summary>
     /// Representa una línea de un documento de venta que se va a dar de alta

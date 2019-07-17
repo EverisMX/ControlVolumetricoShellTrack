@@ -95,6 +95,10 @@
     <Compile Include="Models\Hubble\CreateDocumentsRequest.cs" />
     <Compile Include="Models\Hubble\CreateDocumentsResponse.cs" />
     <Compile Include="Models\Hubble\CreatePaymentUsageType.cs" />
+    <Compile Include="Models\Hubble\Currency.cs" />
+    <Compile Include="Models\Hubble\CurrencyPriorityType.cs" />
+    <Compile Include="Models\Hubble\GetCurrenciesRequest.cs" />
+    <Compile Include="Models\Hubble\GetCurrenciesResponse.cs" />
     <Compile Include="Models\Hubble\GetOperatorRequest.cs" />
     <Compile Include="Models\Hubble\GetOperatorResponse.cs" />
     <Compile Include="Models\Hubble\GetPaymentMethodsRequest.cs" />

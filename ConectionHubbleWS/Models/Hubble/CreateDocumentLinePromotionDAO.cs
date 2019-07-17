@@ -1,5 +1,5 @@
 ﻿
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     /// <summary>
     /// Representa una promoción aplicada a una línea de documento que se va a dar de alta

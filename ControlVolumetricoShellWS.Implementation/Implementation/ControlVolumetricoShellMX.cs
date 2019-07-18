@@ -521,6 +521,17 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (isFacturar)
             {
+                
+                      GetCompanyRequest GetCompanyreques = new GetCompanyRequest
+                      {
+                          Identity = bsObj.Identity
+                      };
+
+                //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
+
+
+
                 #region facturacion
                 //se nesesitan estos datos para facturar agregamos
                 var res = new ListTicketDAO
@@ -528,7 +539,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     EESS = request.EESS,
                     NTicket = request.Nticket,
                     //RFC = "AAA010101AAA",
-                    RFC = "XAXX010101000",
+                    RFC = responsecustomer.Customer.TIN,
                     WebID = request.WebID
                 };
 
@@ -537,11 +548,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
                 {
                     EmpresaPortal = "01",
-                    ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
-                EESS =res.EESS,
-                NTicket=res.NTicket,
-                RFC=res.RFC,
-                WebID=res.WebID} }
+                    Company=responseCompany.Company.Id,
+                    ListTicket = new List<ListTicketDAO>
+                    {
+                        new ListTicketDAO
+                        {
+                            EESS =res.EESS,
+                            NTicket=res.NTicket,
+                            RFC=res.RFC,
+                            WebID=res.WebID
+                        }
+                    }
                 };
 
 

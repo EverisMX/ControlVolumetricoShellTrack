@@ -9,6 +9,7 @@ namespace Conection.HubbleWS.Models.Facturacion
    public class GenerateElectronicInvoice
     {
         public string EmpresaPortal { get; set; }
+        public string Company { get; set; }
         public List<ListTicketDAO> ListTicket { get; set; }
     }
 }

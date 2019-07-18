@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     /// <summary>
     /// Representa un documento de venta que se va a dar de alta
@@ -67,12 +67,12 @@ namespace Conection.HubbleWS.Models
         /// <summary>
         /// Fecha y hora locales de la emisión del documento
         /// </summary>
-        public DateTime EmissionLocalDateTime { get; set; }
+        public string EmissionLocalDateTime { get; set; }
 
         /// <summary>
         /// Fecha y hora UTC de la emisión del documento
         /// </summary>
-        public DateTime EmissionUTCDateTime { get; set; }
+        public string EmissionUTCDateTime { get; set; }
 
         /// <summary>
         /// Identificador del cliente

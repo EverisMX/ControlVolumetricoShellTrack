@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     public class CreateDocumentsRequest : BaseRequest
     {

@@ -218,12 +218,9 @@ namespace ControlVolumetricoShellWS.Implementation
             List<string[]> ProcessPayments = new List<string[]>();
             List<string[]> ProcessAmountOfSale = new List<string[]>();
 
-
             List<List<string[]>> CombustibleGlobal = new List<List<string[]>>();
             List<List<string[]>> ProductsGlobal = new List<List<string[]>>();
 
-            //string[] nNum_autorizacions = null;
-            //string[] Ultimos_Digitoss = null;
             #region PRODUCTO QUE SE ALMACENA EN PLATAFORMA
             string[] Id_product = null;
             string[] cantidad = null;
@@ -236,11 +233,17 @@ namespace ControlVolumetricoShellWS.Implementation
             string[] monto_Pagado = null;
             #endregion
 
-            //string[] iva = null;
             List<int> countCombustible = new List<int>();
             bool flagCountCombustible = false;
+
             List<int> countProducts = new List<int>();
             bool flagCountProduct = false;
+
+            List<int> countFormaPago = new List<int>();
+            bool flagCountFormaPago = false;
+
+            List<int> countMontoPagar = new List<int>();
+            bool flagCountMontoPagar = false;
 
             #region PROCESO DE SEPARACION DE LOS PRODUCTOS Y ALMACENAR LOS EN UNA LISTA
             try
@@ -267,6 +270,8 @@ namespace ControlVolumetricoShellWS.Implementation
                         countCombustible.Add(importe_Unitario.Length);
                         countCombustible.Add(importe_Total.Length);
 
+                        countFormaPago.Add(forma_Pago.Length);
+                        countMontoPagar.Add(monto_Pagado.Length);
                         //Combustible.Add(nNum_autorizacions);
                         //Combustible.Add(Ultimos_Digitoss);
                         Combustible.Add(Id_product);
@@ -298,6 +303,8 @@ namespace ControlVolumetricoShellWS.Implementation
                         countProducts.Add(importe_Unitario.Length);
                         countProducts.Add(importe_Total.Length);
 
+                        countFormaPago.Add(forma_Pago.Length);
+                        countMontoPagar.Add(monto_Pagado.Length);
                         //Products.Add(nNum_autorizacions);
                         //Products.Add(Ultimos_Digitoss);
                         Products.Add(Id_product);
@@ -316,7 +323,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_Pago.",
+                    Msj = "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_PagoList.",
                 };
                 throw e;
             }
@@ -334,7 +341,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS EN LA SOLICITUD VERIFICAR LA CANTIDAD",
+                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS CARBURANTES EN LA SOLICITUD VERIFICAR",
                     };
                 }
                 valOldCombu = lengthCombu;
@@ -352,10 +359,49 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS EN LA SOLICITUD VERIFICAR LA CANTIDAD",
+                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS PERIFARICOS EN LA SOLICITUD VERIFICAR",
                     };
                 }
                 valOldProduct = lengthProduc;
+            }
+
+            #endregion
+
+            #region VERIFICAR LA LONGITUD DE FORMAPAGO Y MONTOPAGAR PARA PROCESO VENTA.
+            int countUniversalCountMontoP = 0;
+            int valOldMontoP = -1;
+            foreach (int lengthMontoPagar in countMontoPagar)
+            {
+                countUniversalCountMontoP = lengthMontoPagar;
+                valOldMontoP = valOldMontoP == -1 ? lengthMontoPagar : valOldMontoP;
+                flagCountMontoPagar = countUniversalCountMontoP == valOldMontoP ? true : false;
+                if (!flagCountMontoPagar)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS MONTOPAGAR REALIZADAS EN LA SOLICITUD VERIFICAR",
+                    };
+                }
+                valOldMontoP = lengthMontoPagar;
+            }
+
+            int countUniversalFormPago;
+            int valOldFormPago = -1;
+            foreach (int lengthFormPago in countFormaPago)
+            {
+                countUniversalFormPago = lengthFormPago;
+                valOldFormPago = valOldFormPago == -1 ? lengthFormPago : valOldFormPago;
+                flagCountFormaPago = countUniversalFormPago == valOldFormPago ? true : false;
+                if (!flagCountProduct)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS FORMAPAGO REALIZADAS EN LA SOLICITUD VERIFICAR",
+                    };
+                }
+                valOldFormPago = lengthFormPago;
             }
 
             #endregion
@@ -458,6 +504,30 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             #endregion
 
+            #region MONTO
+            try
+            {
+                decimal TotalAmountWithTaxMonto = 0M;
+                foreach (string[] monto in ProcessAmountOfSale)
+                {
+                    int countMonto = monto.Length;
+                    for (int i = 0; i < countMonto; i++)
+                    {
+                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(monto[i]);
+                    }
+                }
+            }catch(Exception e)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@SHELLMX- ERRORES DE CONVERSION DE MONTOAPAGAR VERIFICAR DATOS.",
+                };
+                throw e;
+            }
+
+            #endregion
+
             #endregion
 
             //SHELMX- Se realiza los calculos para el iva y el total de la venta y otros procesos para CreateD.
@@ -467,7 +537,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #region SERIE & CLIENTE CONTADO & POSID DE TPV
 
-            string serieId;
+            string serieId = null;
             string customerId;
             string posId;
             GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
@@ -519,7 +589,8 @@ namespace ControlVolumetricoShellWS.Implementation
             //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
 
             #region TARJETA
-            List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
+            //List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
+            bool isValidFormaPagoT = false;
             foreach (string[] processPaymentsCard in ProcessPayments)
             {
                 foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
@@ -546,6 +617,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                             createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                             PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                            isValidFormaPagoT = true;
                                         }
                                         createDocumentPaymentDetailDAO = null;
                                     }
@@ -555,10 +627,20 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                 }
             }
+            if(!isValidFormaPagoT)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@SHELLMX- FORMA DE PAGO DESCONOCIDO VERIFICAR.",
+                };
+            }
+
             #endregion
 
             #region EFECTIVO
-            List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
+            //List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
+            bool isValidFormaPagoE = false;
             foreach (string[] processPaymentsCash in ProcessPayments)
             {
                 foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
@@ -585,6 +667,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                             createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                             PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                            isValidFormaPagoE = true;
                                         }
                                         createDocumentPaymentDetailDAO = null;
                                     }
@@ -594,6 +677,15 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                 }
             }
+            if (!isValidFormaPagoE)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@SHELLMX- FORMA DE PAGO DESCONOCIDO VERIFICAR.",
+                };
+            }
+
             #endregion
 
             #endregion
@@ -619,12 +711,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     //SHLMX- Se contruye el product, para el arreglo.
                     createDocumentLineDAO.LineNumber = lineNumber;
-                    createDocumentLineDAO.ProductId = informListProducts.Id_producto.ToString();
+                    createDocumentLineDAO.ProductId = informListProducts.Id_producto;
                     createDocumentLineDAO.Quantity = informListProducts.Cantidad;
-                    createDocumentLineDAO.UnitaryPriceWithTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
                     createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
-                    createDocumentLineDAO.TotalAmountWithTax = getProductForSaleResponse.FinalAmount;
-                    createDocumentLineDAO.PriceWithoutTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.TotalAmountWithTax = informListProducts.Importe_Total;
+                    createDocumentLineDAO.PriceWithoutTax = informListProducts.Importe_Total;
                     //IvaProductos[0] = getProductForSaleResponse.TaxPercentage;
                     //IvaProductos[1] = getProductForSaleResponse.TaxPercentage;
                     //ListIvas.Add(IvaProductos);
@@ -635,18 +727,18 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     //SHLMX- Se contruye el product, para el arreglo.
                     createDocumentLineDAO.LineNumber = lineNumber;
-                    createDocumentLineDAO.ProductId = informListProducts.Id_producto.ToString();
+                    createDocumentLineDAO.ProductId = informListProducts.Id_producto;
                     createDocumentLineDAO.Quantity = informListProducts.Cantidad;
-                    createDocumentLineDAO.UnitaryPriceWithTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
                     createDocumentLineDAO.TaxPercentage = getProductForSaleResponse.TaxPercentage;
 
-                    decimal priceWithoutTaxW = getProductForSaleResponse.FinalAmount / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
+                    decimal priceWithoutTaxW = informListProducts.Importe_Total / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
                     decimal priceWithoutTax = Math.Round(priceWithoutTaxW, 6);
                     createDocumentLineDAO.PriceWithoutTax = priceWithoutTax;
                     createDocumentLineDAO.TaxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
 
                     createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
-                    createDocumentLineDAO.TotalAmountWithTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.TotalAmountWithTax = informListProducts.Importe_Total;
                     IvaProducto = Convert.ToDecimal(getProductForSaleResponse.TaxPercentage);
                     //IvaProductos[1] = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax; ListIvas.Add(IvaProductos);
                     //IvaProductos = null;
@@ -681,6 +773,26 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
+            #endregion
+
+            #region LLAMAR EL API DE EVERILION PARA LA VENTA
+            CreateDocumentDAO createDocumentDAO = new CreateDocumentDAO {               
+                ProvisionalId = 1,
+                SerieId = serieId,
+                EmissionLocalDateTime = emissionLocalDateTime,
+                EmissionUTCDateTime = emissionUTCDateTime,
+                TaxableAmount = 0M, ///
+                TotalTaxList = TotalTaxListSale,
+                TotalAmountWithTax = 0M,
+                PaymentDetailList = PaymentDetailList,
+                LineList = LineList,
+                OperatorId = getOperatorResponse.Operator.Id,
+                CustomerId = customerId,
+                ExtraData = null,
+                CurrencyId = null, ////
+                PosId = posId,
+            };
+            CreateDocumentsRequest createDocumentsRequest = new CreateDocumentsRequest { };
             #endregion
 
             var nticket = "";

@@ -44,15 +44,15 @@ namespace Conection.HubbleWS.Models.Facturacion
         ///// </summary>
         //public decimal DiscountAmountWithTax { get; set; }
 
-        ///// <summary>
-        ///// Porcentaje de impuestos aplicado
-        ///// </summary>
-        //public decimal TaxPercentage { get; set; }
+        /// <summary>
+        /// Porcentaje de impuestos aplicado
+        /// </summary>
+        public decimal TaxPercentage { get; set; }
 
-        ///// <summary>
-        ///// Valor monetario de los impuestos aplicados
-        ///// </summary>
-        //public decimal TaxAmount { get; set; }
+        /// <summary>
+        /// Valor monetario de los impuestos aplicados
+        /// </summary>
+        public decimal TaxAmount { get; set; }
 
         /// <summary>
         /// Monto total de la línea, con impuestos incluidos (y descuentos aplicados)

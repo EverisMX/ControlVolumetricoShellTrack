@@ -102,11 +102,13 @@ namespace ControlVolumetricoShellWS.Dominio
 
         // public Productos Producto { get; set; }
         [DataMember]
-        public decimal Subtotal { get; set; }
+        public string Subtotal { get; set; }
         [DataMember]
-        public decimal Iva { get; set; }
+       // public decimal Iva { get; set; }
+        public string iva { get; set; }
+
         [DataMember]
-        public decimal Total { get; set; }
+        public string Total { get; set; }
         [DataMember]
         public string ImporteEnLetra { get; set; }
         [DataMember]
@@ -127,13 +129,33 @@ namespace ControlVolumetricoShellWS.Dominio
     {
         [DataMember]
         public string ProductName { get; set; }
+        [DataMember]
+        public int Quantity { get; set; }
+        [DataMember]
+        public string UnitaryPriceWithTax { get; set; }
+        [DataMember]
+        public string TotalAmountWithTax { get; set; }
+    }
+    [DataContract]
+    public class Iva
+    {
+        [DataMember]
+        public int TaxPercentage { get; set; }
+        [DataMember]
+        public string TaxAmount { get; set; }
+    }
+    [DataContract]
+    public class IvaUnico
+    {
+        [DataMember]
+        public int Iva { get; set; }
+    }
 
+    [DataContract]
+    public class PaymentDetail
+    {
         [DataMember]
-        public decimal Quantity { get; set; }
-        [DataMember]
-        public decimal UnitaryPriceWithTax { get; set; }
-        [DataMember]
-        public decimal TotalAmountWithTax { get; set; }
-        
+        public string PaymentMethodId { get; set; }
+
     }
 }

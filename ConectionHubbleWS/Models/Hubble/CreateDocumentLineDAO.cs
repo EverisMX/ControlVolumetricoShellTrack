@@ -23,6 +23,12 @@ namespace Conection.HubbleWS
         public string ProductId { get; set; }
 
         /// <summary>
+        /// Identificador del producto con la descripccion.
+        /// (NComapny + Reference)
+        /// </summary>
+        public string ProductName { get; set; }
+
+        /// <summary>
         /// Cantidad o número de unidades del producto
         /// </summary>
         public decimal Quantity { get; set; }
@@ -56,6 +62,11 @@ namespace Conection.HubbleWS
         /// Monto total de la línea, con impuestos incluidos
         /// </summary>
         public decimal TotalAmountWithTax { get; set; }
+
+        /// <summary>
+        /// Monto total de la línea, sin impuestos incluidos
+        /// </summary>
+        public decimal PriceWithoutTax { get; set; }
 
         /// <summary>
         /// Promociones aplicadas a la línea, si hay alguna.

@@ -311,7 +311,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         ProductsGlobal.Add(Products);
                     }
                 }
-            }catch(Exception e)
+            } catch (Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -377,7 +377,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 switch (flagContCombu)
                                 {
                                     case 0:
-                                        producto.Id_producto = Convert.ToInt32(combustible[intValueCombustible]);
+                                        producto.Id_producto = combustible[intValueCombustible];
                                         break;
                                     case 1:
                                         producto.Cantidad = Convert.ToDecimal(combustible[intValueCombustible]);
@@ -398,7 +398,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         producto = null;
                     }
                 }
-            }catch(Exception e)
+            } catch (Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -407,7 +407,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
                 throw e;
             }
-           
+
             #endregion
 
             #region PERIFERICOS.
@@ -426,7 +426,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 switch (flagContPerife)
                                 {
                                     case 0:
-                                        producto.Id_producto = Convert.ToInt32(products[intValueProducts]);
+                                        producto.Id_producto = products[intValueProducts];
                                         break;
                                     case 1:
                                         producto.Cantidad = Convert.ToDecimal(products[intValueProducts]);
@@ -447,7 +447,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         producto = null;
                     }
                 }
-            }catch(Exception e)
+            } catch (Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -515,93 +515,174 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //SHLMX- Se llena el paymentsList<> con las ventas.
             List<CreateDocumentPaymentDetailDAO> PaymentDetailList = new List<CreateDocumentPaymentDetailDAO>();
+
+            //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+
+            #region TARJETA
+            List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
+            foreach (string[] processPaymentsCard in ProcessPayments)
+            {
+                foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
+                {
+                    int processPaymentsCardCount = processPaymentsCard.Length;
+                    foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                    {
+                        //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                        if (paymentMethods.Description.ToUpper() == "TARJETA")
+                        {
+                            for (int i = 0; i < processPaymentsCardCount; i++)
+                            {
+                                CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                {
+                                    if (processPaymentsCard[i].ToUpper() == "TARJETA")
+                                    {
+                                        if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                        {
+                                            createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                            createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                            createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                            createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                            createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                            createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                            PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                        }
+                                        createDocumentPaymentDetailDAO = null;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            #region EFECTIVO
+            List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
+            foreach (string[] processPaymentsCash in ProcessPayments)
+            {
+                foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
+                {
+                    int processPaymentsCashCount = processPaymentsCash.Length;
+                    foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                    {
+                        //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                        if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                        {
+                            for (int i = 0; i < processPaymentsCashCount; i++)
+                            {
+                                CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                {
+                                    if (processPaymentsCash[i].ToUpper() == "EFECTIVO")
+                                    {
+                                        if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                        {
+                                            createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                            createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                            createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                            createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                            createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                            createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                            PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                        }
+                                        createDocumentPaymentDetailDAO = null;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            #endregion
+
+            #region SE LLENA LA LINEAS DE LA VENTA
             List<CreateDocumentLineDAO> LineList = new List<CreateDocumentLineDAO>();
 
-            CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-            foreach(string[] processPaymentsAndAmountTotals in ProcessPayments)
+            #region SE EMPIEZA A CONSTRUIR LA LISTA DE PRODUCTOS.
+            Dictionary<decimal, decimal> TotalTaxListSale = new Dictionary<decimal, decimal>();
+            //List<decimal[]> ListIvas = new List<decimal[]>();
+
+            int lineNumber = 1;
+            bool isValidIVAZERO = false;
+
+            foreach (Products informListProducts in InformListProducts)
             {
-                //int countTotalPago = processPaymentsAndAmountTotals.Length;
-                foreach(var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
-                {
-                    if(paymentMethods.Description.ToUpper() == "TARJETA")
-                    {
-                        for (int i = 0; i < processPaymentsAndAmountTotals.Length; i++)
-                        {
-                            if (processPaymentsAndAmountTotals[i].ToUpper() == "TARJETA")
-                            {
-                                foreach (var ge in getCurrenciesResponse.CurrencyList)
-                                {
-                                    if (ge.PriorityType == CurrencyPriorityType.Base)
-                                    {
-                                        createDocumentPaymentDetailDAO.CurrencyId = ge.Id;
-                                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(ge.ChangeFactorFromBase);
-                                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                    }
-                                }
-                                PaymentDetailList.Add(createDocumentPaymentDetailDAO);
-                            }
-                        }
-                    }
-                    if(paymentMethods.Description.ToUpper() == "EFECTIVO")
-                    {
-                        for (int i = 0; i < processPaymentsAndAmountTotals.Length; i++)
-                        {
-                            if (processPaymentsAndAmountTotals[i].ToUpper() == "EFECTIVO")
-                            {
-                                foreach (var ge in getCurrenciesResponse.CurrencyList)
-                                {
-                                    if (ge.PriorityType == CurrencyPriorityType.Base)
-                                    {
-                                        createDocumentPaymentDetailDAO.CurrencyId = ge.Id;
-                                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(ge.ChangeFactorFromBase);
-                                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                    }
-                                }
-                                PaymentDetailList.Add(createDocumentPaymentDetailDAO);
-                            }
-                        }
-                    }
-                }
-            }
-
-            foreach(var processAmountOfSale in ProcessAmountOfSale)
-            {
-                int countprocessAmountOfSale = processAmountOfSale.Length;
-                for(int t = 0; t < countprocessAmountOfSale; t++)
-                {
-                    foreach(var paymentDetailList in PaymentDetailList)
-                    {
-                        //
-                    }
-                }
-            }
-
-            #endregion
-
-            #endregion
-
-            //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
-
-            //SHELLMX - Se verifica si es parcial la venta.
-            /*if(request.parciales)
-            {
-
-            }
-            else
-            {
-                // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
-                var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
-                TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
-
-                GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest()
-                {
-                    ProductId = request.IdProduct,
-                    Quantity = 1,
-                    Identity = bsObj.Identity,
-                };
-                InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                CreateDocumentLineDAO createDocumentLineDAO = new CreateDocumentLineDAO();
+                GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest { ProductId = informListProducts.Id_producto.ToString(), Quantity = informListProducts.Cantidad, Identity = bsObj.Identity };
                 GetProductForSaleResponse getProductForSaleResponse = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
-            }*/
+                decimal IvaProducto = 0M;
+
+                if (getProductForSaleResponse.TaxPercentage == Convert.ToDecimal(0))
+                {
+                    //SHLMX- Se contruye el product, para el arreglo.
+                    createDocumentLineDAO.LineNumber = lineNumber;
+                    createDocumentLineDAO.ProductId = informListProducts.Id_producto.ToString();
+                    createDocumentLineDAO.Quantity = informListProducts.Cantidad;
+                    createDocumentLineDAO.UnitaryPriceWithTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
+                    createDocumentLineDAO.TotalAmountWithTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.PriceWithoutTax = getProductForSaleResponse.FinalAmount;
+                    //IvaProductos[0] = getProductForSaleResponse.TaxPercentage;
+                    //IvaProductos[1] = getProductForSaleResponse.TaxPercentage;
+                    //ListIvas.Add(IvaProductos);
+                    //IvaProductos = null;
+                    isValidIVAZERO = true;
+                }
+                else
+                {
+                    //SHLMX- Se contruye el product, para el arreglo.
+                    createDocumentLineDAO.LineNumber = lineNumber;
+                    createDocumentLineDAO.ProductId = informListProducts.Id_producto.ToString();
+                    createDocumentLineDAO.Quantity = informListProducts.Cantidad;
+                    createDocumentLineDAO.UnitaryPriceWithTax = getProductForSaleResponse.FinalAmount;
+                    createDocumentLineDAO.TaxPercentage = getProductForSaleResponse.TaxPercentage;
+
+                    decimal priceWithoutTaxW = getProductForSaleResponse.FinalAmount / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
+                    decimal priceWithoutTax = Math.Round(priceWithoutTaxW, 6);
+                    createDocumentLineDAO.PriceWithoutTax = priceWithoutTax;
+                    createDocumentLineDAO.TaxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
+
+                    createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
+                    createDocumentLineDAO.TotalAmountWithTax = getProductForSaleResponse.FinalAmount;
+                    IvaProducto = Convert.ToDecimal(getProductForSaleResponse.TaxPercentage);
+                    //IvaProductos[1] = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax; ListIvas.Add(IvaProductos);
+                    //IvaProductos = null;
+
+                    decimal ivaaplicado = 0M;
+                    foreach (Products informListPro in InformListProducts)
+                    {
+                        GetProductForSaleRequest getProduct = new GetProductForSaleRequest { ProductId = informListPro.Id_producto.ToString(), Quantity = informListPro.Cantidad, Identity = bsObj.Identity };
+                        GetProductForSaleResponse getProductFor = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
+
+                        if (IvaProducto == getProductFor.TaxPercentage)
+                        {
+                            decimal priceTaxW = getProductForSaleResponse.FinalAmount / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
+                            decimal priceWTax = Math.Round(priceWithoutTaxW, 6);
+                            decimal taxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
+                            ivaaplicado = ivaaplicado + taxAmount;
+                        }
+                    }
+                    TotalTaxListSale.Add(IvaProducto, ivaaplicado);
+                    IvaProducto = 0M;
+                }
+
+                LineList.Add(createDocumentLineDAO);
+                lineNumber++;
+                createDocumentLineDAO = null;
+            }
+            if(isValidIVAZERO)
+            {
+                TotalTaxListSale.Add(Convert.ToDecimal(0), Convert.ToDecimal(0));
+            }
+            #endregion
+
+            #endregion
+
+            #endregion
+
             var nticket = "";
             Random r = new Random();
             int b = r.Next(1, 100);

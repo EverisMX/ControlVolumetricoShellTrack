@@ -210,6 +210,20 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
+            #region CONFIGURACION PARA EL DOMS
+            ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
+            if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
+            {
+                //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
+                };
+            }
+
+            #endregion
+
             //SHELLMX- Se crea el vaciado de la informacion de la venta.
             List<Products> InformListProducts = new List<Products>();
 
@@ -505,9 +519,9 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
             #region MONTO
+            decimal TotalAmountWithTaxMonto = 0M;
             try
             {
-                decimal TotalAmountWithTaxMonto = 0M;
                 foreach (string[] monto in ProcessAmountOfSale)
                 {
                     int countMonto = monto.Length;
@@ -540,6 +554,8 @@ namespace ControlVolumetricoShellWS.Implementation
             string serieId = null;
             string customerId;
             string posId;
+            string currencyId = null;
+
             GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
             GetSeriesResponse getSeriesResponse = await invokeHubbleWebAPIServices.GetSeries(getSeriesRequest);
 
@@ -549,7 +565,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
             GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
-            posId = getPOSInformationResponse.PosInformation.CashboxCode + getPOSInformationResponse.PosInformation.Code;
+            posId = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.Code;
 
             GetPOSConfigurationRequest getPOSConfigurationRequest = new GetPOSConfigurationRequest { Identity = bsObj.Identity };
             GetPOSConfigurationResponse getPOSConfigurationResponse = await invokeHubbleWebAPIServices.GetPOSConfiguration(getPOSConfigurationRequest);
@@ -617,6 +633,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                             createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                             PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                            currencyId = CurrenciesBase.Id;
                                             isValidFormaPagoT = true;
                                         }
                                         createDocumentPaymentDetailDAO = null;
@@ -667,6 +684,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                             createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                             PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                            currencyId = CurrenciesBase.Id;
                                             isValidFormaPagoE = true;
                                         }
                                         createDocumentPaymentDetailDAO = null;
@@ -699,7 +717,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             int lineNumber = 1;
             bool isValidIVAZERO = false;
-
+            bool ZERO = true;
             foreach (Products informListProducts in InformListProducts)
             {
                 CreateDocumentLineDAO createDocumentLineDAO = new CreateDocumentLineDAO();
@@ -757,7 +775,11 @@ namespace ControlVolumetricoShellWS.Implementation
                             ivaaplicado = ivaaplicado + taxAmount;
                         }
                     }
-                    TotalTaxListSale.Add(IvaProducto, ivaaplicado);
+                    if(ZERO)
+                    {
+                        TotalTaxListSale.Add(IvaProducto, ivaaplicado);
+                        ZERO = false;
+                    }
                     IvaProducto = 0M;
                 }
 
@@ -775,41 +797,140 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
+            #region VALIDACION DE LAS IVAS
+            decimal ivaTotal = 0M;
+            foreach (KeyValuePair<decimal, decimal> result in TotalTaxListSale)
+            {
+                ivaTotal = ivaTotal + result.Value;
+            }
+            #endregion
+
             #region LLAMAR EL API DE EVERILION PARA LA VENTA
             CreateDocumentDAO createDocumentDAO = new CreateDocumentDAO {               
                 ProvisionalId = 1,
                 SerieId = serieId,
                 EmissionLocalDateTime = emissionLocalDateTime,
                 EmissionUTCDateTime = emissionUTCDateTime,
-                TaxableAmount = 0M, ///
+                TaxableAmount = ivaTotal,
                 TotalTaxList = TotalTaxListSale,
-                TotalAmountWithTax = 0M,
+                TotalAmountWithTax = TotalAmountWithTaxMonto,
                 PaymentDetailList = PaymentDetailList,
                 LineList = LineList,
                 OperatorId = getOperatorResponse.Operator.Id,
                 CustomerId = customerId,
                 ExtraData = null,
-                CurrencyId = null, ////
+                CurrencyId = currencyId, 
                 PosId = posId,
             };
-            CreateDocumentsRequest createDocumentsRequest = new CreateDocumentsRequest { };
+            List<CreateDocumentDAO> createDocumentDAOs = new List<CreateDocumentDAO>();
+            createDocumentDAOs.Add(createDocumentDAO);
+            CreateDocumentsRequest createDocumentsRequest = new CreateDocumentsRequest { CreateDAOList = createDocumentDAOs , Identity = bsObj.Identity };
+
+            CreateDocumentsResponse createDocumentsResponse = await invokeHubbleWebAPIServices.CreateDocuments(createDocumentsRequest);
+
+            string possibleDocumentId = null;
+            foreach (KeyValuePair<int, string> resultCreateDocuments in createDocumentsResponse.ProvisionalToDefinitiveDocumentIdDictionary)
+            {
+                if(createDocumentsResponse.ProvisionalToDefinitiveDocumentIdDictionary.Count == 1)
+                {
+                    possibleDocumentId = resultCreateDocuments.Key == 1 ? resultCreateDocuments.Value : null;
+                }
+            }
             #endregion
 
-            var nticket = "";
-            Random r = new Random();
-            int b = r.Next(1, 100);
+            #region COMUNICACION CON EL DOMS
 
-            nticket = "000ABC010190000" + b;
-
-            var salida = new Salida_Info_Forma_Pago
+            var guidDOMS = Guid.NewGuid().ToString();
+            FinalizeSupplyTransactionRequest finalizeSupplyTransactionRequest = new FinalizeSupplyTransactionRequest
             {
-                Msj = "Entrega Satisfactoria",
-                Resultado = true,
-                EESS = "0007",
-                Nticket = nticket,
-                WebId = "02156WE545W56"
+                ContactId = null,
+                CustomerId = customerId,
+                FuellingPointId = request.Pos_Carga,
+                LineNumberInDocument = 1,
+                OdometerMeasurement = null,
+                OperatorId = getOperatorResponse.Operator.Id,
+                PossibleDocumentId = possibleDocumentId,
+                ProvisionalId = guidDOMS,
+                SupplyTransactionId = Convert.ToInt32(request.Id_Transaccion),
+                VehicleLicensePlate = null
             };
-            return salida;
+
+            FinalizeSupplyTransactionResponse finalizeSupplyTransactionResponse = conectionSignalRDomsInform.FinalizeSupplyTransactionWS(finalizeSupplyTransactionRequest);
+            string supplyTransactionIdDOMS = null;
+
+            if(finalizeSupplyTransactionResponse.Status < 0)
+            {
+                finalizeSupplyTransactionResponse = null;
+                finalizeSupplyTransactionResponse = conectionSignalRDomsInform.FinalizeSupplyTransactionWS(finalizeSupplyTransactionRequest);
+                if(finalizeSupplyTransactionResponse.Status < 0)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado AVISAR AL ADMINSTRADOR CENTRAL!",
+                    };
+                }
+            }
+            else
+            {
+                foreach(KeyValuePair<string,string> resultsupplyTransactionIdDOMS in finalizeSupplyTransactionResponse.ProvisionalSupplyIdToDefinitiveSupplyIdMapping)
+                {
+                    supplyTransactionIdDOMS = resultsupplyTransactionIdDOMS.Value;
+                }
+            }
+            #endregion
+
+            #region FINALIZADO DEL DOMS Y LIBERACION DE LA BOMBA Y LA VENTA
+
+            List<string> SupplyTransactionIdListWS = new List<string>()
+            {
+                supplyTransactionIdDOMS
+            };
+            SetDefinitiveDocumentIdForSupplyTransactionsRequest setDefinitiveDocumentIdForSupplyTransactionsRequest = new SetDefinitiveDocumentIdForSupplyTransactionsRequest
+            {
+                OperatorId = getOperatorResponse.Operator.Id,
+                DefinitiveDocumentId = possibleDocumentId,
+                SupplyTransactionIdList = SupplyTransactionIdListWS
+            };
+
+            SetDefinitiveDocumentIdForSupplyTransactionsResponse setDefinitiveDocumentIdForSupplyTransactionsResponse = conectionSignalRDomsInform.SetDefinitiveDocumentIdForSupplyTransactionsWS(setDefinitiveDocumentIdForSupplyTransactionsRequest);
+
+            #endregion
+
+            DateTimeOffset fechaticketstring = DateTimeOffset.Parse(emissionLocalDateTime);
+            string fechaticket = Convert.ToString(fechaticketstring.DateTime);
+
+            string nticketco = possibleDocumentId;
+            string horaformatnews = fechaticket.Replace(" ", "");
+
+            string wid = horaformatnews.Substring(10, 2);
+            string wid2 = nticketco.Substring(0, 5);
+            string wid3 = horaformatnews.Substring(13, 2);
+            string wid4 = nticketco.Substring(5, 4);
+            string wid5 = horaformatnews.Substring(16, 2);
+
+            string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
+
+            if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == 1)
+            {
+
+               return new Salida_Info_Forma_Pago
+                {
+                    Msj = "SHELLHUBBLE- VENTA SATISFACTORIA",
+                    Resultado = true,
+                    EESS = getPOSInformationResponse.PosInformation.ShopCode,
+                    Nticket = possibleDocumentId,
+                    WebId = webidnwe
+               };
+            }else if(setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Msj = "SHELLHUBBLE- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS",
+                    Resultado = true,
+                };
+            }
+            return null;
         }
 
         public Salida_LiberaCarga LiberaCarga(Entrada_LiberaCarga request)

@@ -1,5 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using Microsoft.AspNet.SignalR.Client;
 using Conection.HubbleWS;
 using System.Threading.Tasks;
@@ -160,29 +161,14 @@ namespace ControlVolumetricoShellWS.Implementation
             }
         }
 
-
-
-        //SHELLMX- Metodo SignalR para la cancelacion de la autorizacion en la parte del concepto de la liberacion de surtidor.
-        /*public async Task CancelAuthorizationOfFuellingPoint(string identity, int fuellingPointId)
+        public FinalizeSupplyTransactionResponse FinalizeSupplyTransactionWS(FinalizeSupplyTransactionRequest request)
         {
-            try
-            {
-                // SHELLMX- Se revisa la conexion en la parte del psshub. 
-                // Se pregunta si esta conecta
-                if (!IsConnected())
-                {
-                    ConnectToServer();
-                }
+            return hubProxy.Invoke<FinalizeSupplyTransactionResponse>("FinalizeSupplyTransaction", request).Result;
+        }
 
-                //SHELLMX- Se invoca la cancelacion sobre el surtidor.
-                hubProxy.On<>("Receive", message => OnReceive(message));
-            }
-            catch (Exception e)
-            {
-                throw e;
-                //OnConnectionFailed?.Invoke(e.Message);
-            }
-        }*/
-
+        public SetDefinitiveDocumentIdForSupplyTransactionsResponse SetDefinitiveDocumentIdForSupplyTransactionsWS(SetDefinitiveDocumentIdForSupplyTransactionsRequest request)
+        {
+            return hubProxy.Invoke<SetDefinitiveDocumentIdForSupplyTransactionsResponse>("SetDefinitiveDocumentIdForSupplyTransactions", request).Result;
+        }
     }
 }

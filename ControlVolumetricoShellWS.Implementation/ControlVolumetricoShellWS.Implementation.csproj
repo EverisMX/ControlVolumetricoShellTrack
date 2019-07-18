@@ -77,12 +77,16 @@
   <ItemGroup>
     <Compile Include="Helper\ConectionSignalRDoms.cs" />
     <Compile Include="Models\BaseResponse.cs" />
+    <Compile Include="Models\FinalizeSupplyTransactionRequest.cs" />
+    <Compile Include="Models\FinalizeSupplyTransactionResponse.cs" />
     <Compile Include="Models\GetAllSupplyTransactionsOfFuellingPointRequest.cs" />
     <Compile Include="Models\GetAllSupplyTransactionsOfFuellingPointResponse.cs" />
     <Compile Include="Models\LockSupplyTransactionOfFuellingPointRequest.cs" />
     <Compile Include="Models\LockSupplyTransactionOfFuellingPointResponse.cs" />
     <Compile Include="Models\ProcessPaymentsAndAmountTotals.cs" />
     <Compile Include="Models\Products.cs" />
+    <Compile Include="Models\SetDefinitiveDocumentIdForSupplyTransactionsRequest.cs" />
+    <Compile Include="Models\SetDefinitiveDocumentIdForSupplyTransactionsResponse.cs" />
     <Compile Include="Models\SupplyTransaction.cs" />
     <Compile Include="Models\TokenTPV.cs" />
     <Compile Include="Implementation\ControlVolumetricoShellMX.cs" />

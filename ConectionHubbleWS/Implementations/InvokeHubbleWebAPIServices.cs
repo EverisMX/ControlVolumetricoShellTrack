@@ -409,6 +409,34 @@ namespace Conection.HubbleWS
             }
         }
 
+        public async Task<GetCompanyResponse> GetCompany(GetCompanyRequest GetCompanyreques)
+        {
+            //SHELLMX- Se manda a llamar el metodo HttpClient.
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:8091");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
+                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetCompany", GetCompanyreques))
+                {
+                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseJson = response.Content.ReadAsStringAsync().Result;
+
+                        //SHELLMX- Se desSerializa para transformarlo en un Objeto.
+                        GetCompanyResponse deserializeJson = JsonConvert.DeserializeObject<GetCompanyResponse>(responseJson);
+
+                        return deserializeJson;
+                    }
+                    else
+                        return null;
+                }
+            }
+        }
+
         #endregion
     }
 }

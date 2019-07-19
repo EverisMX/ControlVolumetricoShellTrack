@@ -63,6 +63,7 @@
     <Compile Include="Implementations\InvokeHubbleWebAPIServices.cs" />
     <Compile Include="Models\Facturacion\Address.cs" />
     <Compile Include="Models\Facturacion\AddressType.cs" />
+    <Compile Include="Models\Facturacion\Company.cs" />
     <Compile Include="Models\Facturacion\converletra.cs" />
     <Compile Include="Models\Facturacion\Customer.cs" />
     <Compile Include="Models\Facturacion\Document.cs" />
@@ -73,6 +74,8 @@
     <Compile Include="Models\Facturacion\facresponse.cs" />
     <Compile Include="Models\Facturacion\footeresponse.cs" />
     <Compile Include="Models\Facturacion\GenerateElectronicInvoice.cs" />
+    <Compile Include="Models\Facturacion\GetCompanyRequest.cs" />
+    <Compile Include="Models\Facturacion\GetCompanyResponse.cs" />
     <Compile Include="Models\Facturacion\GetCustomerRequest.cs" />
     <Compile Include="Models\Facturacion\GetCustomerResponse.cs" />
     <Compile Include="Models\Facturacion\GetDocumentRequest.cs" />
@@ -85,6 +88,7 @@
     <Compile Include="Models\Facturacion\PosCommands.cs" />
     <Compile Include="Models\Facturacion\PrintingTemplate.cs" />
     <Compile Include="Models\Facturacion\SeriesType.cs" />
+    <Compile Include="Models\Facturacion\textosincaracterspc.cs" />
     <Compile Include="Models\Facturacion\UsecasePrintingConfiguration.cs" />
     <Compile Include="Models\Hubble\BaseRequest.cs" />
     <Compile Include="Models\Hubble\BaseResponse.cs" />

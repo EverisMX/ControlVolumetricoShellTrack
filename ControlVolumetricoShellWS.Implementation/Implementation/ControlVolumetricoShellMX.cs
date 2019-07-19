@@ -1010,7 +1010,7 @@ namespace ControlVolumetricoShellWS.Implementation
         {
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             Salida_Electronic_billing salida = new Salida_Electronic_billing();
-            //textosincaracterspc textosincarspecial = new textosincaracterspc();
+            textosincaracterspc textosincarspecial = new textosincaracterspc();
 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
@@ -1066,6 +1066,17 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (isFacturar)
             {
+
+                GetCompanyRequest GetCompanyreques = new GetCompanyRequest
+                {
+                    Identity = bsObj.Identity
+                };
+
+                //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
+
+
+
                 #region facturacion
                 //se nesesitan estos datos para facturar agregamos
                 var res = new ListTicketDAO
@@ -1073,7 +1084,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     EESS = request.EESS,
                     NTicket = request.Nticket,
                     //RFC = "AAA010101AAA",
-                    RFC = "XAXX010101000",
+                    RFC = responsecustomer.Customer.TIN,
                     WebID = request.WebID
                 };
 
@@ -1082,11 +1093,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
                 {
                     EmpresaPortal = "01",
-                    ListTicket = new List<ListTicketDAO> { new ListTicketDAO {
-                EESS =res.EESS,
-                NTicket=res.NTicket,
-                RFC=res.RFC,
-                WebID=res.WebID} }
+                    Company = responseCompany.Company.Id,
+                    ListTicket = new List<ListTicketDAO>
+                    {
+                        new ListTicketDAO
+                        {
+                            EESS =res.EESS,
+                            NTicket=res.NTicket,
+                            RFC=res.RFC,
+                            WebID=res.WebID
+                        }
+                    }
                 };
 
 
@@ -1115,7 +1132,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 #endregion
             }
-          
+
 
             #region GetDocument
 
@@ -1144,12 +1161,12 @@ namespace ControlVolumetricoShellWS.Implementation
             string Folioidticket = nticketorigin.Substring((ntiquetn - 9), 9);
 
 
-            string conletra =Convert.ToString(responsegetdocument.Document.TotalAmountWithTax);
+            string conletra = Convert.ToString(responsegetdocument.Document.TotalAmountWithTax);
             converletra nunletra = new converletra();
             //double numletra = Convert.ToDouble(conletra);
             string letraconvert = nunletra.enletras(conletra);
 
-           // decimal caliva = (responsegetdocument.Document.TotalAmountWithTax) - (responsegetdocument.Document.TaxableAmount);
+            // decimal caliva = (responsegetdocument.Document.TotalAmountWithTax) - (responsegetdocument.Document.TaxableAmount);
 
 
             //responseGetPrinting.GlobalSettings.Values;
@@ -1158,16 +1175,16 @@ namespace ControlVolumetricoShellWS.Implementation
             //lista = responsegetdocument.Document.LineList();
             foreach (DocumentLine item in responsegetdocument.Document.LineList)
             {
-                listan.Add(new Productos { ProductName = item.ProductName, Quantity =Convert.ToInt32(item.Quantity), TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2") , UnitaryPriceWithTax =  (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
+                listan.Add(new Productos { ProductName = item.ProductName, Quantity = Convert.ToInt32(item.Quantity), TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2"), UnitaryPriceWithTax = (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
             }
 
             IList<Iva> porcentaje = new List<Iva>();
             foreach (DocumentLine item in responsegetdocument.Document.LineList)
             {
-                porcentaje.Add(new Iva { TaxPercentage=Convert.ToInt32( item.TaxPercentage), TaxAmount= (Math.Truncate(item.TaxAmount * 100)/100).ToString("N2")});
+                porcentaje.Add(new Iva { TaxPercentage = Convert.ToInt32(item.TaxPercentage), TaxAmount = (Math.Truncate(item.TaxAmount * 100) / 100).ToString("N2") });
             }
 
-//--------------------------------empieza iva ------------------------------------------------------------------------------
+            //--------------------------------empieza iva ------------------------------------------------------------------------------
             string strImprime = String.Empty;
             int recorreUnicoIva = 0;
             string[] taxes;
@@ -1201,7 +1218,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 decSumaIva = 0;
                 recorreUnicoIva += 1;
             }
-            string salidaiva=strImprime.ToString();
+            string salidaiva = strImprime.ToString();
             //----------------------------------------------------termina iva--------------------------------------------------------------------
 
 
@@ -1211,9 +1228,9 @@ namespace ControlVolumetricoShellWS.Implementation
             //lista = responsegetdocument.Document.LineList();
             foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
             {
-                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId});
+                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId });
             }
-           string metodospayment= paymentDetails.ToString();
+            string metodospayment = paymentDetails.ToString();
 
 
 

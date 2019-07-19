@@ -257,10 +257,10 @@ namespace ControlVolumetricoShellWS.Implementation
             bool flagCountProduct = false;
 
             List<int> countFormaPago = new List<int>();
-            bool flagCountFormaPago = false;
+            //bool flagCountFormaPago = false;
 
             List<int> countMontoPagar = new List<int>();
-            bool flagCountMontoPagar = false;
+            //bool flagCountMontoPagar = false;
 
             #region PROCESO DE SEPARACION DE LOS PRODUCTOS Y ALMACENAR LOS EN UNA LISTA
             try
@@ -385,7 +385,7 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
             #region VERIFICAR LA LONGITUD DE FORMAPAGO Y MONTOPAGAR PARA PROCESO VENTA.
-            int countUniversalCountMontoP = 0;
+            /*int countUniversalCountMontoP = 0;
             int valOldMontoP = -1;
             foreach (int lengthMontoPagar in countMontoPagar)
             {
@@ -419,7 +419,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     };
                 }
                 valOldFormPago = lengthFormPago;
-            }
+            }*/
 
             #endregion
 
@@ -989,7 +989,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.Resultado = true;
                 salida.Msj = getProductForSaleResponse.Message;
                 salida.producto = getProductForSaleResponse.ProductName;
-                //salida.Id_producto = getProductForSaleResponse.ProductReference,
+                salida.Id_producto = getProductForSaleResponse.ProductReference;
                 salida.importe = getProductForSaleResponse.FinalAmount;
                 salida.precio_Uni = getProductForSaleResponse.FinalAmount;
                 salida.mensajePromocion = "";
@@ -1010,7 +1010,7 @@ namespace ControlVolumetricoShellWS.Implementation
         {
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             Salida_Electronic_billing salida = new Salida_Electronic_billing();
-            textosincaracterspc textosincarspecial = new textosincaracterspc();
+            //textosincaracterspc textosincarspecial = new textosincaracterspc();
 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);

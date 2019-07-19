@@ -164,6 +164,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
                     IvaPorcentaje = lockTransactionInformation.TaxPercentage,
                     Producto = nameProduct,
+                    Id_product = lockTransactionInformation.ProductReference
                 };
             }
             return salida_Obtiene_Tran;
@@ -236,8 +237,10 @@ namespace ControlVolumetricoShellWS.Implementation
             List<List<string[]>> ProductsGlobal = new List<List<string[]>>();
 
             #region PRODUCTO QUE SE ALMACENA EN PLATAFORMA
+            //Es el nombre porque no recibo la parte de del ID.
             string[] Id_product = null;
             string[] cantidad = null;
+
             string[] importe_Unitario = null;
             string[] importe_Total = null;
             #endregion
@@ -407,7 +410,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 countUniversalFormPago = lengthFormPago;
                 valOldFormPago = valOldFormPago == -1 ? lengthFormPago : valOldFormPago;
                 flagCountFormaPago = countUniversalFormPago == valOldFormPago ? true : false;
-                if (!flagCountProduct)
+                if (!flagCountFormaPago)
                 {
                     return new Salida_Info_Forma_Pago
                     {
@@ -419,6 +422,8 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             #endregion
+
+
 
             //Se separa para poder extraer la informacion sobre los productos y almacenarlos.
             #region COMBUSTIBLE.
@@ -606,7 +611,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #region TARJETA
             //List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
-            bool isValidFormaPagoT = false;
+            //bool isValidFormaPagoT = false;
             foreach (string[] processPaymentsCard in ProcessPayments)
             {
                 foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
@@ -634,9 +639,9 @@ namespace ControlVolumetricoShellWS.Implementation
                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                             PaymentDetailList.Add(createDocumentPaymentDetailDAO);
                                             currencyId = CurrenciesBase.Id;
-                                            isValidFormaPagoT = true;
+                                            //isValidFormaPagoT = true;
                                         }
-                                        createDocumentPaymentDetailDAO = null;
+                                        //createDocumentPaymentDetailDAO = null;
                                     }
                                 }
                             }
@@ -644,20 +649,20 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                 }
             }
-            if(!isValidFormaPagoT)
+            /*if(!isValidFormaPagoT)
             {
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
                     Msj = "@SHELLMX- FORMA DE PAGO DESCONOCIDO VERIFICAR.",
                 };
-            }
+            }*/
 
             #endregion
 
             #region EFECTIVO
             //List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
-            bool isValidFormaPagoE = false;
+            //bool isValidFormaPagoE = false;
             foreach (string[] processPaymentsCash in ProcessPayments)
             {
                 foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
@@ -685,9 +690,9 @@ namespace ControlVolumetricoShellWS.Implementation
                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                             PaymentDetailList.Add(createDocumentPaymentDetailDAO);
                                             currencyId = CurrenciesBase.Id;
-                                            isValidFormaPagoE = true;
+                                            //isValidFormaPagoE = true;
                                         }
-                                        createDocumentPaymentDetailDAO = null;
+                                        //createDocumentPaymentDetailDAO = null;
                                     }
                                 }
                             }
@@ -695,14 +700,14 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                 }
             }
-            if (!isValidFormaPagoE)
+            /*if (!isValidFormaPagoE)
             {
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
                     Msj = "@SHELLMX- FORMA DE PAGO DESCONOCIDO VERIFICAR.",
                 };
-            }
+            }*/
 
             #endregion
 
@@ -984,6 +989,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.Resultado = true;
                 salida.Msj = getProductForSaleResponse.Message;
                 salida.producto = getProductForSaleResponse.ProductName;
+                //salida.Id_producto = getProductForSaleResponse.ProductReference,
                 salida.importe = getProductForSaleResponse.FinalAmount;
                 salida.precio_Uni = getProductForSaleResponse.FinalAmount;
                 salida.mensajePromocion = "";
@@ -997,32 +1003,6 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.precio_Uni = 0;
                 salida.mensajePromocion = "";
             }
-
-            /*Entrada_getProductInfo requestNew = new Entrada_getProductInfo
-            {
-                IdProduct = request.IdProduct,
-                Id_teller = request.Id_teller,
-                nHD = request.nHD,
-                pss = request.pss,
-                PTID = request.PTID,
-                idpos = request.idpos,
-                Pos_Carga = request.Pos_Carga,
-                serial = request.serial
-            };
-            Random r = new Random();
-            double a = r.NextDouble();
-
-            double num = (Math.Truncate(a * 100) / 100);
-
-            var salida = new Salida_getProductInfo
-            {
-                Resultado = true,
-                Msj = "Validacion corrcta",
-                producto = "Producto a",
-                importe = Convert.ToDecimal(num),
-                precio_Uni = Convert.ToDecimal(num),
-                mensajePromocion = "No exixte promocion",
-            };*/
             return salida;
         }
 

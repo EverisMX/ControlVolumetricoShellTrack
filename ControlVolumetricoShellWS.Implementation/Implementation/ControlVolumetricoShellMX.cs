@@ -326,7 +326,7 @@ namespace ControlVolumetricoShellWS.Implementation
             DateTime horaCreacionVentalocal = DateTime.Now;
             DateTime horaCreacionVentaUniversalUTC = horaCreacionVentalocal.ToUniversalTime();
 
-            Instant instant = Instant.FromUtc(horaconver.Year, horaconver.Month, horaconver.Day, horaconver.Hour, horaconver.Minute, horaconver.Second);
+           // Instant instant = Instant.FromUtc(horaconver.Year, horaconver.Month, horaconver.Day, horaconver.Hour, horaconver.Minute, horaconver.Second);
          
 
     //SHELLMX- Se verifica el parcial parar poder almacenar en la Plataforma.
@@ -465,6 +465,7 @@ namespace ControlVolumetricoShellWS.Implementation
         {
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             Salida_Electronic_billing salida = new Salida_Electronic_billing();
+            textosincaracterspc textosincarspecial = new textosincaracterspc();
 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
@@ -506,7 +507,7 @@ namespace ControlVolumetricoShellWS.Implementation
             if (request.TipoOperacion == 1)
             {
                 isFacturar = false;
-                salida.RazonSocial = responsecustomer.Customer.BusinessName;
+                salida.RazonSocial = textosincarspecial.transformtext(responsecustomer.Customer.BusinessName);
                 salida.RFC = responsecustomer.Customer.TIN;
                 salida.Resultado = true;
                 salida.Msj = "OPERACION REALIZADA CON EXITO";
@@ -514,7 +515,7 @@ namespace ControlVolumetricoShellWS.Implementation
             else if (request.TipoOperacion == 2)
             {
                 isFacturar = true;
-                salida.RazonSocial = responsecustomer.Customer.BusinessName;
+                salida.RazonSocial = textosincarspecial.transformtext(responsecustomer.Customer.BusinessName);
                 salida.RFC = responsecustomer.Customer.TIN;
             }
 
@@ -569,6 +570,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 #endregion
             }
+          
 
             #region GetDocument
 
@@ -585,10 +587,10 @@ namespace ControlVolumetricoShellWS.Implementation
             if (responsegetdocument.Document.Id == null && responsegetdocument.Document.OperatorId == null && responsegetdocument.Document.LineList == null)
             {
                 salida.FormaPago = null;
-                salida.Subtotal = 0;
+                salida.Subtotal = null;
                 salida.Terminal = null;
                 salida.Operador = null;
-                salida.Total = 0;
+                salida.Total = null;
             }
 
 
@@ -597,12 +599,12 @@ namespace ControlVolumetricoShellWS.Implementation
             string Folioidticket = nticketorigin.Substring((ntiquetn - 9), 9);
 
 
-            decimal conletra = responsegetdocument.Document.TotalAmountWithTax;
+            string conletra =Convert.ToString(responsegetdocument.Document.TotalAmountWithTax);
+            converletra nunletra = new converletra();
+            //double numletra = Convert.ToDouble(conletra);
+            string letraconvert = nunletra.enletras(conletra);
 
-            double numletra = Convert.ToDouble(conletra);
-            string letraconvert = converletra.numbersToLetter(numletra);
-
-            decimal caliva = (responsegetdocument.Document.TotalAmountWithTax) - (responsegetdocument.Document.TaxableAmount);
+           // decimal caliva = (responsegetdocument.Document.TotalAmountWithTax) - (responsegetdocument.Document.TaxableAmount);
 
 
             //responseGetPrinting.GlobalSettings.Values;
@@ -611,8 +613,82 @@ namespace ControlVolumetricoShellWS.Implementation
             //lista = responsegetdocument.Document.LineList();
             foreach (DocumentLine item in responsegetdocument.Document.LineList)
             {
-                listan.Add(new Productos { ProductName = item.ProductName, Quantity = item.Quantity, TotalAmountWithTax = item.TotalAmountWithTax, UnitaryPriceWithTax = item.UnitaryPriceWithTax });
+                listan.Add(new Productos { ProductName = item.ProductName, Quantity =Convert.ToInt32(item.Quantity), TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2") , UnitaryPriceWithTax =  (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
             }
+
+            IList<Iva> porcentaje = new List<Iva>();
+            foreach (DocumentLine item in responsegetdocument.Document.LineList)
+            {
+                porcentaje.Add(new Iva { TaxPercentage=Convert.ToInt32( item.TaxPercentage), TaxAmount= (Math.Truncate(item.TaxAmount * 100)/100).ToString("N2")});
+            }
+
+//--------------------------------empieza iva ------------------------------------------------------------------------------
+            string strImprime = String.Empty;
+            int recorreUnicoIva = 0;
+            string[] taxes;
+            taxes = new string[porcentaje.Count()];
+            IList<IvaUnico> ivaUnico = new List<IvaUnico>();
+            int cuenta = 0;
+            decimal decSumaIva = 0;
+            foreach (var item in porcentaje)
+            {
+                if (Array.IndexOf(taxes, item.TaxPercentage.ToString()) == -1)
+                {
+                    ivaUnico.Add(new IvaUnico { Iva = item.TaxPercentage });
+                    taxes[cuenta] = item.TaxPercentage.ToString();
+                }
+                cuenta += 1;
+            }
+            foreach (var item in ivaUnico)
+            {
+                foreach (var item2 in porcentaje)
+                {
+                    if (item.Iva.ToString() == item2.TaxPercentage.ToString())
+                        decSumaIva += decimal.Parse(item2.TaxAmount);
+                }
+                if (recorreUnicoIva == 0)
+                {
+                    strImprime = "IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                }
+                else
+                    strImprime += " | IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+
+                decSumaIva = 0;
+                recorreUnicoIva += 1;
+            }
+            string salidaiva=strImprime.ToString();
+            //----------------------------------------------------termina iva--------------------------------------------------------------------
+
+
+
+            //---------------------------------------------------mrtodo de pago------------------------------------------------------------------
+            IList<PaymentDetail> paymentDetails = new List<PaymentDetail>();
+            //lista = responsegetdocument.Document.LineList();
+            foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
+            {
+                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId});
+            }
+           string metodospayment= paymentDetails.ToString();
+
+
+
+            string[] arraymetodopago = new string[paymentDetails.Count];
+            int i = 0;
+            foreach (PaymentDetail item in paymentDetails)
+            {
+                arraymetodopago[i++] = item.PaymentMethodId;
+            }
+
+            string metodopago = String.Join(" | ", arraymetodopago);
+
+            metodopago = metodopago.Replace("0393301", "EFECTIVO").Replace("0393308", "TARJETA").Replace("0393309", "FUGA").Replace("0393310", "PROPINA");
+
+
+            //---------------------------------------------------termina metodo de pago---------------------------------------------------------
+
+
+
+
 
 
 
@@ -757,42 +833,42 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
-            salida.HeaderTick1 = deserializeJsonheader.Header1;
-            salida.HeaderTick2 = deserializeJsonheader.Header2;
+            salida.HeaderTick1 = textosincarspecial.transformtext(deserializeJsonheader.Header1);
+            salida.HeaderTick2 = textosincarspecial.transformtext(deserializeJsonheader.Header2);
             salida.HeaderTick3 = deserializeJsonheader.Header3;
-            salida.HedaerTick4 = deserializeJsonheader.Header4;
-            salida.FooterTick1 = deserializeJsonfooter.Footer1;
-            salida.FooterTick2 = deserializeJsonfooter.Footer2;
-            salida.FooterTick3 = deserializeJsonfooter.Footer3;
-            salida.FooterTick4 = deserializeJsonfooter.Footer4;
+            salida.HedaerTick4 = textosincarspecial.transformtext(deserializeJsonheader.Header4);
+            salida.FooterTick1 = textosincarspecial.transformtext(deserializeJsonfooter.Footer1);
+            salida.FooterTick2 = textosincarspecial.transformtext(deserializeJsonfooter.Footer2);
+            salida.FooterTick3 = textosincarspecial.transformtext(deserializeJsonfooter.Footer3);
+            salida.FooterTick4 = textosincarspecial.transformtext(deserializeJsonfooter.Footer4);
             salida.FooterTick5 = deserializeJsonfooter.Footer5;
-            salida.CodigoPostalCompania = listaPrinting[17];
-            salida.CodigoPostalTienda = listaPrinting[27];
-            salida.ColoniaCompania = listaPrinting[16];
-            salida.ColoniaTienda = listaPrinting[29];
-            salida.DireccionCompania = listaPrinting[14];
-            salida.DireccionTienda = listaPrinting[24];
-            salida.EstadoCompania = listaPrinting[19];
-            salida.EstadoTienda = listaPrinting[31];
-            salida.ExpedicionTienda = listaPrinting[27];
-            salida.MunicipioCompania = listaPrinting[16];
-            salida.MunicipioTienda = listaPrinting[26];
-            salida.NombreCompania = listaPrinting[15];
-            salida.PaisCompania = listaPrinting[20];
-            salida.PaisTienda = listaPrinting[30];
+            salida.CodigoPostalCompania = textosincarspecial.transformtext(listaPrinting[17]);
+            salida.CodigoPostalTienda = textosincarspecial.transformtext(listaPrinting[27]);
+            salida.ColoniaCompania = textosincarspecial.transformtext(listaPrinting[16]);
+            salida.ColoniaTienda = textosincarspecial.transformtext(listaPrinting[29]);
+            salida.DireccionCompania = textosincarspecial.transformtext(listaPrinting[14]);
+            salida.DireccionTienda = textosincarspecial.transformtext(listaPrinting[24]);
+            salida.EstadoCompania = textosincarspecial.transformtext(listaPrinting[19]);
+            salida.EstadoTienda = textosincarspecial.transformtext(listaPrinting[31]);
+            salida.ExpedicionTienda = textosincarspecial.transformtext(listaPrinting[27]);
+            salida.MunicipioCompania = textosincarspecial.transformtext(listaPrinting[16]);
+            salida.MunicipioTienda = textosincarspecial.transformtext(listaPrinting[26]);
+            salida.NombreCompania = textosincarspecial.transformtext(listaPrinting[15]);
+            salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
+            salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
             salida.PermisoCRE = listaPrinting[32];
-            salida.Tienda = listaPrinting[33];
+            salida.Tienda = textosincarspecial.transformtext(listaPrinting[33]);
             salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
-            salida.RfcCompania = listaPrinting[5];
+            salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
             salida.Ticket = request.Nticket;
-            salida.FormaPago = responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId;
-            salida.Subtotal = responsegetdocument.Document.TaxableAmount;
+            salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+            salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
             salida.Terminal = responsegetdocument.Document.PosId;
             salida.Operador = responsegetdocument.Document.OperatorName;
             salida.Folio = Folioidticket;
-            salida.Total = responsegetdocument.Document.TotalAmountWithTax;
+            salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
             salida.ImporteEnLetra = letraconvert;
-            salida.Iva = caliva;
+            salida.iva = salidaiva;
             salida.productos = listan;
             salida.Fecha = fechaticket;
             salida.WebID = webidnwe;

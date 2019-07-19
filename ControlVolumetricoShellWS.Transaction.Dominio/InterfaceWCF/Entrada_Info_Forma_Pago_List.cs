@@ -26,8 +26,8 @@ namespace ControlVolumetricoShellWS.Dominio
         /// <summary>
         /// IVA del producto.
         /// </summary>
-        [DataMember]
-        public string IvaProducto { get; set; }
+        //[DataMember]
+        //public string IvaProducto { get; set; }
 
         /// <summary>
         /// Identificador de producto

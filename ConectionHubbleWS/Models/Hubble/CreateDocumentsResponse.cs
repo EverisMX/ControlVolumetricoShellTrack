@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Conection.HubbleWS.Models.Hubble
+namespace Conection.HubbleWS
 {
     public class CreateDocumentsResponse : BaseResponse
     {

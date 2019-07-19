@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     /// <summary>
     /// Representa una entrega/pago efectuado por el cliente en un documento de venta que se va a dar de alta
@@ -54,28 +54,6 @@ namespace Conection.HubbleWS.Models
         /// Si no, es una conversión a moneda base del valor correspondiente.
         /// </summary>
         public decimal PrimaryCurrencyTakenAmount { get; set; }
-
-        /// <summary>
-        /// Cantidad entregada por el cliente, en moneda secundaria.
-        /// 
-        /// Si la divisa indicada en esta entrega es secundaria, representa directamente el hecho sucedido.
-        /// Nulo en caso contrario
-        /// </summary>
-        public decimal? SecondaryCurrencyGivenAmount { get; set; }
-
-        /// <summary>
-        /// De lo entregado por el cliente, valor monetario cogido por el TPV, en moneda secundaria.
-        /// 
-        /// Si la divisa indicada en esta entrega es secundaria, representa directamente el hecho sucedido.
-        /// Nulo en caso contrario
-        /// </summary>
-        public decimal? SecondaryCurrencyTakenAmount { get; set; }
-
-        /// <summary>
-        /// Datos extra.
-        /// Diccionario vacío en caso de no haber ninguno
-        /// </summary>
-        public IDictionary<string, string> ExtraData { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// Especifica el tipo de pago que se va a generar

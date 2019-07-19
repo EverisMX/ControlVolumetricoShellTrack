@@ -12,6 +12,8 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Msj { get; set; }
         [DataMember]
         public string producto { get; set; }
+        //[DataMember]
+        //public string Id_producto { get; set; }
         [DataMember]
         public decimal importe { get; set; }
         [DataMember]

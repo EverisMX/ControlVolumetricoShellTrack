@@ -1,5 +1,5 @@
 ﻿
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     public enum CreatePaymentUsageType
     {

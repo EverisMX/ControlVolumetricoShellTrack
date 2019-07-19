@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Conection.HubbleWS.Models
+namespace Conection.HubbleWS
 {
     /// <summary>
     /// Representa una línea de un documento de venta que se va a dar de alta
@@ -21,6 +21,12 @@ namespace Conection.HubbleWS.Models
         /// (NComapny + Reference)
         /// </summary>
         public string ProductId { get; set; }
+
+        /// <summary>
+        /// Identificador del producto con la descripccion.
+        /// (NComapny + Reference)
+        /// </summary>
+        public string ProductName { get; set; }
 
         /// <summary>
         /// Cantidad o número de unidades del producto
@@ -56,6 +62,11 @@ namespace Conection.HubbleWS.Models
         /// Monto total de la línea, con impuestos incluidos
         /// </summary>
         public decimal TotalAmountWithTax { get; set; }
+
+        /// <summary>
+        /// Monto total de la línea, sin impuestos incluidos
+        /// </summary>
+        public decimal PriceWithoutTax { get; set; }
 
         /// <summary>
         /// Promociones aplicadas a la línea, si hay alguna.

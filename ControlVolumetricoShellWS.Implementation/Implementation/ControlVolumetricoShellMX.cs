@@ -163,8 +163,8 @@ namespace ControlVolumetricoShellWS.Implementation
                     PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
                     IvaPorcentaje = lockTransactionInformation.TaxPercentage,
-                    Producto = nameProduct,
-                    Id_product = lockTransactionInformation.ProductReference
+                    Producto = lockTransactionInformation.ProductReference,
+                    //Id_product = lockTransactionInformation.ProductReference
                 };
             }
             return salida_Obtiene_Tran;
@@ -250,6 +250,24 @@ namespace ControlVolumetricoShellWS.Implementation
             string[] monto_Pagado = null;
             #endregion
 
+            #region PEfectivo
+            string[] forma_PagoCombu = null;
+            string[] monto_PagadoCombu = null;
+            #endregion
+
+            #region PTarjeta
+            string[] forma_PagoPeri = null;
+            string[] monto_PagadoPeri = null;
+            #endregion
+
+            #region listForSale
+            List<string[]> ProcessPaymentsCombu = new List<string[]>();
+            List<string[]> ProcessAmountOfSaleCombu = new List<string[]>();
+
+            List<string[]> ProcessPaymentsPeri = new List<string[]>();
+            List<string[]> ProcessAmountOfSalePeri = new List<string[]>();
+            #endregion
+
             List<int> countCombustible = new List<int>();
             bool flagCountCombustible = false;
 
@@ -277,8 +295,10 @@ namespace ControlVolumetricoShellWS.Implementation
                         cantidad = varPrincipal.Cantidad.Split('|');
                         importe_Unitario = varPrincipal.Importe_Unitario.Split('|');
                         importe_Total = varPrincipal.Importetotal.Split('|');
-                        forma_Pago = varPrincipal.formapagos.Split('|');
-                        monto_Pagado = varPrincipal.montoPagadoParcial.Split('|');
+                        //forma_Pago = varPrincipal.formapagos.Split('|');
+                        //monto_Pagado = varPrincipal.montoPagadoParcial.Split('|');
+                        forma_PagoCombu = varPrincipal.formapagos.Split('|');
+                        monto_PagadoCombu = varPrincipal.montoPagadoParcial.Split('|');
                         //iva = varPrincipal.IvaProducto.Split('|');
 
                         countCombustible.Add(Id_product.Length);
@@ -296,8 +316,11 @@ namespace ControlVolumetricoShellWS.Implementation
                         Combustible.Add(cantidad);
                         Combustible.Add(importe_Unitario);
                         Combustible.Add(importe_Total);
-                        ProcessPayments.Add(forma_Pago);
-                        ProcessAmountOfSale.Add(monto_Pagado);
+                        //ProcessPayments.Add(forma_Pago);
+                        //ProcessAmountOfSale.Add(monto_Pagado);
+
+                        ProcessPaymentsCombu.Add(forma_PagoCombu);
+                        ProcessAmountOfSaleCombu.Add(monto_PagadoCombu);
                         //Combustible.Add(iva);
                         CombustibleGlobal.Add(Combustible);
                     }
@@ -312,6 +335,9 @@ namespace ControlVolumetricoShellWS.Implementation
                         importe_Total = varPrincipal.Importetotal.Split('|');
                         forma_Pago = varPrincipal.formapagos.Split('|');
                         monto_Pagado = varPrincipal.montoPagadoParcial.Split('|');
+
+                        forma_PagoPeri = varPrincipal.formapagos.Split('|');
+                        monto_PagadoPeri = varPrincipal.montoPagadoParcial.Split('|');
                         //iva = varPrincipal.IvaProducto.Split('|');
 
                         countProducts.Add(Id_product.Length);
@@ -329,8 +355,11 @@ namespace ControlVolumetricoShellWS.Implementation
                         Products.Add(cantidad);
                         Products.Add(importe_Unitario);
                         Products.Add(importe_Total);
-                        ProcessPayments.Add(forma_Pago);
-                        ProcessAmountOfSale.Add(monto_Pagado);
+                        //ProcessPayments.Add(forma_Pago);
+                        //ProcessAmountOfSale.Add(monto_Pagado);
+
+                        ProcessPaymentsPeri.Add(forma_PagoPeri);
+                        ProcessAmountOfSalePeri.Add(monto_PagadoPeri);
                         //Products.Add(iva);
                         ProductsGlobal.Add(Products);
                     }
@@ -617,6 +646,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
                 {
                     int processPaymentsCardCount = processPaymentsCard.Length;
+                    int processAmountOfSaleCount = processAmountOfSaleC.Length;
                     foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
                     {
                         //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
@@ -631,15 +661,18 @@ namespace ControlVolumetricoShellWS.Implementation
                                     {
                                         if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                         {
-                                            createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                            createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                            createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                            createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                            createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                            createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                            PaymentDetailList.Add(createDocumentPaymentDetailDAO);
-                                            currencyId = CurrenciesBase.Id;
-                                            //isValidFormaPagoT = true;
+                                            if (i < processAmountOfSaleCount)
+                                            {
+                                                createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                                createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                                createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                currencyId = CurrenciesBase.Id;
+                                                //isValidFormaPagoT = true;
+                                            }
                                         }
                                         //createDocumentPaymentDetailDAO = null;
                                     }
@@ -668,6 +701,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
                 {
                     int processPaymentsCashCount = processPaymentsCash.Length;
+                    int processAmountOfSaleCount = processAmountOfSaleC.Length;
                     foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
                     {
                         //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
@@ -682,15 +716,18 @@ namespace ControlVolumetricoShellWS.Implementation
                                     {
                                         if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                         {
-                                            createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                            createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                            createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                            createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                            createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                            createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                            PaymentDetailList.Add(createDocumentPaymentDetailDAO);
-                                            currencyId = CurrenciesBase.Id;
-                                            //isValidFormaPagoE = true;
+                                            if (i < processPaymentsCashCount)
+                                            {
+                                                createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                                createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
+                                                createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                currencyId = CurrenciesBase.Id;
+                                                //isValidFormaPagoE = true;
+                                            }
                                         }
                                         //createDocumentPaymentDetailDAO = null;
                                     }
@@ -710,6 +747,11 @@ namespace ControlVolumetricoShellWS.Implementation
             }*/
 
             #endregion
+
+
+
+
+
 
             #endregion
 

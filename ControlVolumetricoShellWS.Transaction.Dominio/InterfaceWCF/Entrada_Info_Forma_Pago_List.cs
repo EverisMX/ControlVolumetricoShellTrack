@@ -18,7 +18,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Ultimos_Digitoss { get; set; }
 
         /// <summary>
-        /// Forma de pago
+        /// Forma de pago es un Catalogo.
         /// </summary>
         [DataMember]
         public string formapagos { get; set; }
@@ -48,20 +48,20 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Importe_Unitario { get; set; }
 
         /// <summary>
-        /// Importe.
+        /// Importe Total del Producto
         /// </summary>
         [DataMember]
         public string Importetotal { get; set; }
 
 
         /// <summary>
-        /// Importe.
+        /// Boleano si es Carburante o Periferico.
         /// </summary>
         [DataMember]
         public bool Producto { get; set; }
 
         /// <summary>
-        /// Importe.
+        /// Monto de pagos de la venta total.
         /// </summary>
         [DataMember]
         public string montoPagadoParcial { get; set; }

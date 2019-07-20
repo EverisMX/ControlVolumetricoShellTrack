@@ -20,7 +20,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public IList<Entrada_Info_Forma_Pago_List> Info_Forma_Pago { get; set; } = new List<Entrada_Info_Forma_Pago_List>();
 
         /// <summary>
-        /// Número de estación por parte de PC
+        /// Monto que se necesita pagar 0 si es completa.
         /// </summary>
         [DataMember]
         public decimal PorpagarEntrada { get; set; }
@@ -38,7 +38,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public int Pos_Carga { get; set; }
 
         /// <summary>
-        /// Identificador de usuario.
+        /// Identificador de usuario es numerico.
         /// </summary>
         [DataMember]
         public string Id_teller { get; set; }
@@ -50,7 +50,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public string idpos { get; set; }
 
         /// <summary>
-        /// Parcial de la venta
+        /// Parcial de la venta 
         /// </summary>
         [DataMember]
         public bool parciales { get; set; }

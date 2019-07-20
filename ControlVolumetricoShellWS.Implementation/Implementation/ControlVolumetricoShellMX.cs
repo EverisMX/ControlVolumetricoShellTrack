@@ -17,57 +17,6 @@ namespace ControlVolumetricoShellWS.Implementation
     {
         public async Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request)
         {
-            #region CODIGO MOCK
-            /*
-            Entrada_Obtiene_Tran requestNew = new Entrada_Obtiene_Tran
-            {
-                idpos = request.idpos,
-                Id_teller = request.Id_teller,
-                nHD = request.nHD,
-                Pos_Carga = request.Pos_Carga,
-                pss = request.pss,
-                PTID = request.PTID,
-                serial = request.serial
-
-            };
-            Random r = new Random();
-            double a = r.NextDouble();
-            int b = r.Next(1001, 5890);
-            double num = (Math.Truncate(a * 20000) / 100);
-            double lit = (Math.Truncate(a * 10000) / 100);
-            int variableA = r.Next(1, 4);
-            string type;
-            switch (variableA)
-            {
-                case 1:
-                    type = "95";
-                    break;
-                case 2:
-                    type = "97";
-                    break;
-                case 3:
-                    type = "90";
-                    break;
-                default:
-                    type = "UNDEFINED";
-                    break;
-            }
-            Salida_Obtiene_Tran salida_Obtiene_Tran = new Salida_Obtiene_Tran
-            {
-                Resultado = true,
-                ID_Interno = b,
-                Msj = "mensaje",
-                Estacion = 1213,
-                Importe = num,
-                Litros = lit,
-                Num_Operacion = b,
-                Parcial = true,
-                PosID = b + 1,
-                Precio_Uni = num,
-                Producto = type
-            };*/
-            #endregion
-
             // SHELLMX- Al momento de traer la informacion sobre la transaccion que hay en parte sobre un surtidor, bloquea en el TVP que Action lo este usando, Se contruye el objeto
             //          a llenar de lock para traer la demas informacion sobre la transaccion del Surtidor seleccinado.
 
@@ -87,12 +36,12 @@ namespace ControlVolumetricoShellWS.Implementation
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
-
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-            GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
-            GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
 
-            if (getOperatorResponse.Operator == null)
+            //GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
+            //GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
+
+            /*if (getOperatorResponse.Operator == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_Obtiene_Tran
@@ -100,7 +49,47 @@ namespace ControlVolumetricoShellWS.Implementation
                     Resultado = false,
                     Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
-            }else if(request.Pos_Carga <= 0)
+            }*/
+
+            #region VALIDACION DEL OPERADOR ID | CODE
+            List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
+            {
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Id , MatchingType = SearchOperatorCriteriaMatchingType.Exact },
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Code , MatchingType = SearchOperatorCriteriaMatchingType.Exact }
+            };
+            SearchOperatorRequest searchOperatorRequest = new SearchOperatorRequest
+            {
+                Identity = bsObj.Identity,
+                CriteriaList = SearchOperatorCriteriaOperator,
+                CriteriaRelationshipType = SearchCriteriaRelationshipType.Or,
+                MustIncludeDischarged = false
+            };
+
+            SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
+            string idOperatorObtTran = null;
+            string codeOperatorOntTran = null;
+
+            if (searchOperatorResponse.OperatorList.Count == 0)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                };
+            }
+            foreach (var searchOperator in searchOperatorResponse.OperatorList)
+            {
+                if (searchOperatorResponse.OperatorList.Count == 1)
+                {
+                    idOperatorObtTran = searchOperator.Id;
+                    codeOperatorOntTran = searchOperator.Code;
+                }
+            }
+
+            #endregion
+
+            if (request.Pos_Carga <= 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el tipo de surtidor.
                 return new Salida_Obtiene_Tran
@@ -110,9 +99,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
-            GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest = new GetAllSupplyTransactionsOfFuellingPointRequest { OperatorId = request.Id_teller, FuellingPointId = request.Pos_Carga };
+            GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest = new GetAllSupplyTransactionsOfFuellingPointRequest { OperatorId = idOperatorObtTran, FuellingPointId = request.Pos_Carga };
             LockSupplyTransactionOfFuellingPointResponse lockTransactionInformation = await conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPointRequest);
-            //Salida_Obtiene_Tran salida_Obtiene_Tran;
 
             if (lockTransactionInformation.Status < 0)
             {
@@ -132,22 +120,6 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             else
             {
-                var nameProduct = "";
-                switch (lockTransactionInformation.GradeId)
-                {
-                    case 1:
-                        nameProduct = "95";
-                        break;
-                    case 2:
-                        nameProduct = "97";
-                        break;
-                    case 3:
-                        nameProduct = "90";
-                        break;
-                    default:
-                        break;
-                }
-
                 GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                 GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
                 salida_Obtiene_Tran = new Salida_Obtiene_Tran
@@ -162,7 +134,6 @@ namespace ControlVolumetricoShellWS.Implementation
                     Parcial = false,
                     PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
-                    IvaPorcentaje = lockTransactionInformation.TaxPercentage,
                     Producto = lockTransactionInformation.ProductReference,
                     //Id_product = lockTransactionInformation.ProductReference
                 };
@@ -186,12 +157,39 @@ namespace ControlVolumetricoShellWS.Implementation
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
-
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-            GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
-            GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
 
-            if (getOperatorResponse.Operator == null)
+            //GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
+            //GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
+
+            /*if (getOperatorResponse.Operator == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                };
+            }*/
+
+            #region VALIDACION DEL OPERADOR ID | CODE
+            List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
+            {
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Id , MatchingType = SearchOperatorCriteriaMatchingType.Exact },
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Code , MatchingType = SearchOperatorCriteriaMatchingType.Exact }
+            };
+            SearchOperatorRequest searchOperatorRequest = new SearchOperatorRequest {
+                Identity = bsObj.Identity,
+                CriteriaList = SearchOperatorCriteriaOperator,
+                CriteriaRelationshipType = SearchCriteriaRelationshipType.Or,
+                MustIncludeDischarged = false
+            };
+
+            SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
+            string idOperator = null;
+            string codeOperator = null;
+
+            if(searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_Info_Forma_Pago
@@ -200,6 +198,16 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
             }
+            foreach(var searchOperator in searchOperatorResponse.OperatorList)
+            {
+                if(searchOperatorResponse.OperatorList.Count == 1)
+                {
+                    idOperator = searchOperator.Id;
+                    codeOperator = searchOperator.Code;
+                }
+            }
+
+            #endregion
 
             if (request.Info_Forma_Pago == null || request.Info_Forma_Pago.Count == 0)
             {
@@ -556,15 +564,26 @@ namespace ControlVolumetricoShellWS.Implementation
             decimal TotalAmountWithTaxMonto = 0M;
             try
             {
-                foreach (string[] monto in ProcessAmountOfSale)
+                //OIL
+                foreach (string[] montoComb in ProcessAmountOfSaleCombu)
                 {
-                    int countMonto = monto.Length;
-                    for (int i = 0; i < countMonto; i++)
+                    int countMontoComb = montoComb.Length;
+                    for (int i = 0; i < countMontoComb; i++)
                     {
-                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(monto[i]);
+                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(montoComb[i]);
                     }
                 }
-            }catch(Exception e)
+                //PaymentSale
+                foreach (string[] montoPeri in ProcessAmountOfSalePeri)
+                {
+                    int countMontoPeri = montoPeri.Length;
+                    for (int i = 0; i < countMontoPeri; i++)
+                    {
+                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(montoPeri[i]);
+                    }
+                }
+            }
+            catch(Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -586,6 +605,7 @@ namespace ControlVolumetricoShellWS.Implementation
             #region SERIE & CLIENTE CONTADO & POSID DE TPV
 
             string serieId = null;
+            string serieWebId = null;
             string customerId;
             string posId;
             string currencyId = null;
@@ -596,6 +616,7 @@ namespace ControlVolumetricoShellWS.Implementation
             foreach (var series in getSeriesResponse.SeriesList)
             {
                 serieId = series.Id;
+                serieWebId = series.Code;
             }
             GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
             GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
@@ -638,120 +659,237 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
 
-            #region TARJETA
+            #region OIL STATION
             //List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
             //bool isValidFormaPagoT = false;
-            foreach (string[] processPaymentsCard in ProcessPayments)
+            try
             {
-                foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
+                foreach (string[] processPaymentsCombu in ProcessPaymentsCombu)
                 {
-                    int processPaymentsCardCount = processPaymentsCard.Length;
-                    int processAmountOfSaleCount = processAmountOfSaleC.Length;
-                    foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                    foreach (string[] processAmountOfSaleCombu in ProcessAmountOfSaleCombu)
                     {
-                        //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                        if (paymentMethods.Description.ToUpper() == "TARJETA")
+                        int processPaymentsCombuCount = processPaymentsCombu.Length;
+                        int processAmountOfSaleCount = processAmountOfSaleCombu.Length;
+                        foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
                         {
-                            for (int i = 0; i < processPaymentsCardCount; i++)
+                            //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                            if (paymentMethods.Description.ToUpper() == "TARJETA")
                             {
-                                CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                for (int i = 0; i < processPaymentsCombuCount; i++)
                                 {
-                                    if (processPaymentsCard[i].ToUpper() == "TARJETA")
+                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                     {
-                                        if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                        if (Convert.ToInt32(processPaymentsCombu[i]) == 32) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
                                         {
-                                            if (i < processAmountOfSaleCount)
+                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                             {
-                                                createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                                createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                                createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                PaymentDetailList.Add(createDocumentPaymentDetailDAO);
-                                                currencyId = CurrenciesBase.Id;
-                                                //isValidFormaPagoT = true;
+                                                if (i < processAmountOfSaleCount)
+                                                {
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    currencyId = CurrenciesBase.Id;
+                                                    //isValidFormaPagoT = true;
+                                                }
                                             }
+                                            //createDocumentPaymentDetailDAO = null;
                                         }
-                                        //createDocumentPaymentDetailDAO = null;
                                     }
                                 }
                             }
+                            if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                            {
+                                for (int i = 0; i < processPaymentsCombuCount; i++)
+                                {
+                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                    {
+                                        if (Convert.ToInt32(processPaymentsCombu[i]) == 3) //if (processPaymentsCombu[i].ToUpper() == "EFECTIVO")
+                                        {
+                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                            {
+                                                if (i < processAmountOfSaleCount)
+                                                {
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    currencyId = CurrenciesBase.Id;
+                                                    //isValidFormaPagoT = true;
+                                                }
+                                            }
+                                            //createDocumentPaymentDetailDAO = null;
+                                        }
+                                    }
+                                }
+                            }
+                            if (paymentMethods.Description.ToUpper() == "VARIOS")
+                            {
+                                for (int i = 0; i < processPaymentsCombuCount; i++)
+                                {
+                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                    {
+                                        if (Convert.ToInt32(processPaymentsCombu[i]) != 3 && Convert.ToInt32(processPaymentsCombu[i]) != 32)
+                                        {
+                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                            {
+                                                if (i < processAmountOfSaleCount)
+                                                {
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    currencyId = CurrenciesBase.Id;
+                                                    //isValidFormaPagoT = true;
+                                                }
+                                            }
+                                            //createDocumentPaymentDetailDAO = null;
+                                        }
+                                    }
+                                }
+                            }//end
                         }
                     }
                 }
-            }
-            /*if(!isValidFormaPagoT)
+            }catch(Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- FORMA DE PAGO DESCONOCIDO VERIFICAR.",
+                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O NO SON LA MISMA LONGITUD DE ENTRADA DE FORMAPAGO Y MONTO VERIFICAR!! LOG:: " + e,
                 };
-            }*/
+                throw e;
+            }
 
             #endregion
 
-            #region EFECTIVO
+            #region PERIPHERICS STATION
             //List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
             //bool isValidFormaPagoE = false;
-            foreach (string[] processPaymentsCash in ProcessPayments)
+            try
             {
-                foreach (string[] processAmountOfSaleC in ProcessAmountOfSale)
+                foreach (string[] processPaymentsPeri in ProcessPaymentsPeri)
                 {
-                    int processPaymentsCashCount = processPaymentsCash.Length;
-                    int processAmountOfSaleCount = processAmountOfSaleC.Length;
-                    foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                    foreach (string[] processAmountOfSalePeri in ProcessAmountOfSalePeri)
                     {
-                        //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                        if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                        int processPaymentsPeriCount = processPaymentsPeri.Length;
+                        int processAmountOfSaleCount = processAmountOfSalePeri.Length;
+                        foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
                         {
-                            for (int i = 0; i < processPaymentsCashCount; i++)
+                            //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                            if (paymentMethods.Description.ToUpper() == "TARJETA")
                             {
-                                CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                for (int i = 0; i < processPaymentsPeriCount; i++)
                                 {
-                                    if (processPaymentsCash[i].ToUpper() == "EFECTIVO")
+                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                     {
-                                        if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                        if (Convert.ToInt32(processPaymentsPeri[i]) == 32) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
                                         {
-                                            if (i < processPaymentsCashCount)
+                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                             {
-                                                createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                                createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleC[i]);
-                                                createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                PaymentDetailList.Add(createDocumentPaymentDetailDAO);
-                                                currencyId = CurrenciesBase.Id;
-                                                //isValidFormaPagoE = true;
+                                                if (i < processAmountOfSaleCount)
+                                                {
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    currencyId = CurrenciesBase.Id;
+                                                    //isValidFormaPagoE = true;
+                                                }
                                             }
+                                            //createDocumentPaymentDetailDAO = null;
                                         }
-                                        //createDocumentPaymentDetailDAO = null;
+                                    }
+                                }
+                            }
+                            if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                            {
+                                for (int i = 0; i < processPaymentsPeriCount; i++)
+                                {
+                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                    {
+                                        if (Convert.ToInt32(processPaymentsPeri[i]) == 3) //if (processPaymentsPeri[i].ToUpper() == "EFECTIVO")
+                                        {
+                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                            {
+                                                if (i < processAmountOfSaleCount)
+                                                {
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    currencyId = CurrenciesBase.Id;
+                                                    //isValidFormaPagoE = true;
+                                                }
+                                            }
+                                            //createDocumentPaymentDetailDAO = null;
+                                        }
+                                    }
+                                }
+                            }
+                            if (paymentMethods.Description.ToUpper() == "VARIOS")
+                            {
+                                for (int i = 0; i < processPaymentsPeriCount; i++)
+                                {
+                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                    {
+                                        if (Convert.ToInt32(processPaymentsPeri[i]) != 3 && Convert.ToInt32(processPaymentsPeri[i]) != 32)
+                                        {
+                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                            {
+                                                if (i < processAmountOfSaleCount)
+                                                {
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    currencyId = CurrenciesBase.Id;
+                                                    //isValidFormaPagoE = true;
+                                                }
+                                            }
+                                            //createDocumentPaymentDetailDAO = null;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
-            /*if (!isValidFormaPagoE)
+            }catch(Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- FORMA DE PAGO DESCONOCIDO VERIFICAR.",
+                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O NO SON LA MISMA LONGITUD DE ENTRADA DE FORMAPAGO Y MONTO VERIFICAR!! LOG:: " + e,
                 };
-            }*/
+                throw e;
+            }
 
             #endregion
-
-
-
-
-
 
             #endregion
 
@@ -863,7 +1001,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 TotalAmountWithTax = TotalAmountWithTaxMonto,
                 PaymentDetailList = PaymentDetailList,
                 LineList = LineList,
-                OperatorId = getOperatorResponse.Operator.Id,
+                OperatorId = idOperator,
                 CustomerId = customerId,
                 ExtraData = null,
                 CurrencyId = currencyId, 
@@ -872,8 +1010,15 @@ namespace ControlVolumetricoShellWS.Implementation
             List<CreateDocumentDAO> createDocumentDAOs = new List<CreateDocumentDAO>();
             createDocumentDAOs.Add(createDocumentDAO);
             CreateDocumentsRequest createDocumentsRequest = new CreateDocumentsRequest { CreateDAOList = createDocumentDAOs , Identity = bsObj.Identity };
-
             CreateDocumentsResponse createDocumentsResponse = await invokeHubbleWebAPIServices.CreateDocuments(createDocumentsRequest);
+            if(createDocumentsResponse.Status < 0)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@SHELLMX- FALLO EN PROCESO INTERNO HUBBLE NO SE ALMACENO EN BDEVERILION REINTENTAR Y VERIFICAR LOS DATOS CORRECTOS DE ENTRADA ::"
+                };
+            }
 
             string possibleDocumentId = null;
             foreach (KeyValuePair<int, string> resultCreateDocuments in createDocumentsResponse.ProvisionalToDefinitiveDocumentIdDictionary)
@@ -895,7 +1040,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 FuellingPointId = request.Pos_Carga,
                 LineNumberInDocument = 1,
                 OdometerMeasurement = null,
-                OperatorId = getOperatorResponse.Operator.Id,
+                OperatorId = idOperator,
                 PossibleDocumentId = possibleDocumentId,
                 ProvisionalId = guidDOMS,
                 SupplyTransactionId = Convert.ToInt32(request.Id_Transaccion),
@@ -914,7 +1059,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado AVISAR AL ADMINSTRADOR CENTRAL!",
+                        Msj = "SHELLHUBLE- FALLO LA CONEXION DE CERRAR LA BOMBA EN DOMS VERIFICAR DATOS DE ENTRADA! LOG:: " + finalizeSupplyTransactionResponse.Message,
                     };
                 }
             }
@@ -935,39 +1080,44 @@ namespace ControlVolumetricoShellWS.Implementation
             };
             SetDefinitiveDocumentIdForSupplyTransactionsRequest setDefinitiveDocumentIdForSupplyTransactionsRequest = new SetDefinitiveDocumentIdForSupplyTransactionsRequest
             {
-                OperatorId = getOperatorResponse.Operator.Id,
+                OperatorId =idOperator,
                 DefinitiveDocumentId = possibleDocumentId,
                 SupplyTransactionIdList = SupplyTransactionIdListWS
             };
 
             SetDefinitiveDocumentIdForSupplyTransactionsResponse setDefinitiveDocumentIdForSupplyTransactionsResponse = conectionSignalRDomsInform.SetDefinitiveDocumentIdForSupplyTransactionsWS(setDefinitiveDocumentIdForSupplyTransactionsRequest);
+            if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLHUBLE- FALLO EN LA LIBERACION DE BOMBA VERIFICAR SURTIDOR EN TPV! LOG:: " + finalizeSupplyTransactionResponse.Message,
+                };
+            }
 
             #endregion
 
-            DateTimeOffset fechaticketstring = DateTimeOffset.Parse(emissionLocalDateTime);
-            string fechaticket = Convert.ToString(fechaticketstring.DateTime);
+            DateTimeOffset fechaTicketSale = DateTimeOffset.Parse(emissionLocalDateTime);
+            string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
+            string horaFormatFact = fechaTicketFact.Replace(" ", "");
 
-            string nticketco = possibleDocumentId;
-            string horaformatnews = fechaticket.Replace(" ", "");
+            string hourWebID = horaFormatFact.Substring(10, 2);
+            string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
+            string minutWebID = horaFormatFact.Substring(13, 2);
+            string serieTicket = serieWebId;
+            string secontWebID = horaFormatFact.Substring(16, 2);
 
-            string wid = horaformatnews.Substring(10, 2);
-            string wid2 = nticketco.Substring(0, 5);
-            string wid3 = horaformatnews.Substring(13, 2);
-            string wid4 = nticketco.Substring(5, 4);
-            string wid5 = horaformatnews.Substring(16, 2);
-
-            string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
+            string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 
             if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == 1)
             {
-
                return new Salida_Info_Forma_Pago
                 {
                     Msj = "SHELLHUBBLE- VENTA SATISFACTORIA",
                     Resultado = true,
                     EESS = getPOSInformationResponse.PosInformation.ShopCode,
                     Nticket = possibleDocumentId,
-                    WebId = webidnwe
+                    WebId = webIDFact
                };
             }else if(setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
             {
@@ -999,15 +1149,52 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_getProductInfo> getProductInfo(Entrada_getProductInfo request)
         {
+            if (request.Pos_Carga < 0)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_getProductInfo
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO!!"
+                };
+            }
+
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
-
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-            GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
-            GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
 
-            if (getOperatorResponse.Operator == null)
+            //GetOperatorRequest getOperatorRequest = new GetOperatorRequest { Id = request.Id_teller, Identity = bsObj.Identity };
+            //GetOperatorResponse getOperatorResponse = await invokeHubbleWebAPIServices.GetOperator(getOperatorRequest);
+            //if (getOperatorResponse.Operator == null)
+            //{
+            //    //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+            //    return new Salida_getProductInfo
+            //    {
+            //        Resultado = false,
+            //        Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+            //    };
+            //}
+
+            #region VALIDACION DEL OPERADOR ID | CODE
+            List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
+            {
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Id , MatchingType = SearchOperatorCriteriaMatchingType.Exact },
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Code , MatchingType = SearchOperatorCriteriaMatchingType.Exact }
+            };
+            SearchOperatorRequest searchOperatorRequest = new SearchOperatorRequest
+            {
+                Identity = bsObj.Identity,
+                CriteriaList = SearchOperatorCriteriaOperator,
+                CriteriaRelationshipType = SearchCriteriaRelationshipType.Or,
+                MustIncludeDischarged = false
+            };
+
+            SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
+            string idOperatorObtTran = null;
+            string codeOperatorOntTran = null;
+
+            if (searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_getProductInfo
@@ -1016,6 +1203,16 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
             }
+            foreach (var searchOperator in searchOperatorResponse.OperatorList)
+            {
+                if (searchOperatorResponse.OperatorList.Count == 1)
+                {
+                    idOperatorObtTran = searchOperator.Id;
+                    codeOperatorOntTran = searchOperator.Code;
+                }
+            }
+
+            #endregion
 
             GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest()
             {
@@ -1040,10 +1237,6 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 salida.Resultado = false;
                 salida.Msj = "Producto no existente";
-                salida.producto = "";
-                salida.importe = 0;
-                salida.precio_Uni = 0;
-                salida.mensajePromocion = "";
             }
             return salida;
         }

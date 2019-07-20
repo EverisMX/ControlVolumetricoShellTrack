@@ -23,8 +23,8 @@ namespace ControlVolumetricoShellWS.Dominio
         public long Num_Operacion { get; set; }
         [DataMember]
         public decimal Precio_Uni { get; set; }
-        [DataMember]
-        public decimal IvaPorcentaje { get; set; }
+        //[DataMember]
+        //public decimal IvaPorcentaje { get; set; }
         [DataMember]
         public decimal Litros { get; set; }
         [DataMember]

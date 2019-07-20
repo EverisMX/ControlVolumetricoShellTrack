@@ -119,6 +119,13 @@
     <Compile Include="Models\Hubble\PaymentMethod.cs" />
     <Compile Include="Models\Hubble\PaymentMethodType.cs" />
     <Compile Include="Models\Hubble\POSInformation.cs" />
+    <Compile Include="Models\Hubble\SearchCriteriaRelationshipType.cs" />
+    <Compile Include="Models\Hubble\SearchOperator.cs" />
+    <Compile Include="Models\Hubble\SearchOperatorCriteria.cs" />
+    <Compile Include="Models\Hubble\SearchOperatorCriteriaFieldType.cs" />
+    <Compile Include="Models\Hubble\SearchOperatorCriteriaMatchingType.cs" />
+    <Compile Include="Models\Hubble\SearchOperatorRequest.cs" />
+    <Compile Include="Models\Hubble\SearchOperatorResponse.cs" />
     <Compile Include="Models\Hubble\Series.cs" />
     <Compile Include="Models\Hubble\SeriesType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

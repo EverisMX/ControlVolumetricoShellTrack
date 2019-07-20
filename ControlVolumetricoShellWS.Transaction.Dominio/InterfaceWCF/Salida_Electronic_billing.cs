@@ -106,6 +106,9 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
        // public decimal Iva { get; set; }
         public string iva { get; set; }
+        [DataMember]
+        // public decimal Iva { get; set; }
+        public string ivaMonto { get; set; }
 
         [DataMember]
         public string Total { get; set; }

@@ -130,7 +130,7 @@ namespace Conection.HubbleWS
             }
         }
 
-		#region facturacion
+        #region facturacion
         public async Task<facresponse> tpvfacturacionn(GenerateElectronicInvoice requestfac)
         {
             try
@@ -145,6 +145,7 @@ namespace Conection.HubbleWS
                     using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/Electronicbill", requestfac))
                     {
 
+
                         //response.EnsureSuccessStatusCode();
                         if (response.IsSuccessStatusCode)
                         {
@@ -156,6 +157,10 @@ namespace Conection.HubbleWS
 
 
                             return deserializeJson;
+                        }
+                        else if (response.IsSuccessStatusCode != true)
+                        {
+                            return new facresponse();
                         }
                         else
                             return new facresponse();
@@ -173,41 +178,49 @@ namespace Conection.HubbleWS
 
         #endregion
 
+
         #region customer
         public async Task<GetCustomerResponse> GetCustomer(GetCustomerRequest resquestcustomer)
         {
-
-
-
-            using (HttpClient client = new HttpClient())
+            try
             {
-                client.BaseAddress = new Uri("http://localhost:8091");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
-                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetCustomer", resquestcustomer))
+
+                using (HttpClient client = new HttpClient())
                 {
+                    client.BaseAddress = new Uri("http://localhost:8091");
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                    response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
+                    //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
+                    using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetCustomer", resquestcustomer))
                     {
-                        var responseJson = response.Content.ReadAsStringAsync().Result;
-                        ////como es un objeto nos genera basura por lo que la remplazamos 
-                        //string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
-                        ////SHELLMX- Se desSerializa para transformarlo en un Objeto.
 
-                        GetCustomerResponse deserializeJson = JsonConvert.DeserializeObject<GetCustomerResponse>(responseJson);
+                        response.EnsureSuccessStatusCode();
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var responseJson = response.Content.ReadAsStringAsync().Result;
+                            ////como es un objeto nos genera basura por lo que la remplazamos 
+                            //string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
+                            ////SHELLMX- Se desSerializa para transformarlo en un Objeto.
+
+                            GetCustomerResponse deserializeJson = JsonConvert.DeserializeObject<GetCustomerResponse>(responseJson);
 
 
-                        return deserializeJson;
+                            return deserializeJson;
 
 
+                        }
+                        else
+                            return new GetCustomerResponse();
                     }
-                    else
-                        return null;
-                }
 
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+                //OnConnectionFailed?.Invoke(e.Message);
             }
 
         }
@@ -255,38 +268,46 @@ namespace Conection.HubbleWS
         #region getprint
         public async Task<GetPrintingConfigurationResponse> GetPrintingConfiguration(GetPrintingConfigurationRequest requesGetPrinting)
         {
-
-
-
-            using (HttpClient client = new HttpClient())
+            try
             {
-                client.BaseAddress = new Uri("http://localhost:8091");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
-                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetPrintingConfiguration", requesGetPrinting))
+
+                using (HttpClient client = new HttpClient())
                 {
+                    client.BaseAddress = new Uri("http://localhost:8091");
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                    response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
+                    //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
+                    using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetPrintingConfiguration", requesGetPrinting))
                     {
-                        var responseJson = response.Content.ReadAsStringAsync().Result;
-                        ////como es un objeto nos genera basura por lo que la remplazamos 
-                        //string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
-                        ////SHELLMX- Se desSerializa para transformarlo en un Objeto.
 
-                        GetPrintingConfigurationResponse deserializeJson = JsonConvert.DeserializeObject<GetPrintingConfigurationResponse>(responseJson);
+                        response.EnsureSuccessStatusCode();
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var responseJson = response.Content.ReadAsStringAsync().Result;
+                            ////como es un objeto nos genera basura por lo que la remplazamos 
+                            //string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
+                            ////SHELLMX- Se desSerializa para transformarlo en un Objeto.
+
+                            GetPrintingConfigurationResponse deserializeJson = JsonConvert.DeserializeObject<GetPrintingConfigurationResponse>(responseJson);
 
 
-                        return deserializeJson;
+                            return deserializeJson;
 
 
+                        }
+                        else
+                            return new GetPrintingConfigurationResponse();
                     }
-                    else
-                        return null;
+
                 }
 
+            }
+            catch (Exception e)
+            {
+                throw e;
+                //OnConnectionFailed?.Invoke(e.Message);
             }
 
         }

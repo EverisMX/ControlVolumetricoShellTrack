@@ -1057,7 +1057,18 @@ namespace ControlVolumetricoShellWS.Implementation
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
             bool isFacturar = false;
-
+            if (request.EESS == null && request.NoCliente == null && request.Nticket == null && request.WebID == null)
+            {
+                salida.Msj = "DATOS INCORRECTOS";
+                salida.Resultado = false;
+            }
+            if (request.EESS == null)
+            {
+                isFacturar = false;
+                salida.Msj = "INTRODUSCA UN NUMERO DE ESTACION";
+                salida.Resultado = false;
+                return salida;
+            }
             if (request.NoCliente == null)
             {
                 isFacturar = false;
@@ -1065,12 +1076,137 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.Resultado = false;
                 return salida;
             }
+            if (request.Nticket == null)
+            {
+                isFacturar = false;
+                salida.Msj = "INTRODUSCA UN NUMERO DE TICKET";
+                salida.Resultado = false;
+                return salida;
+            }
+            if (request.WebID == null)
+            {
+                isFacturar = false;
+                salida.Msj = "INTRODUSCA UN WEBID";
+                salida.Resultado = false;
+                return salida;
+            }
+
             if (request.TipoOperacion == 0)
             {
                 salida.Msj = "INTRODUSCA UNA OPERACION VALIDA PORFAVOR";
                 salida.Resultado = false;
                 return salida;
             }
+
+            #region getprintingconfiguration
+
+            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+            GetPrintingConfigurationRequest requesGetPrinting = new GetPrintingConfigurationRequest
+            {
+                Identity = bsObj.Identity,
+                UsecasesPrintingConfigurationList = new List<UsecasePrintingConfiguration> {
+                    new UsecasePrintingConfiguration {
+                        UseCase="SALE",
+                        PrintingTemplatePlatformType= "VENTA HUBBLEPOS",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "CLOSURE",
+                        PrintingTemplatePlatformType= "CIERRE DE CAJA",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "CASHBOX_RECORD",
+                          PrintingTemplatePlatformType= "MOVIMIENTO DE CAJA HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "FUELLINGPOINT_TEST",
+                          PrintingTemplatePlatformType= "SURTIDOR HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= false
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "REFUND",
+                          PrintingTemplatePlatformType= "ANULACION HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "RUNAWAY",
+                        PrintingTemplatePlatformType= "FUGA HUBBLEPOS",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+
+
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "COLLECTION",
+                        PrintingTemplatePlatformType= "JUSTIFICANTE DE PAGO",
+                        DefaultNumberOfCopies= 1,
+                        Required= false
+                    }
+
+                }
+            };
+
+            GetPrintingConfigurationResponse responseGetPrinting = await invokeHubbleWebAPIServices.GetPrintingConfiguration(requesGetPrinting);
+
+
+            if (responseGetPrinting != null)
+            {
+                List<string> listaPrinting = new List<string>();
+                string key;
+                foreach (var item in responseGetPrinting.GlobalSettings)
+                {
+                    key = item.Value;
+                    listaPrinting.Add(key);
+                }
+                listaPrinting.ToArray();
+
+                //string Headerprin = listaPrinting[1];
+
+                Headeresponse deserializeJsonheader = JsonConvert.DeserializeObject<Headeresponse>(listaPrinting[1]);
+                footeresponse deserializeJsonfooter = JsonConvert.DeserializeObject<footeresponse>(listaPrinting[2]);
+
+                salida.HeaderTick1 = textosincarspecial.transformtext(deserializeJsonheader.Header1);
+                salida.HeaderTick2 = textosincarspecial.transformtext(deserializeJsonheader.Header2);
+                salida.HeaderTick3 = deserializeJsonheader.Header3;
+                salida.HedaerTick4 = textosincarspecial.transformtext(deserializeJsonheader.Header4);
+                salida.FooterTick1 = textosincarspecial.transformtext(deserializeJsonfooter.Footer1);
+                salida.FooterTick2 = textosincarspecial.transformtext(deserializeJsonfooter.Footer2);
+                salida.FooterTick3 = textosincarspecial.transformtext(deserializeJsonfooter.Footer3);
+                salida.FooterTick4 = textosincarspecial.transformtext(deserializeJsonfooter.Footer4);
+                salida.FooterTick5 = deserializeJsonfooter.Footer5;
+                salida.CodigoPostalCompania = textosincarspecial.transformtext(listaPrinting[17]);
+                salida.CodigoPostalTienda = textosincarspecial.transformtext(listaPrinting[27]);
+                salida.ColoniaCompania = textosincarspecial.transformtext(listaPrinting[16]);
+                salida.ColoniaTienda = textosincarspecial.transformtext(listaPrinting[29]);
+                salida.DireccionCompania = textosincarspecial.transformtext(listaPrinting[14]);
+                salida.DireccionTienda = textosincarspecial.transformtext(listaPrinting[24]);
+                salida.EstadoCompania = textosincarspecial.transformtext(listaPrinting[19]);
+                salida.EstadoTienda = textosincarspecial.transformtext(listaPrinting[31]);
+                salida.ExpedicionTienda = textosincarspecial.transformtext(listaPrinting[27]);
+                salida.MunicipioCompania = textosincarspecial.transformtext(listaPrinting[16]);
+                salida.MunicipioTienda = textosincarspecial.transformtext(listaPrinting[26]);
+                salida.NombreCompania = textosincarspecial.transformtext(listaPrinting[15]);
+                salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
+                salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
+                salida.PermisoCRE = listaPrinting[32];
+                salida.Tienda = textosincarspecial.transformtext(listaPrinting[33]);
+                salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
+                salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
+            }
+
+
+            // var responseGlobalSettings = responseGetPrinting.GlobalSettings.Values;
+
+
+            //string ess = Count[1]=responseGlobalSettings.Values;
+            #endregion
 
             #region cliente
             GetCustomerRequest resquestcustomer = new GetCustomerRequest
@@ -1079,8 +1215,18 @@ namespace ControlVolumetricoShellWS.Implementation
                 Identity = bsObj.Identity
             };
 
+
+
             //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices.GetCustomer(resquestcustomer);
+
+            if (responsecustomer.Customer == null)
+            {
+                salida.Msj = "NO SE PUDO ENCONTRAR EL NUMERO DE CLIENTE";
+                salida.Resultado = false;
+                return salida;
+
+            }
 
             if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
             {
@@ -1091,6 +1237,8 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             #endregion
+
+
             if (request.TipoOperacion == 1)
             {
                 isFacturar = false;
@@ -1151,11 +1299,14 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
                 facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
-                if (responsefacturacion == null)
+
+
+
+                if (responsefacturacion.CadenaOrigTimbre == null || responsefacturacion.FolioFiscal == null || responsefacturacion.SelloDigitaCFDI == null)
                 {
                     salida.Msj = "NO SE PUDO REALIZARR LA FACTURACION INTENTELO MAS TARDE";
                     salida.Resultado = false;
-                    return new Salida_Electronic_billing();
+                    return salida;
 
                 }
                 else
@@ -1228,6 +1379,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //--------------------------------empieza iva ------------------------------------------------------------------------------
             string strImprime = String.Empty;
+            string strImprime2 = String.Empty;
             int recorreUnicoIva = 0;
             string[] taxes;
             taxes = new string[porcentaje.Count()];
@@ -1252,15 +1404,19 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (recorreUnicoIva == 0)
                 {
-                    strImprime = "IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                    //strImprime = "IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                    strImprime = item.Iva.ToString() + "%:";
+                    strImprime2 = (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
                 }
                 else
-                    strImprime += " | IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
-
+                    //strImprime += " | IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                    strImprime += item.Iva.ToString() + "%:";
+                strImprime2 = (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
                 decSumaIva = 0;
                 recorreUnicoIva += 1;
             }
             string salidaiva = strImprime.ToString();
+            string salidaivamonto = strImprime2.ToString();
             //----------------------------------------------------termina iva--------------------------------------------------------------------
 
 
@@ -1319,110 +1475,7 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
 
-            #region getprintingconfiguration
 
-            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
-            GetPrintingConfigurationRequest requesGetPrinting = new GetPrintingConfigurationRequest
-            {
-                Identity = bsObj.Identity,
-                UsecasesPrintingConfigurationList = new List<UsecasePrintingConfiguration> {
-                    new UsecasePrintingConfiguration {
-                        UseCase="SALE",
-                        PrintingTemplatePlatformType= "VENTA HUBBLEPOS",
-                        DefaultNumberOfCopies= 1,
-                        Required= true
-                    },
-                    new UsecasePrintingConfiguration {
-                        UseCase= "CLOSURE",
-                        PrintingTemplatePlatformType= "CIERRE DE CAJA",
-                        DefaultNumberOfCopies= 1,
-                        Required= true
-                    },
-                    new UsecasePrintingConfiguration {
-                          UseCase= "CASHBOX_RECORD",
-                          PrintingTemplatePlatformType= "MOVIMIENTO DE CAJA HUBBLEPOS",
-                          DefaultNumberOfCopies= 1,
-                          Required= true
-                    },
-                    new UsecasePrintingConfiguration {
-                          UseCase= "FUELLINGPOINT_TEST",
-                          PrintingTemplatePlatformType= "SURTIDOR HUBBLEPOS",
-                          DefaultNumberOfCopies= 1,
-                          Required= false
-                    },
-                    new UsecasePrintingConfiguration {
-                          UseCase= "REFUND",
-                          PrintingTemplatePlatformType= "ANULACION HUBBLEPOS",
-                          DefaultNumberOfCopies= 1,
-                          Required= true
-                    },
-                    new UsecasePrintingConfiguration {
-                        UseCase= "RUNAWAY",
-                        PrintingTemplatePlatformType= "FUGA HUBBLEPOS",
-                        DefaultNumberOfCopies= 1,
-                        Required= true
-
-
-                    },
-                    new UsecasePrintingConfiguration {
-                        UseCase= "COLLECTION",
-                        PrintingTemplatePlatformType= "JUSTIFICANTE DE PAGO",
-                        DefaultNumberOfCopies= 1,
-                        Required= false
-                    }
-
-                }
-            };
-
-
-
-            GetPrintingConfigurationResponse responseGetPrinting = await invokeHubbleWebAPIServices.GetPrintingConfiguration(requesGetPrinting);
-
-            #region recorrido del diccionario
-            //object ret = responseGetPrinting.GlobalSettings.Keys;
-
-            //if (responseGetPrinting.GlobalSettings == null)
-            //{
-            //    foreach (var keys in responseGetPrinting.GlobalSettings.Keys)
-            //    {
-            //        if (responseGetPrinting.GlobalSettings != null)
-            //        {
-            //            string a = responseGetPrinting.GlobalSettings[keys];
-
-            //            if (a == "text03")
-            //            {
-            //                ret = new { a };
-            //            }
-
-
-            //        }
-
-            //    }
-            //}
-            #endregion
-
-
-            List<string> listaPrinting = new List<string>();
-            string key;
-            foreach (var item in responseGetPrinting.GlobalSettings)
-            {
-                key = item.Value;
-                listaPrinting.Add(key);
-            }
-            listaPrinting.ToArray();
-
-            //string Headerprin = listaPrinting[1];
-
-            Headeresponse deserializeJsonheader = JsonConvert.DeserializeObject<Headeresponse>(listaPrinting[1]);
-            footeresponse deserializeJsonfooter = JsonConvert.DeserializeObject<footeresponse>(listaPrinting[2]);
-
-
-
-            // var responseGlobalSettings = responseGetPrinting.GlobalSettings.Values;
-
-
-            //string ess = Count[1]=responseGlobalSettings.Values;
-            #endregion
 
             #region information
             //// GetPOSInformationResponse  GetPOSInformation(GetPosInformationRequest getPosInformationRequest
@@ -1437,33 +1490,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
-            salida.HeaderTick1 = textosincarspecial.transformtext(deserializeJsonheader.Header1);
-            salida.HeaderTick2 = textosincarspecial.transformtext(deserializeJsonheader.Header2);
-            salida.HeaderTick3 = deserializeJsonheader.Header3;
-            salida.HedaerTick4 = textosincarspecial.transformtext(deserializeJsonheader.Header4);
-            salida.FooterTick1 = textosincarspecial.transformtext(deserializeJsonfooter.Footer1);
-            salida.FooterTick2 = textosincarspecial.transformtext(deserializeJsonfooter.Footer2);
-            salida.FooterTick3 = textosincarspecial.transformtext(deserializeJsonfooter.Footer3);
-            salida.FooterTick4 = textosincarspecial.transformtext(deserializeJsonfooter.Footer4);
-            salida.FooterTick5 = deserializeJsonfooter.Footer5;
-            salida.CodigoPostalCompania = textosincarspecial.transformtext(listaPrinting[17]);
-            salida.CodigoPostalTienda = textosincarspecial.transformtext(listaPrinting[27]);
-            salida.ColoniaCompania = textosincarspecial.transformtext(listaPrinting[16]);
-            salida.ColoniaTienda = textosincarspecial.transformtext(listaPrinting[29]);
-            salida.DireccionCompania = textosincarspecial.transformtext(listaPrinting[14]);
-            salida.DireccionTienda = textosincarspecial.transformtext(listaPrinting[24]);
-            salida.EstadoCompania = textosincarspecial.transformtext(listaPrinting[19]);
-            salida.EstadoTienda = textosincarspecial.transformtext(listaPrinting[31]);
-            salida.ExpedicionTienda = textosincarspecial.transformtext(listaPrinting[27]);
-            salida.MunicipioCompania = textosincarspecial.transformtext(listaPrinting[16]);
-            salida.MunicipioTienda = textosincarspecial.transformtext(listaPrinting[26]);
-            salida.NombreCompania = textosincarspecial.transformtext(listaPrinting[15]);
-            salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
-            salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
-            salida.PermisoCRE = listaPrinting[32];
-            salida.Tienda = textosincarspecial.transformtext(listaPrinting[33]);
-            salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
-            salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
+
             salida.Ticket = request.Nticket;
             salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
             salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
@@ -1473,6 +1500,7 @@ namespace ControlVolumetricoShellWS.Implementation
             salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
             salida.ImporteEnLetra = letraconvert;
             salida.iva = salidaiva;
+            salida.ivaMonto = salidaivamonto;
             salida.productos = listan;
             salida.Fecha = fechaticket;
             salida.WebID = webidnwe;

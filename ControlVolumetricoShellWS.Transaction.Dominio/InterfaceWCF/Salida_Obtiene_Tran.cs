@@ -11,8 +11,8 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Msj { get; set; }
         [DataMember]
         public int Estacion { get; set; }
-        [DataMember]
-        public string Id_product { get; set; }
+        //[DataMember]
+        //public string Id_product { get; set; }
         [DataMember]
         public string Producto { get; set; }
         [DataMember]

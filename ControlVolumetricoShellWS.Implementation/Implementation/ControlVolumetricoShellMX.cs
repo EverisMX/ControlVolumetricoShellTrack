@@ -17,6 +17,38 @@ namespace ControlVolumetricoShellWS.Implementation
     {
         public async Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request)
         {
+            #region VALIDACIONES DE LAS ENTRADAS DE OBTENER_TRAN
+            try
+            {
+                if (request.Pos_Carga < 0)
+                {
+                    //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    return new Salida_Obtiene_Tran
+                    {
+                        Resultado = false,
+                        Msj = "SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO!!"
+                    };
+                }
+            }
+            catch (Exception e)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR NUMERO!!"
+                };
+                throw e;
+            }
+            if (request.nHD < 0 || request.idpos == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Obtiene_Tran
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- DEBE DE INSERTAR VALORES VALIDOS CON EL FORMATO nHD | idpos .. Verificar!!"
+                };
+            }
             // SHELLMX- Al momento de traer la informacion sobre la transaccion que hay en parte sobre un surtidor, bloquea en el TVP que Action lo este usando, Se contruye el objeto
             //          a llenar de lock para traer la demas informacion sobre la transaccion del Surtidor seleccinado.
 
@@ -31,6 +63,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
                 };
             }
+            #endregion
 
             //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
@@ -89,16 +122,6 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
-            if (request.Pos_Carga <= 0)
-            {
-                //SHELLMX- Se manda una excepccion de que no corresponde el tipo de surtidor.
-                return new Salida_Obtiene_Tran
-                {
-                    Resultado = false,
-                    Msj = "SHELLMX- NO SE HA INSERTADO UN SURTIDOR NUMBER CORRECTO VERIFICAR!"
-                };
-            }
-
             GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest = new GetAllSupplyTransactionsOfFuellingPointRequest { OperatorId = idOperatorObtTran, FuellingPointId = request.Pos_Carga };
             LockSupplyTransactionOfFuellingPointResponse lockTransactionInformation = await conectionSignalRDoms.LockSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPointRequest);
 
@@ -143,6 +166,46 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_Info_Forma_Pago> Info_Forma_Pago(Entrada_Info_Forma_Pagos request)
         {
+            if (request.Id_Transaccion == null)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@ SHELLMX-  NUMERO DE TRANSACCION VACIO INTRODUCIR EL SURTIDOR !!",
+                };
+            }
+            try
+            {
+                if(Convert.ToInt32(request.Id_Transaccion) <= 0)
+                {
+                    //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@ SHELLMX-  INTRODUCIR UN NUMERO DE SURTIDOR VALIDO. !!",
+                    };
+                }
+            }catch(Exception e)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@ SHELLMX- NO ES UN VALOR VALIDO VERIFICAR! LOG :: "
+                };
+                throw e;
+            }
+            if(request.idpos == null || request.nHD <= 0 || request.PorpagarEntrada <= -1)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@ SHELLMX- DATOS VALIDOS EN IDPOS | nHD | PorpagarEntrada VALIDAR !!",
+                };
+            }
+
             if (request.Id_teller == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
@@ -315,8 +378,8 @@ namespace ControlVolumetricoShellWS.Implementation
                         countCombustible.Add(importe_Unitario.Length);
                         countCombustible.Add(importe_Total.Length);
 
-                        countFormaPago.Add(forma_Pago.Length);
-                        countMontoPagar.Add(monto_Pagado.Length);
+                        //countFormaPago.Add(forma_PagoCombu.Length);
+                        //countMontoPagar.Add(monto_PagadoCombu.Length);
                         //Combustible.Add(nNum_autorizacions);
                         //Combustible.Add(Ultimos_Digitoss);
                         Combustible.Add(Id_product);
@@ -354,8 +417,8 @@ namespace ControlVolumetricoShellWS.Implementation
                         countProducts.Add(importe_Unitario.Length);
                         countProducts.Add(importe_Total.Length);
 
-                        countFormaPago.Add(forma_Pago.Length);
-                        countMontoPagar.Add(monto_Pagado.Length);
+                        //countFormaPago.Add(forma_Pago.Length);
+                        //countMontoPagar.Add(monto_Pagado.Length);
                         //Products.Add(nNum_autorizacions);
                         //Products.Add(Ultimos_Digitoss);
                         Products.Add(Id_product);
@@ -377,7 +440,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_PagoList.",
+                    Msj = "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_PagoList. LOG :: "
                 };
                 throw e;
             }
@@ -459,8 +522,6 @@ namespace ControlVolumetricoShellWS.Implementation
             }*/
 
             #endregion
-
-
 
             //Se separa para poder extraer la informacion sobre los productos y almacenarlos.
             #region COMBUSTIBLE.
@@ -655,7 +716,7 @@ namespace ControlVolumetricoShellWS.Implementation
             GetCurrenciesResponse getCurrenciesResponse = await invokeHubbleWebAPIServices.GetCurrencies(getCurrenciesRequest);
 
             //SHLMX- Se llena el paymentsList<> con las ventas.
-            List<CreateDocumentPaymentDetailDAO> PaymentDetailList = new List<CreateDocumentPaymentDetailDAO>();
+            List<CreateDocumentPaymentDetailDAO> PaymentDetailListPreview = new List<CreateDocumentPaymentDetailDAO>();
 
             //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
 
@@ -692,7 +753,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                     createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
                                                     //isValidFormaPagoT = true;
                                                 }
@@ -721,7 +782,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                     createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
                                                     //isValidFormaPagoT = true;
                                                 }
@@ -750,7 +811,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                     createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
                                                     //isValidFormaPagoT = true;
                                                 }
@@ -768,7 +829,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O NO SON LA MISMA LONGITUD DE ENTRADA DE FORMAPAGO Y MONTO VERIFICAR!! LOG:: " + e,
+                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! LOG:: "
                 };
                 throw e;
             }
@@ -776,6 +837,9 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
             #region PERIPHERICS STATION
+            string paymentCash = null;
+            string paymentCard = null;
+            string paymentany = null;
             //List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
             //bool isValidFormaPagoE = false;
             try
@@ -808,10 +872,9 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                     createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
-                                                    //isValidFormaPagoE = true;
-                                                }
+                                                    paymentCard = paymentMethods.Id;                                                }
                                             }
                                             //createDocumentPaymentDetailDAO = null;
                                         }
@@ -837,9 +900,9 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                     createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
-                                                    //isValidFormaPagoE = true;
+                                                    paymentCash = paymentMethods.Id;
                                                 }
                                             }
                                             //createDocumentPaymentDetailDAO = null;
@@ -866,9 +929,9 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                     createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailList.Add(createDocumentPaymentDetailDAO);
+                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
-                                                    //isValidFormaPagoE = true;
+                                                    paymentany = paymentMethods.Id; ;
                                                 }
                                             }
                                             //createDocumentPaymentDetailDAO = null;
@@ -884,9 +947,74 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O NO SON LA MISMA LONGITUD DE ENTRADA DE FORMAPAGO Y MONTO VERIFICAR!! LOG:: " + e,
+                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! LOG:: "
                 };
                 throw e;
+            }
+
+            #endregion
+
+            #region PREPARE OF UNIFIQUE PAYMENTS OF THE DOCUMENTS
+            List<CreateDocumentPaymentDetailDAO> PaymentDetailList = new List<CreateDocumentPaymentDetailDAO>();
+            bool iscash = false;
+            bool isCard = false;
+            bool isAny = false;
+
+            bool cashT = false;
+            bool cardT = false;
+            bool anyT = false;
+            foreach (var paymentsU in PaymentDetailListPreview)
+            {
+                decimal paymentIncrementyGivenAmount = 0M;
+                decimal paymentIncrementyTakenAmount = 0M;
+                foreach (var paymentsU1 in PaymentDetailListPreview)
+                {
+                    if(paymentCash == paymentsU.PaymentMethodId && paymentsU1.PaymentMethodId == paymentCash)
+                    {
+                        paymentIncrementyGivenAmount = paymentIncrementyGivenAmount + paymentsU1.PrimaryCurrencyGivenAmount;
+                        paymentIncrementyTakenAmount = paymentIncrementyTakenAmount + paymentsU1.PrimaryCurrencyTakenAmount;
+                        isCard = false;
+                        iscash = true;
+                        isAny = false;
+                    }
+                    if (paymentCard == paymentsU.PaymentMethodId && paymentsU1.PaymentMethodId == paymentCard)
+                    {
+                        paymentIncrementyGivenAmount = paymentIncrementyGivenAmount + paymentsU1.PrimaryCurrencyGivenAmount;
+                        paymentIncrementyTakenAmount = paymentIncrementyTakenAmount + paymentsU1.PrimaryCurrencyTakenAmount;
+                        isCard = true;
+                        iscash = false;
+                        isAny = false;
+                    }
+                    if (paymentany == paymentsU.PaymentMethodId && paymentsU1.PaymentMethodId == paymentany)
+                    {
+                        paymentIncrementyGivenAmount = paymentIncrementyGivenAmount + paymentsU1.PrimaryCurrencyGivenAmount;
+                        paymentIncrementyTakenAmount = paymentIncrementyTakenAmount + paymentsU1.PrimaryCurrencyTakenAmount;
+                        isCard = false;
+                        iscash = false;
+                        isAny = true;
+                    }
+                }
+                if(iscash && !cashT)
+                {
+                    paymentsU.PrimaryCurrencyGivenAmount = paymentIncrementyGivenAmount;
+                    paymentsU.PrimaryCurrencyTakenAmount = paymentIncrementyTakenAmount;
+                    PaymentDetailList.Add(paymentsU);
+                    cashT = true;
+                }
+                if(isCard && !cardT)
+                {
+                    paymentsU.PrimaryCurrencyGivenAmount = paymentIncrementyGivenAmount;
+                    paymentsU.PrimaryCurrencyTakenAmount = paymentIncrementyTakenAmount;
+                    PaymentDetailList.Add(paymentsU);
+                    cardT = true;
+                }
+                if(isAny && !anyT)
+                {
+                    paymentsU.PrimaryCurrencyGivenAmount = paymentIncrementyGivenAmount;
+                    paymentsU.PrimaryCurrencyTakenAmount = paymentIncrementyTakenAmount;
+                    PaymentDetailList.Add(paymentsU);
+                    anyT = true;
+                }
             }
 
             #endregion
@@ -903,79 +1031,100 @@ namespace ControlVolumetricoShellWS.Implementation
             int lineNumber = 1;
             bool isValidIVAZERO = false;
             bool ZERO = true;
-            foreach (Products informListProducts in InformListProducts)
+            try
             {
-                CreateDocumentLineDAO createDocumentLineDAO = new CreateDocumentLineDAO();
-                GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest { ProductId = informListProducts.Id_producto.ToString(), Quantity = informListProducts.Cantidad, Identity = bsObj.Identity };
-                GetProductForSaleResponse getProductForSaleResponse = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
-                decimal IvaProducto = 0M;
-
-                if (getProductForSaleResponse.TaxPercentage == Convert.ToDecimal(0))
+                foreach (Products informListProducts in InformListProducts)
                 {
-                    //SHLMX- Se contruye el product, para el arreglo.
-                    createDocumentLineDAO.LineNumber = lineNumber;
-                    createDocumentLineDAO.ProductId = informListProducts.Id_producto;
-                    createDocumentLineDAO.Quantity = informListProducts.Cantidad;
-                    createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
-                    createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
-                    createDocumentLineDAO.TotalAmountWithTax = informListProducts.Importe_Total;
-                    createDocumentLineDAO.PriceWithoutTax = informListProducts.Importe_Total;
-                    //IvaProductos[0] = getProductForSaleResponse.TaxPercentage;
-                    //IvaProductos[1] = getProductForSaleResponse.TaxPercentage;
-                    //ListIvas.Add(IvaProductos);
-                    //IvaProductos = null;
-                    isValidIVAZERO = true;
-                }
-                else
-                {
-                    //SHLMX- Se contruye el product, para el arreglo.
-                    createDocumentLineDAO.LineNumber = lineNumber;
-                    createDocumentLineDAO.ProductId = informListProducts.Id_producto;
-                    createDocumentLineDAO.Quantity = informListProducts.Cantidad;
-                    createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
-                    createDocumentLineDAO.TaxPercentage = getProductForSaleResponse.TaxPercentage;
+                    CreateDocumentLineDAO createDocumentLineDAO = new CreateDocumentLineDAO();
+                    GetProductForSaleRequest getProductForSaleRequest = new GetProductForSaleRequest { ProductId = informListProducts.Id_producto.ToString(), Quantity = informListProducts.Cantidad, Identity = bsObj.Identity };
+                    GetProductForSaleResponse getProductForSaleResponse = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
 
-                    decimal priceWithoutTaxW = informListProducts.Importe_Total / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
-                    decimal priceWithoutTax = Math.Round(priceWithoutTaxW, 6);
-                    createDocumentLineDAO.PriceWithoutTax = priceWithoutTax;
-                    createDocumentLineDAO.TaxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
-
-                    createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
-                    createDocumentLineDAO.TotalAmountWithTax = informListProducts.Importe_Total;
-                    IvaProducto = Convert.ToDecimal(getProductForSaleResponse.TaxPercentage);
-                    //IvaProductos[1] = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax; ListIvas.Add(IvaProductos);
-                    //IvaProductos = null;
-
-                    decimal ivaaplicado = 0M;
-                    foreach (Products informListPro in InformListProducts)
+                    if (getProductForSaleResponse.Status < 0)
                     {
-                        GetProductForSaleRequest getProduct = new GetProductForSaleRequest { ProductId = informListPro.Id_producto.ToString(), Quantity = informListPro.Cantidad, Identity = bsObj.Identity };
-                        GetProductForSaleResponse getProductFor = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
-
-                        if (IvaProducto == getProductFor.TaxPercentage)
+                        return new Salida_Info_Forma_Pago
                         {
-                            decimal priceTaxW = getProductForSaleResponse.FinalAmount / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
-                            decimal priceWTax = Math.Round(priceWithoutTaxW, 6);
-                            decimal taxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
-                            ivaaplicado = ivaaplicado + taxAmount;
-                        }
+                            Resultado = false,
+                            Msj = "@SHELLMX- LOS PRODUCTOS INTRODUCIDOS NO EXISTEN O SON INCORRECTOS VERIFICAR!!"
+                        };
                     }
-                    if(ZERO)
+                    decimal IvaProducto = 0M;
+                    if (getProductForSaleResponse.TaxPercentage == Convert.ToDecimal(0))
                     {
-                        TotalTaxListSale.Add(IvaProducto, ivaaplicado);
-                        ZERO = false;
+                        //SHLMX- Se contruye el product, para el arreglo.
+                        createDocumentLineDAO.LineNumber = lineNumber;
+                        createDocumentLineDAO.ProductId = informListProducts.Id_producto;
+                        createDocumentLineDAO.Quantity = informListProducts.Cantidad;
+                        createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
+                        createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
+                        createDocumentLineDAO.TotalAmountWithTax = informListProducts.Importe_Total;
+                        createDocumentLineDAO.PriceWithoutTax = informListProducts.Importe_Total;
+                        //IvaProductos[0] = getProductForSaleResponse.TaxPercentage;
+                        //IvaProductos[1] = getProductForSaleResponse.TaxPercentage;
+                        //ListIvas.Add(IvaProductos);
+                        //IvaProductos = null;
+                        isValidIVAZERO = true;
                     }
-                    IvaProducto = 0M;
-                }
+                    else
+                    {
+                        //SHLMX- Se contruye el product, para el arreglo.
+                        createDocumentLineDAO.LineNumber = lineNumber;
+                        createDocumentLineDAO.ProductId = informListProducts.Id_producto;
+                        createDocumentLineDAO.Quantity = informListProducts.Cantidad;
+                        createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
+                        createDocumentLineDAO.TaxPercentage = getProductForSaleResponse.TaxPercentage;
 
-                LineList.Add(createDocumentLineDAO);
-                lineNumber++;
-                createDocumentLineDAO = null;
+                        decimal priceWithoutTaxW = informListProducts.Importe_Total / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
+                        decimal priceWithoutTax = Math.Round(priceWithoutTaxW, 6);
+                        createDocumentLineDAO.PriceWithoutTax = priceWithoutTax;
+                        createDocumentLineDAO.TaxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
+
+                        createDocumentLineDAO.ProductName = getProductForSaleResponse.ProductName;
+                        createDocumentLineDAO.TotalAmountWithTax = informListProducts.Importe_Total;
+                        IvaProducto = Convert.ToDecimal(getProductForSaleResponse.TaxPercentage);
+                        //IvaProductos[1] = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax; ListIvas.Add(IvaProductos);
+                        //IvaProductos = null;
+
+                        decimal ivaaplicado = 0M;
+                        foreach (Products informListPro in InformListProducts)
+                        {
+                            GetProductForSaleRequest getProduct = new GetProductForSaleRequest { ProductId = informListPro.Id_producto.ToString(), Quantity = informListPro.Cantidad, Identity = bsObj.Identity };
+                            GetProductForSaleResponse getProductFor = await invokeHubbleWebAPIServices.GetProductForSale(getProductForSaleRequest);
+
+                            if (IvaProducto == getProductFor.TaxPercentage)
+                            {
+                                decimal priceTaxW = getProductForSaleResponse.FinalAmount / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
+                                decimal priceWTax = Math.Round(priceWithoutTaxW, 6);
+                                decimal taxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
+                                ivaaplicado = ivaaplicado + taxAmount;
+                            }
+                        }
+                        if (ZERO)
+                        {
+                            TotalTaxListSale.Add(IvaProducto, ivaaplicado);
+                            ZERO = false;
+                        }
+                        IvaProducto = 0M;
+                    }
+
+                    LineList.Add(createDocumentLineDAO);
+                    lineNumber++;
+                    createDocumentLineDAO = null;
+                }
+                if (isValidIVAZERO)
+                {
+                    TotalTaxListSale.Add(Convert.ToDecimal(0), Convert.ToDecimal(0));
+                }
             }
-            if(isValidIVAZERO)
+            catch(Exception e)
             {
-                TotalTaxListSale.Add(Convert.ToDecimal(0), Convert.ToDecimal(0));
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "@SHELLMX- LOS DATOS INTRODUCIDOS NO TIENEN EL FORMATO ESPECIFICO VERIFICAR E INTERTAR NUEVAMENTE! lOG:: "
+                };
+                throw e;
             }
+            
             #endregion
 
             #endregion
@@ -1059,7 +1208,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "SHELLHUBLE- FALLO LA CONEXION DE CERRAR LA BOMBA EN DOMS VERIFICAR DATOS DE ENTRADA! LOG:: " + finalizeSupplyTransactionResponse.Message,
+                        Msj = "SHELLHUBLE- FALLO LA CONEXION DE CERRAR LA BOMBA EN DOMS PROBLEMAS DE DUPLICIDAD O FALLOS AL SURTIDOR VERIFICARLOS! LOG:: "
                     };
                 }
             }
@@ -1149,14 +1298,26 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_getProductInfo> getProductInfo(Entrada_getProductInfo request)
         {
-            if (request.Pos_Carga < 0)
+            try
+            {
+                if (request.Pos_Carga < 0)
+                {
+                    //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    return new Salida_getProductInfo
+                    {
+                        Resultado = false,
+                        Msj = "SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO!!"
+                    };
+                }
+            }catch(Exception e)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_getProductInfo
                 {
                     Resultado = false,
-                    Msj = "SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO!!"
+                    Msj = "SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR NUMERO!!"
                 };
+                throw e;
             }
 
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 

@@ -20,6 +20,12 @@ namespace ControlVolumetricoShellWS.Dominio
         public IList<Entrada_Info_Forma_Pago_List> Info_Forma_Pago { get; set; } = new List<Entrada_Info_Forma_Pago_List>();
 
         /// <summary>
+        /// IVA que se maneja en la eess.
+        /// </summary>
+        [DataMember]
+        public int IvaProducto { get; set; }
+
+        /// <summary>
         /// Monto que se necesita pagar 0 si es completa.
         /// </summary>
         [DataMember]
@@ -48,11 +54,5 @@ namespace ControlVolumetricoShellWS.Dominio
         /// </summary>
         [DataMember]
         public string idpos { get; set; }
-
-        /// <summary>
-        /// Parcial de la venta 
-        /// </summary>
-        [DataMember]
-        public bool parciales { get; set; }
     }
 }

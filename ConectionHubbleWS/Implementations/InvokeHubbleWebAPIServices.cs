@@ -144,28 +144,75 @@ namespace Conection.HubbleWS
                     //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
                     using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/Electronicbill", requestfac))
                     {
+                        int respuesta = Convert.ToInt32(response.StatusCode);
 
+                        if (respuesta == 200)
+                        {
+                            if (response.IsSuccessStatusCode)
+                            {
+                                var responseJson = response.Content.ReadAsStringAsync().Result;
+                                //como es un objeto nos genera basura por lo que la remplazamos 
+                                string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
+                                //SHELLMX- Se desSerializa para transformarlo en un Objeto.
+                                facresponse deserializeJson = JsonConvert.DeserializeObject<facresponse>(responsejsonn);
+                                deserializeJson.mensaje = "FACTURACION CORRECTA";
 
+                                return deserializeJson;
+                            }
+
+                            else if (response.IsSuccessStatusCode != true)
+                            {
+                                facresponse respuestanueva = new facresponse
+                                {
+                                    mensaje = "ERROR DE TIMBRADO AL FACTURAR"
+                                };
+                                return respuestanueva;
+                            }
+
+                        }
+
+                        if (respuesta == 500)
+                        {
+
+                            facresponse respuestanueva = new facresponse
+                            {
+                                mensaje = "DATOS DEL TICKET NO VALIDOS PARA FACTURAR"
+                            };
+                            return respuestanueva;
+                        }
+
+                        if (respuesta == 400)
+                        {
+                            facresponse respuestanueva = new facresponse
+                            {
+                                mensaje = "DATOS DEL TICKET INCORRECTO PARA FACTURAR"
+                            };
+                            return respuestanueva;
+
+                        }
+
+                        if (respuesta == 404)
+                        {
+                            facresponse respuestanueva = new facresponse
+                            {
+                                mensaje = "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION"
+                            };
+                            return respuestanueva;
+
+                        }
+
+                        if (respuesta != 404 && respuesta != 200 && respuesta != 500 && respuesta != 400)
+                        {
+                            facresponse respuestanueva = new facresponse
+                            {
+                                mensaje = "ERROR " + respuesta + " AL INTENTAR FACTURAR"
+                            };
+                            return respuestanueva;
+                        }
                         //response.EnsureSuccessStatusCode();
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var responseJson = response.Content.ReadAsStringAsync().Result;
-                            //como es un objeto nos genera basura por lo que la remplazamos 
-                            string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
-                            //SHELLMX- Se desSerializa para transformarlo en un Objeto.
-                            facresponse deserializeJson = JsonConvert.DeserializeObject<facresponse>(responsejsonn);
-
-
-                            return deserializeJson;
-                        }
-                        else if (response.IsSuccessStatusCode != true)
-                        {
-                            return new facresponse();
-                        }
                         else
                             return new facresponse();
                     }
-
                 }
             }
             catch (Exception e)
@@ -173,10 +220,9 @@ namespace Conection.HubbleWS
                 throw e;
                 //OnConnectionFailed?.Invoke(e.Message);
             }
-
         }
 
-        #endregion
+        #endregion 
 
 
         #region customer
@@ -230,40 +276,43 @@ namespace Conection.HubbleWS
         #region getdocumet
         public async Task<GetDocumentResponse> GetDocument(GetDocumentRequest requesgetdocument)
         {
-            using (HttpClient client = new HttpClient())
+            try
             {
-                client.BaseAddress = new Uri("http://localhost:8091");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-                //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
-                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetDocument", requesgetdocument))
+                using (HttpClient client = new HttpClient())
                 {
+                    client.BaseAddress = new Uri("http://localhost:8091");
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
-                    response.EnsureSuccessStatusCode();
-                    if (response.IsSuccessStatusCode)
+                    //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
+                    using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetDocument", requesgetdocument))
                     {
-                        var responseJson = response.Content.ReadAsStringAsync().Result;
-                        ////como es un objeto nos genera basura por lo que la remplazamos 
-                        //string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
-                        ////SHELLMX- Se desSerializa para transformarlo en un Objeto.
 
-                        GetDocumentResponse deserializeJson = JsonConvert.DeserializeObject<GetDocumentResponse>(responseJson);
+                        //response.EnsureSuccessStatusCode();
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var responseJson = response.Content.ReadAsStringAsync().Result;
+                            ////como es un objeto nos genera basura por lo que la remplazamos 
+                            //string responsejsonn = responseJson.Replace("\\", "").Replace("\"{", "{").Replace("}\"", "}");
+                            ////SHELLMX- Se desSerializa para transformarlo en un Objeto.
 
-
-                        return deserializeJson;
-
-
+                            GetDocumentResponse deserializeJson = JsonConvert.DeserializeObject<GetDocumentResponse>(responseJson);
+                            return deserializeJson;
+                        }
+                        else
+                            return new GetDocumentResponse();
                     }
-                    else
-                        return null;
+
                 }
-
             }
-
+            catch (Exception e)
+            {
+                throw e;
+                //OnConnectionFailed?.Invoke(e.Message);
+            }
         }
 
-        #endregion
+        #endregion 
 
         #region getprint
         public async Task<GetPrintingConfigurationResponse> GetPrintingConfiguration(GetPrintingConfigurationRequest requesGetPrinting)

@@ -19,6 +19,6 @@ namespace Conection.HubbleWS.Models.Facturacion
         public string NumCertificado { get; set; }
         public string SelloDigitaSAT { get; set; }
         public string CadenaOrigTimbre { get; set; }
-
+        public string mensaje { get; set; }
     }
 }

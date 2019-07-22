@@ -11,8 +11,6 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Msj { get; set; }
         [DataMember]
         public int Estacion { get; set; }
-        //[DataMember]
-        //public string Id_product { get; set; }
         [DataMember]
         public string Producto { get; set; }
         [DataMember]
@@ -23,8 +21,6 @@ namespace ControlVolumetricoShellWS.Dominio
         public long Num_Operacion { get; set; }
         [DataMember]
         public decimal Precio_Uni { get; set; }
-        //[DataMember]
-        //public decimal IvaPorcentaje { get; set; }
         [DataMember]
         public decimal Litros { get; set; }
         [DataMember]

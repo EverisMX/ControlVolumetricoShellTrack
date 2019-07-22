@@ -719,6 +719,9 @@ namespace ControlVolumetricoShellWS.Implementation
             List<CreateDocumentPaymentDetailDAO> PaymentDetailListPreview = new List<CreateDocumentPaymentDetailDAO>();
 
             //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+            string paymentCash = null;
+            string paymentCard = null;
+            string paymentany = null;
 
             #region OIL STATION
             //List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
@@ -755,7 +758,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                     PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
-                                                    //isValidFormaPagoT = true;
+                                                    paymentCard = paymentMethods.Id;
                                                 }
                                             }
                                             //createDocumentPaymentDetailDAO = null;
@@ -784,7 +787,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                     PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
-                                                    //isValidFormaPagoT = true;
+                                                    paymentCash = paymentMethods.Id;
                                                 }
                                             }
                                             //createDocumentPaymentDetailDAO = null;
@@ -813,7 +816,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                                     createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                     PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                     currencyId = CurrenciesBase.Id;
-                                                    //isValidFormaPagoT = true;
+                                                    paymentany = paymentMethods.Id;
                                                 }
                                             }
                                             //createDocumentPaymentDetailDAO = null;
@@ -837,9 +840,6 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
             #region PERIPHERICS STATION
-            string paymentCash = null;
-            string paymentCard = null;
-            string paymentany = null;
             //List<CreateDocumentPaymentDetailDAO> DetailsCashSale = new List<CreateDocumentPaymentDetailDAO>();
             //bool isValidFormaPagoE = false;
             try
@@ -1608,77 +1608,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.RFC = responsecustomer.Customer.TIN;
             }
 
-            if (isFacturar)
-            {
 
-                GetCompanyRequest GetCompanyreques = new GetCompanyRequest
-                {
-                    Identity = bsObj.Identity
-                };
-
-                //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-                GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
-
-
-
-                #region facturacion
-                //se nesesitan estos datos para facturar agregamos
-                var res = new ListTicketDAO
-                {
-                    EESS = request.EESS,
-                    NTicket = request.Nticket,
-                    //RFC = "AAA010101AAA",
-                    RFC = responsecustomer.Customer.TIN,
-                    WebID = request.WebID
-                };
-
-                //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
-
-                GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
-                {
-                    EmpresaPortal = "01",
-                    Company = responseCompany.Company.Id,
-                    ListTicket = new List<ListTicketDAO>
-                    {
-                        new ListTicketDAO
-                        {
-                            EESS =res.EESS,
-                            NTicket=res.NTicket,
-                            RFC=res.RFC,
-                            WebID=res.WebID
-                        }
-                    }
-                };
-
-
-
-                facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
-
-
-
-                if (responsefacturacion.CadenaOrigTimbre == null || responsefacturacion.FolioFiscal == null || responsefacturacion.SelloDigitaCFDI == null)
-                {
-                    salida.Msj = "NO SE PUDO REALIZARR LA FACTURACION INTENTELO MAS TARDE";
-                    salida.Resultado = false;
-                    return salida;
-
-                }
-                else
-                {
-
-                    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
-                    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
-                    salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
-                    salida.FolioFiscal = responsefacturacion.FolioFiscal;
-                    salida.RFCProveedorCert = responsefacturacion.RFCProveedorCert;
-                    salida.NumCertificado = responsefacturacion.NumCertificado;
-                    salida.DateCertificacion = responsefacturacion.DateCertificacion;
-                    salida.Msj = "FACTURACION EXITOSA";
-                    salida.Resultado = true;
-
-                }
-                #endregion
-            }
 
 
             #region GetDocument
@@ -1693,13 +1623,12 @@ namespace ControlVolumetricoShellWS.Implementation
 
             GetDocumentResponse responsegetdocument = await invokeHubbleWebAPIServices.GetDocument(requesgetdocument);
 
-            if (responsegetdocument.Document.Id == null && responsegetdocument.Document.OperatorId == null && responsegetdocument.Document.LineList == null)
+            if (responsegetdocument.Document == null)
             {
-                salida.FormaPago = null;
-                salida.Subtotal = null;
-                salida.Terminal = null;
-                salida.Operador = null;
-                salida.Total = null;
+
+                salida.Msj = "TICKET NO VALIDO";
+                salida.Resultado = false;
+                return salida;
             }
 
 
@@ -1860,9 +1789,109 @@ namespace ControlVolumetricoShellWS.Implementation
             salida.WebID = webidnwe;
             salida.Estacion = informationresponses.PosInformation.ShopCode;
 
+            if (isFacturar)
+            {
+
+                GetCompanyRequest GetCompanyreques = new GetCompanyRequest
+                {
+                    Identity = bsObj.Identity
+                };
+
+                //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
 
 
 
+                #region facturacion
+                //se nesesitan estos datos para facturar agregamos
+                var res = new ListTicketDAO
+                {
+                    EESS = request.EESS,
+                    NTicket = request.Nticket,
+                    //RFC = "AAA010101AAA",
+                    RFC = responsecustomer.Customer.TIN,
+                    WebID = request.WebID
+                };
+
+                //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+
+                GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
+                {
+                    EmpresaPortal = "01",
+                    Company = responseCompany.Company.Id,
+                    ListTicket = new List<ListTicketDAO>
+                    {
+                        new ListTicketDAO
+                        {
+                            EESS =res.EESS,
+                            NTicket=res.NTicket,
+                            RFC=res.RFC,
+                            WebID=res.WebID
+                        }
+                    }
+                };
+
+
+
+                facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+
+
+
+                if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
+                {
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
+                {
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
+                {
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
+                {
+                    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
+                    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
+                    salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
+                    salida.FolioFiscal = responsefacturacion.FolioFiscal;
+                    salida.RFCProveedorCert = responsefacturacion.RFCProveedorCert;
+                    salida.NumCertificado = responsefacturacion.NumCertificado;
+                    salida.DateCertificacion = responsefacturacion.DateCertificacion;
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = true;
+                }
+
+                if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
+                {
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = false;
+                    return salida;
+                }
+
+                if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
+                {
+                    salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
+                    salida.Resultado = false;
+                    return salida;
+
+                }
+                //else
+                //{
+
+
+                //    salida.Msj = "NO SE PUDO FACTURAR";
+                //    salida.Resultado = false;
+
+                //}
+                #endregion
+            }
             return salida;
         }
     }

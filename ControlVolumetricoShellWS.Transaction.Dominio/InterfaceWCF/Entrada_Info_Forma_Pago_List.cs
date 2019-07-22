@@ -24,12 +24,6 @@ namespace ControlVolumetricoShellWS.Dominio
         public string formapagos { get; set; }
 
         /// <summary>
-        /// IVA del producto.
-        /// </summary>
-        //[DataMember]
-        //public string IvaProducto { get; set; }
-
-        /// <summary>
         /// Identificador de producto
         /// </summary>
         [DataMember]

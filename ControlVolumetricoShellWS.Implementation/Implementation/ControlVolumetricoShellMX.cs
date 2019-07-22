@@ -157,7 +157,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Parcial = false,
                     PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
-                    Producto = lockTransactionInformation.ProductReference,
+                    Producto = Convert.ToString(lockTransactionInformation.GradeId),      //lockTransactionInformation.ProductReference,
                     //Id_product = lockTransactionInformation.ProductReference
                 };
             }
@@ -307,6 +307,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
+            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+
             #region SE VALIDA EL ID_TRANSACTION QUE CORRESPONDA AL SURTIDOR
 
             GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPoint = new GetAllSupplyTransactionsOfFuellingPointRequest
@@ -316,7 +319,7 @@ namespace ControlVolumetricoShellWS.Implementation
             };
 
             int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint);
-            if(validateFuellingPointO[0] <= 0)
+            if (validateFuellingPointO[0] <= 0)
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -324,8 +327,16 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
                 };
             }
+            if (validateFuellingPointO[1] <= -1)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- NO EXISTE UN ID DE BLOQUEO EN EL SURTIDOR OBTENER LA INFORMACION DEL SURTIDOR PARA SER BLOQUEADO.!",
+                };
+            }
 
-            if(validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
+            if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -336,7 +347,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             try
             {
-                if (validateFuellingPointO[1] != Convert.ToInt32(request.idpos))
+                if (validateFuellingPointO[1] != Convert.ToInt32(getPOSInformationResponse.PosInformation.Code))
                 {
                     return new Salida_Info_Forma_Pago
                     {
@@ -344,7 +355,8 @@ namespace ControlVolumetricoShellWS.Implementation
                         Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDR NO CORRESPONDE CON EL POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
                     };
                 }
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
@@ -353,7 +365,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
                 throw e;
             }
-            
+
             #endregion
 
             #endregion
@@ -586,6 +598,7 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
             //Se separa para poder extraer la informacion sobre los productos y almacenarlos.
+            //Se agrega el IDCOMPANY para que se haga la venta segura y no truene.
             #region COMBUSTIBLE.
             try
             {
@@ -602,7 +615,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 switch (flagContCombu)
                                 {
                                     case 0:
-                                        producto.Id_producto = combustible[intValueCombustible];
+                                        producto.Id_producto = getPOSInformationResponse.PosInformation.CompanyCode +  combustible[intValueCombustible];
                                         break;
                                     case 1:
                                         producto.Cantidad = Convert.ToDecimal(combustible[intValueCombustible]);
@@ -741,8 +754,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 serieId = series.Id;
                 serieWebId = series.Code;
             }
-            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
-            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+            
             posId = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.Code;
 
             GetPOSConfigurationRequest getPOSConfigurationRequest = new GetPOSConfigurationRequest { Identity = bsObj.Identity };

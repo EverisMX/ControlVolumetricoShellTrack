@@ -199,6 +199,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             catch(Exception e)
             {
+                return new int[] { -1 , -1 };
                 throw e;
             }
         }

@@ -145,7 +145,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (lockSupplyTransactionOfFuellingPoint.Status < 0)
                 {
-                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "SHELLMX- No Existe el IdTransacton en el surtidor seleccionado: LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145" + supplyTransactionOfFuellingPoint.Message , Status = supplyTransactionOfFuellingPoint.Status };
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "SHELLMX- No Existe el IdTransacton en el surtidor seleccionado: LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @1200" + supplyTransactionOfFuellingPoint.Message , Status = supplyTransactionOfFuellingPoint.Status };
                 }
 
                 lockSupplyTransactionOfFuellingPoint.Id = lockRequest.SupplyTransactionId;
@@ -158,6 +158,48 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 throw e;
                 //OnConnectionFailed?.Invoke(e.Message);
+            }
+        }
+
+        public int[] ValidateSupplyTransactionOfFuellingPoint(string identity, GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest)
+        {
+            try
+            {
+                // Se pregunta si esta conecta
+                if (!IsConnected())
+                {
+                    ConnectToServer();
+                }
+
+                GetAllSupplyTransactionsOfFuellingPointRequest request = new GetAllSupplyTransactionsOfFuellingPointRequest() { OperatorId = getAllSupplyTransactionsOfFuellingPointRequest.OperatorId, FuellingPointId = getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId };
+
+                GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
+                supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                if (supplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    supplyTransactionOfFuellingPoint = null;
+                    supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                    if (supplyTransactionOfFuellingPoint.Status < 0)
+                    {
+                        return new int[] { supplyTransactionOfFuellingPoint.Status , -1};
+                    }
+                }
+
+                int validateFuellingPoint = 0;
+                int validateLockFuelling = 0;
+                foreach (var supplyValidate in supplyTransactionOfFuellingPoint.SupplyTransactionList)
+                {
+                    validateFuellingPoint = supplyValidate.Id;
+                    validateLockFuelling = Convert.ToInt32(supplyValidate.LockingPOSId);
+                }
+
+                return new int[] { validateFuellingPoint, validateLockFuelling };
+            }
+            catch(Exception e)
+            {
+                throw e;
             }
         }
 

@@ -192,20 +192,33 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@ SHELLMX- NO ES UN VALOR VALIDO VERIFICAR! LOG :: "
+                    Msj = "@ SHELLMX- NO ES UN VALOR VALIDO ID_TRANSACTION VERIFICAR! LOG :: "
                 };
                 throw e;
             }
-            if(request.idpos == null || request.nHD <= 0 || request.PorpagarEntrada <= -1)
+
+            try
+            {
+                if (request.idpos == null || request.nHD <= 0 || request.PorpagarEntrada <= -1)
+                {
+                    //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@ SHELLMX- DATOS VALIDOS EN IDPOS | nHD | PorpagarEntrada VALIDAR !!",
+                    };
+                }
+            }catch(Exception e)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@ SHELLMX- DATOS VALIDOS EN IDPOS | nHD | PorpagarEntrada VALIDAR !!",
+                    Msj = "@ SHELLMX- DATOS CON FORMATO INCORRECTO EN IDPOS | nHD | PorpagarEntrada VALIDAR !!",
                 };
+                throw e;
             }
-
+            
             if (request.Id_teller == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
@@ -293,6 +306,55 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
                 };
             }
+
+            #region SE VALIDA EL ID_TRANSACTION QUE CORRESPONDA AL SURTIDOR
+
+            GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPoint = new GetAllSupplyTransactionsOfFuellingPointRequest
+            {
+                OperatorId = idOperator,
+                FuellingPointId = request.Pos_Carga
+            };
+
+            int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint);
+            if(validateFuellingPointO[0] <= 0)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
+                };
+            }
+
+            if(validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                };
+            }
+
+            try
+            {
+                if (validateFuellingPointO[1] != Convert.ToInt32(request.idpos))
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDR NO CORRESPONDE CON EL POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                    };
+                }
+            }catch(Exception e)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- EL POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                };
+                throw e;
+            }
+            
+            #endregion
 
             #endregion
 

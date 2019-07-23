@@ -54,5 +54,11 @@ namespace ControlVolumetricoShellWS.Dominio
         /// </summary>
         [DataMember]
         public string idpos { get; set; }
+
+        /// <summary>
+        /// Parciales sobre la entrega de valores
+        /// </summary>
+        [DataMember]
+        public bool parciales { get; set; }
     }
 }

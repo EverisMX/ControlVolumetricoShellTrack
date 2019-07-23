@@ -285,6 +285,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
+
             if (request.Info_Forma_Pago == null || request.Info_Forma_Pago.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
@@ -368,6 +369,18 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
+            #endregion
+
+            #region VALIDACION SOBRE EL PARCIAL DE LA ENTRADA.
+            if(request.parciales)
+            {
+                //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = true,
+                    Msj = "@ SHELLMX- INFORM VAliDACION DE PRIMERA ENTRADA"
+                };
+            }
             #endregion
 
             //SHELLMX- Se crea el vaciado de la informacion de la venta.
@@ -1738,26 +1751,48 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
 
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
+            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+
+
+
+            string serieWebId = null;
+
+
+
+
+            GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
+            GetSeriesResponse getSeriesResponse = await invokeHubbleWebAPIServices.GetSeries(getSeriesRequest);
+
+
+
+            foreach (var series in getSeriesResponse.SeriesList)
+            {
+                serieWebId = series.Code;
+            }
+
+
+
+
+
+
             string formatofecha = Convert.ToString(responsegetdocument.Document.EmissionLocalDateTime);
             DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
             string fechaticket = Convert.ToString(fechaticketstring.DateTime);
-
-            //string horaorig = "2019 - 07 - 12T10: 28:50";
-
-            //DateTimeOffset formatoffset = DateTimeOffset.Parse(horaorig);
-            //string horaformatnew = Convert.ToString(formatoffset.DateTime);
-
-
             string nticketco = responsegetdocument.Document.Id;
-            string horaformatnews = fechaticket.Replace(" ", "");
+            string horaFormatFact = fechaticket.Replace(" ", "");
 
-            string wid = horaformatnews.Substring(10, 2);
-            string wid2 = nticketco.Substring(0, 5);
-            string wid3 = horaformatnews.Substring(13, 2);
-            string wid4 = nticketco.Substring(5, 4);
-            string wid5 = horaformatnews.Substring(16, 2);
 
-            string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
+
+            string hourWebID = horaFormatFact.Substring(10, 2);
+            string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
+            string minutWebID = horaFormatFact.Substring(13, 2);
+            string serieTicket = serieWebId;
+            string secontWebID = horaFormatFact.Substring(16, 2);
+
+
+
+            string webidnwe = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
             #endregion
 
 
@@ -1843,7 +1878,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     isFacturar = false;
                     rfccliente = null;
                     razoonsocial = null;
-                    salida.Msj = "No se pudo facturar cliente no valido";
+                    salida.Msj = "OPERACION REALIZADA CON ÉXITO";
                     salida.Resultado = true;
 
 
@@ -1861,11 +1896,6 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
             #region information
-            //// GetPOSInformationResponse  GetPOSInformation(GetPosInformationRequest getPosInformationRequest
-            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest
-            {
-                Identity = bsObj.Identity
-            };
 
             //   //   InvokeHubbleWebAPIServices invokeHubbleWebAPIServices3 = new InvokeHubbleWebAPIServices();
             //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();

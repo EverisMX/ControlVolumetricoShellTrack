@@ -1478,6 +1478,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_Electronic_billing> Electronic_billing(Entrada_Electronic_billing request)
         {
+            #region globales
             InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
             Salida_Electronic_billing salida = new Salida_Electronic_billing();
             textosincaracterspc textosincarspecial = new textosincaracterspc();
@@ -1485,11 +1486,15 @@ namespace ControlVolumetricoShellWS.Implementation
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
             bool isFacturar = false;
+            #endregion
+
+
             if (request.EESS == null && request.NoCliente == null && request.Nticket == null && request.WebID == null)
             {
                 salida.Msj = "DATOS INCORRECTOS";
                 salida.Resultado = false;
             }
+
             if (request.EESS == null)
             {
                 isFacturar = false;
@@ -1497,13 +1502,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.Resultado = false;
                 return salida;
             }
-            if (request.NoCliente == null)
-            {
-                isFacturar = false;
-                salida.Msj = "INTRODUSCA UN NUMERO DE CLIENTE";
-                salida.Resultado = false;
-                return salida;
-            }
+            /* if (request.NoCliente == null)
+             {
+                 isFacturar = false;
+                 salida.Msj = "INTRODUSCA UN NUMERO DE CLIENTE";
+                 salida.Resultado = false;
+                 return salida;
+             }*/
             if (request.Nticket == null)
             {
                 isFacturar = false;
@@ -1584,50 +1589,23 @@ namespace ControlVolumetricoShellWS.Implementation
             GetPrintingConfigurationResponse responseGetPrinting = await invokeHubbleWebAPIServices.GetPrintingConfiguration(requesGetPrinting);
 
 
-            if (responseGetPrinting != null)
+
+            List<string> listaPrinting = new List<string>();
+            string key;
+            foreach (var item in responseGetPrinting.GlobalSettings)
             {
-                List<string> listaPrinting = new List<string>();
-                string key;
-                foreach (var item in responseGetPrinting.GlobalSettings)
-                {
-                    key = item.Value;
-                    listaPrinting.Add(key);
-                }
-                listaPrinting.ToArray();
-
-                //string Headerprin = listaPrinting[1];
-
-                Headeresponse deserializeJsonheader = JsonConvert.DeserializeObject<Headeresponse>(listaPrinting[1]);
-                footeresponse deserializeJsonfooter = JsonConvert.DeserializeObject<footeresponse>(listaPrinting[2]);
-
-                salida.HeaderTick1 = textosincarspecial.transformtext(deserializeJsonheader.Header1);
-                salida.HeaderTick2 = textosincarspecial.transformtext(deserializeJsonheader.Header2);
-                salida.HeaderTick3 = deserializeJsonheader.Header3;
-                salida.HedaerTick4 = textosincarspecial.transformtext(deserializeJsonheader.Header4);
-                salida.FooterTick1 = textosincarspecial.transformtext(deserializeJsonfooter.Footer1);
-                salida.FooterTick2 = textosincarspecial.transformtext(deserializeJsonfooter.Footer2);
-                salida.FooterTick3 = textosincarspecial.transformtext(deserializeJsonfooter.Footer3);
-                salida.FooterTick4 = textosincarspecial.transformtext(deserializeJsonfooter.Footer4);
-                salida.FooterTick5 = deserializeJsonfooter.Footer5;
-                salida.CodigoPostalCompania = textosincarspecial.transformtext(listaPrinting[17]);
-                salida.CodigoPostalTienda = textosincarspecial.transformtext(listaPrinting[27]);
-                salida.ColoniaCompania = textosincarspecial.transformtext(listaPrinting[16]);
-                salida.ColoniaTienda = textosincarspecial.transformtext(listaPrinting[29]);
-                salida.DireccionCompania = textosincarspecial.transformtext(listaPrinting[14]);
-                salida.DireccionTienda = textosincarspecial.transformtext(listaPrinting[24]);
-                salida.EstadoCompania = textosincarspecial.transformtext(listaPrinting[19]);
-                salida.EstadoTienda = textosincarspecial.transformtext(listaPrinting[31]);
-                salida.ExpedicionTienda = textosincarspecial.transformtext(listaPrinting[27]);
-                salida.MunicipioCompania = textosincarspecial.transformtext(listaPrinting[16]);
-                salida.MunicipioTienda = textosincarspecial.transformtext(listaPrinting[26]);
-                salida.NombreCompania = textosincarspecial.transformtext(listaPrinting[15]);
-                salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
-                salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
-                salida.PermisoCRE = listaPrinting[32];
-                salida.Tienda = textosincarspecial.transformtext(listaPrinting[33]);
-                salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
-                salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
+                key = item.Value;
+                listaPrinting.Add(key);
             }
+            listaPrinting.ToArray();
+
+            //string Headerprin = listaPrinting[1];
+
+            Headeresponse deserializeJsonheader = JsonConvert.DeserializeObject<Headeresponse>(listaPrinting[1]);
+            footeresponse deserializeJsonfooter = JsonConvert.DeserializeObject<footeresponse>(listaPrinting[2]);
+
+
+
 
 
             // var responseGlobalSettings = responseGetPrinting.GlobalSettings.Values;
@@ -1636,56 +1614,7 @@ namespace ControlVolumetricoShellWS.Implementation
             //string ess = Count[1]=responseGlobalSettings.Values;
             #endregion
 
-            #region cliente
-            GetCustomerRequest resquestcustomer = new GetCustomerRequest
-            {
-                Id = request.NoCliente,
-                Identity = bsObj.Identity
-            };
-
-
-
-            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
-            GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices.GetCustomer(resquestcustomer);
-
-            if (responsecustomer.Customer == null)
-            {
-                salida.Msj = "NO SE PUDO ENCONTRAR EL NUMERO DE CLIENTE";
-                salida.Resultado = false;
-                return salida;
-
-            }
-
-            if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
-            {
-                isFacturar = false;
-                salida.Resultado = false;
-                salida.Msj = "NO SE PUDO ENCONTRAR LA INFORMACION DEL CLIENTE";
-                return salida;
-            }
-
-            #endregion
-
-
-            if (request.TipoOperacion == 1)
-            {
-                isFacturar = false;
-                salida.RazonSocial = textosincarspecial.transformtext(responsecustomer.Customer.BusinessName);
-                salida.RFC = responsecustomer.Customer.TIN;
-                salida.Resultado = true;
-                salida.Msj = "OPERACION REALIZADA CON EXITO";
-            }
-            else if (request.TipoOperacion == 2)
-            {
-                isFacturar = true;
-                salida.RazonSocial = textosincarspecial.transformtext(responsecustomer.Customer.BusinessName);
-                salida.RFC = responsecustomer.Customer.TIN;
-            }
-
-
-
-
-            #region GetDocument
+            #region GetDocument validacion del ticket y obtencion de datos ticket
 
             //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
             GetDocumentRequest requesgetdocument = new GetDocumentRequest
@@ -1699,12 +1628,12 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (responsegetdocument.Document == null)
             {
-
-                salida.Msj = "TICKET NO VALIDO";
+                salida.Msj = "Ticket o Numero de cliente no valido";
                 salida.Resultado = false;
                 return salida;
             }
 
+            #region datos del ticket si es !null
 
             string nticketorigin = responsegetdocument.Document.Id;
             int ntiquetn = nticketorigin.Length;
@@ -1832,6 +1761,103 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
 
+            #endregion
+
+
+            #region cliente
+            GetCustomerRequest resquestcustomer = new GetCustomerRequest
+            {
+                Id = request.NoCliente,
+                Identity = bsObj.Identity
+            };
+
+
+
+            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices.GetCustomer(resquestcustomer);
+            string rfccliente = "";
+            string razoonsocial = "";
+            if (responsecustomer.Customer != null)
+            {
+                rfccliente = responsecustomer.Customer.TIN;
+                razoonsocial = responsecustomer.Customer.BusinessName;
+
+            }
+            if (responsecustomer.Customer == null)
+            {
+                rfccliente = null;
+                razoonsocial = null;
+
+            }
+
+            //if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
+            //{
+            //    isFacturar = false;
+            //    salida.Resultado = false;
+            //    salida.Msj = "NO SE PUDO ENCONTRAR LA INFORMACION DEL CLIENTE";
+            //    return salida;
+            //}
+
+            #endregion
+
+
+            if (request.TipoOperacion == 1)
+            {
+                if (responsegetdocument.Document == null && responsecustomer.Customer == null)
+                {
+                    salida.Msj = "Numero de cliente y numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+
+
+                isFacturar = false;
+                salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                salida.RFC = rfccliente;
+                salida.Resultado = true;
+                salida.Msj = "OPERACION REALIZADA CON EXITO";
+            }
+
+            if (request.TipoOperacion == 1 && responsecustomer.Customer == null || responsegetdocument.Document == null)
+            {
+                isFacturar = false;
+
+                salida.Resultado = false;
+                salida.Msj = "El cliente y el ticket no son validos";
+                return salida;
+            }
+
+
+
+
+
+
+
+            if (request.TipoOperacion == 2)
+            {
+
+
+                if (responsecustomer.Customer == null)
+                {
+
+                    isFacturar = false;
+                    rfccliente = null;
+                    razoonsocial = null;
+                    salida.Msj = "No se pudo facturar cliente no valido";
+                    salida.Resultado = true;
+
+
+                }
+                if (responsecustomer.Customer != null)
+                {
+                    isFacturar = true;
+                    salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                    salida.RFC = rfccliente;
+                }
+
+            }
+
+
 
 
             #region information
@@ -1848,20 +1874,7 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
 
-            salida.Ticket = request.Nticket;
-            salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
-            salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
-            salida.Terminal = responsegetdocument.Document.PosId;
-            salida.Operador = responsegetdocument.Document.OperatorName;
-            salida.Folio = Folioidticket;
-            salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
-            salida.ImporteEnLetra = letraconvert;
-            salida.iva = salidaiva;
-            salida.ivaMonto = salidaivamonto;
-            salida.productos = listan;
-            salida.Fecha = fechaticket;
-            salida.WebID = webidnwe;
-            salida.Estacion = informationresponses.PosInformation.ShopCode;
+
 
             if (isFacturar)
             {
@@ -1878,12 +1891,13 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 #region facturacion
                 //se nesesitan estos datos para facturar agregamos
+
                 var res = new ListTicketDAO
                 {
                     EESS = request.EESS,
                     NTicket = request.Nticket,
                     //RFC = "AAA010101AAA",
-                    RFC = responsecustomer.Customer.TIN,
+                    RFC = rfccliente,
                     WebID = request.WebID
                 };
 
@@ -1913,20 +1927,48 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
                 {
+                    salida.Ticket = request.Nticket;
+                    salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+                    salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+                    salida.Terminal = responsegetdocument.Document.PosId;
+                    salida.Operador = responsegetdocument.Document.OperatorName;
+                    salida.Folio = Folioidticket;
+                    salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+                    salida.ImporteEnLetra = letraconvert;
+                    salida.iva = salidaiva;
+                    salida.ivaMonto = salidaivamonto;
+                    salida.productos = listan;
+                    salida.Fecha = fechaticket;
+                    salida.WebID = webidnwe;
+                    salida.Estacion = informationresponses.PosInformation.ShopCode;
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
                 }
                 if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
                 {
+                    salida.Ticket = request.Nticket;
+                    salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+                    salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+                    salida.Terminal = responsegetdocument.Document.PosId;
+                    salida.Operador = responsegetdocument.Document.OperatorName;
+                    salida.Folio = Folioidticket;
+                    salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+                    salida.ImporteEnLetra = letraconvert;
+                    salida.iva = salidaiva;
+                    salida.ivaMonto = salidaivamonto;
+                    salida.productos = listan;
+                    salida.Fecha = fechaticket;
+                    salida.WebID = webidnwe;
+                    salida.Estacion = informationresponses.PosInformation.ShopCode;
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
                 }
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                 {
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
                 }
                 if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
@@ -1945,14 +1987,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
                 {
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
                 }
 
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                 {
                     salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
 
                 }
@@ -1965,7 +2007,53 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 //}
                 #endregion
+
+
+
+
             }
+
+            salida.Ticket = request.Nticket;
+            salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+            salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+            salida.Terminal = responsegetdocument.Document.PosId;
+            salida.Operador = responsegetdocument.Document.OperatorName;
+            salida.Folio = Folioidticket;
+            salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+            salida.ImporteEnLetra = letraconvert;
+            salida.iva = salidaiva;
+            salida.ivaMonto = salidaivamonto;
+            salida.productos = listan;
+            salida.Fecha = fechaticket;
+            salida.WebID = webidnwe;
+            salida.Estacion = informationresponses.PosInformation.ShopCode;
+            salida.HeaderTick1 = textosincarspecial.transformtext(deserializeJsonheader.Header1);
+            salida.HeaderTick2 = textosincarspecial.transformtext(deserializeJsonheader.Header2);
+            salida.HeaderTick3 = deserializeJsonheader.Header3;
+            salida.HedaerTick4 = textosincarspecial.transformtext(deserializeJsonheader.Header4);
+            salida.FooterTick1 = textosincarspecial.transformtext(deserializeJsonfooter.Footer1);
+            salida.FooterTick2 = textosincarspecial.transformtext(deserializeJsonfooter.Footer2);
+            salida.FooterTick3 = textosincarspecial.transformtext(deserializeJsonfooter.Footer3);
+            salida.FooterTick4 = textosincarspecial.transformtext(deserializeJsonfooter.Footer4);
+            salida.FooterTick5 = deserializeJsonfooter.Footer5;
+            salida.CodigoPostalCompania = textosincarspecial.transformtext(listaPrinting[17]);
+            salida.CodigoPostalTienda = textosincarspecial.transformtext(listaPrinting[27]);
+            salida.ColoniaCompania = textosincarspecial.transformtext(listaPrinting[16]);
+            salida.ColoniaTienda = textosincarspecial.transformtext(listaPrinting[29]);
+            salida.DireccionCompania = textosincarspecial.transformtext(listaPrinting[14]);
+            salida.DireccionTienda = textosincarspecial.transformtext(listaPrinting[24]);
+            salida.EstadoCompania = textosincarspecial.transformtext(listaPrinting[19]);
+            salida.EstadoTienda = textosincarspecial.transformtext(listaPrinting[31]);
+            salida.ExpedicionTienda = textosincarspecial.transformtext(listaPrinting[27]);
+            salida.MunicipioCompania = textosincarspecial.transformtext(listaPrinting[16]);
+            salida.MunicipioTienda = textosincarspecial.transformtext(listaPrinting[26]);
+            salida.NombreCompania = textosincarspecial.transformtext(listaPrinting[15]);
+            salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
+            salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
+            salida.PermisoCRE = listaPrinting[32];
+            salida.Tienda = textosincarspecial.transformtext(listaPrinting[33]);
+            salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
+            salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
             return salida;
         }
     }

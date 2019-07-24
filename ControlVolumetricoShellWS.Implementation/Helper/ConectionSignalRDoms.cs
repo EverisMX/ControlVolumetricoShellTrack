@@ -176,14 +176,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                if (supplyTransactionOfFuellingPoint.Status < 0)
+                if(supplyTransactionOfFuellingPoint.Status < 0)
                 {
                     supplyTransactionOfFuellingPoint = null;
                     supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
                     if (supplyTransactionOfFuellingPoint.Status < 0)
                     {
-                        return new int[] { supplyTransactionOfFuellingPoint.Status , -1};
+                        return new int[] { supplyTransactionOfFuellingPoint.Status , supplyTransactionOfFuellingPoint.Status };
                     }
                 }
 

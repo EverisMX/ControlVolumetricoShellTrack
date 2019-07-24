@@ -1843,34 +1843,30 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida.Resultado = false;
                     return salida;
                 }
-
-
-                isFacturar = false;
-                salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
-                salida.RFC = rfccliente;
-                salida.Resultado = true;
-                salida.Msj = "OPERACION REALIZADA CON EXITO";
+                if (responsegetdocument.Document == null && responsecustomer.Customer != null)
+                {
+                    salida.Msj = "Numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer == null)
+                {
+                    isFacturar = false;
+                    salida.Resultado = true;
+                    salida.Msj = "OPERACION REALIZADA CON EXITO";
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer != null)
+                {
+                    isFacturar = false;
+                    salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                    salida.RFC = rfccliente;
+                    salida.Resultado = true;
+                    salida.Msj = "OPERACION REALIZADA CON EXITO";
+                }
             }
-
-            if (request.TipoOperacion == 1 && responsecustomer.Customer == null || responsegetdocument.Document == null)
-            {
-                isFacturar = false;
-
-                salida.Resultado = false;
-                salida.Msj = "El cliente y el ticket no son validos";
-                return salida;
-            }
-
-
-
-
-
-
 
             if (request.TipoOperacion == 2)
             {
-
-
                 if (responsecustomer.Customer == null)
                 {
 
@@ -1879,8 +1875,6 @@ namespace ControlVolumetricoShellWS.Implementation
                     razoonsocial = null;
                     salida.Msj = "OPERACION REALIZADA CON EXITO";
                     salida.Resultado = true;
-
-
                 }
                 if (responsecustomer.Customer != null)
                 {

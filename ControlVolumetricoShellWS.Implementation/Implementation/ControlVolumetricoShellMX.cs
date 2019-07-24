@@ -1159,7 +1159,6 @@ namespace ControlVolumetricoShellWS.Implementation
                         createDocumentLineDAO.Quantity = informListProducts.Cantidad;
                         createDocumentLineDAO.UnitaryPriceWithTax = informListProducts.Importe_Unitario;
                         createDocumentLineDAO.TaxPercentage = getProductForSaleResponse.TaxPercentage;
-
                         decimal priceWithoutTaxW = informListProducts.Importe_Total / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
                         decimal priceWithoutTax = Math.Round(priceWithoutTaxW, 6);
                         createDocumentLineDAO.PriceWithoutTax = priceWithoutTax;
@@ -1878,7 +1877,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     isFacturar = false;
                     rfccliente = null;
                     razoonsocial = null;
-                    salida.Msj = "OPERACION REALIZADA CON ÉXITO";
+                    salida.Msj = "OPERACION REALIZADA CON EXITO";
                     salida.Resultado = true;
 
 
@@ -1957,42 +1956,42 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
                 {
-                    salida.Ticket = request.Nticket;
-                    salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
-                    salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
-                    salida.Terminal = responsegetdocument.Document.PosId;
-                    salida.Operador = responsegetdocument.Document.OperatorName;
-                    salida.Folio = Folioidticket;
-                    salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
-                    salida.ImporteEnLetra = letraconvert;
-                    salida.iva = salidaiva;
-                    salida.ivaMonto = salidaivamonto;
-                    salida.productos = listan;
-                    salida.Fecha = fechaticket;
-                    salida.WebID = webidnwe;
-                    salida.Estacion = informationresponses.PosInformation.ShopCode;
+                    //salida.Ticket = request.Nticket;
+                    //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+                    //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+                    //salida.Terminal = responsegetdocument.Document.PosId;
+                    //salida.Operador = responsegetdocument.Document.OperatorName;
+                    //salida.Folio = Folioidticket;
+                    //salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+                    //salida.ImporteEnLetra = letraconvert;
+                    //salida.iva = salidaiva;
+                    //salida.ivaMonto = salidaivamonto;
+                    //salida.productos = listan;
+                    //salida.Fecha = fechaticket;
+                    //salida.WebID = webidnwe;
+                    //salida.Estacion = informationresponses.PosInformation.ShopCode;
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = true;
+                    salida.Resultado = false;
                     return salida;
                 }
                 if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
                 {
-                    salida.Ticket = request.Nticket;
-                    salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
-                    salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
-                    salida.Terminal = responsegetdocument.Document.PosId;
-                    salida.Operador = responsegetdocument.Document.OperatorName;
-                    salida.Folio = Folioidticket;
-                    salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
-                    salida.ImporteEnLetra = letraconvert;
-                    salida.iva = salidaiva;
-                    salida.ivaMonto = salidaivamonto;
-                    salida.productos = listan;
-                    salida.Fecha = fechaticket;
-                    salida.WebID = webidnwe;
-                    salida.Estacion = informationresponses.PosInformation.ShopCode;
+                    //salida.Ticket = request.Nticket;
+                    //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+                    //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+                    //salida.Terminal = responsegetdocument.Document.PosId;
+                    //salida.Operador = responsegetdocument.Document.OperatorName;
+                    //salida.Folio = Folioidticket;
+                    //salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+                    //salida.ImporteEnLetra = letraconvert;
+                    //salida.iva = salidaiva;
+                    //salida.ivaMonto = salidaivamonto;
+                    //salida.productos = listan;wa
+                    //salida.Fecha = fechaticket;
+                    //salida.WebID = webidnwe;
+                    //salida.Estacion = informationresponses.PosInformation.ShopCode;
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = true;
+                    salida.Resultado = false;
                     return salida;
                 }
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
@@ -2017,14 +2016,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
                 {
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = true;
+                    salida.Resultado = false;
                     return salida;
                 }
 
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                 {
                     salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
-                    salida.Resultado = true;
+                    salida.Resultado = false;
                     return salida;
 
                 }

@@ -23,5 +23,6 @@ namespace ControlVolumetricoShellWS.Implementation
         /// Gets or sets the grade identifier.
         /// </summary>
         public int GradeId { get; set; }
+        public int posID { get; set; }
     }
 }

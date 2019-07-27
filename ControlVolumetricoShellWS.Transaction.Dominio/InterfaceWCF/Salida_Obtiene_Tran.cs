@@ -27,5 +27,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public long ID_Interno { get; set; }
         [DataMember]
         public Boolean Parcial { get; set; }
+        [DataMember]
+        public int idInternoPOS { get; set; }
     }
 }

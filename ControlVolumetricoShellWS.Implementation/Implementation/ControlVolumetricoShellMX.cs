@@ -158,6 +158,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
                     Producto = Convert.ToString(lockTransactionInformation.GradeId),      //lockTransactionInformation.ProductReference,
+                    idInternoPOS = lockTransactionInformation.posID
                     //Id_product = lockTransactionInformation.ProductReference
                 };
             }
@@ -317,14 +318,14 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
                 };
             }
-            if (validateFuellingPointO[1] <= -1)
-            {
-                return new Salida_Info_Forma_Pago
-                {
-                    Resultado = false,
-                    Msj = "SHELLMX- NO EXISTE UN ID DE BLOQUEO EN EL SURTIDOR OBTENER LA INFORMACION DEL SURTIDOR PARA SER BLOQUEADO.!",
-                };
-            }
+            //if (validateFuellingPointO[1] <= -1)
+            //{
+            //    return new Salida_Info_Forma_Pago
+            //    {
+            //        Resultado = false,
+            //        Msj = "SHELLMX- NO EXISTE UN ID DE BLOQUEO EN EL SURTIDOR OBTENER LA INFORMACION DEL SURTIDOR PARA SER BLOQUEADO.!",
+            //    };
+            //}
 
             if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
             {
@@ -337,7 +338,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             try
             {
-                if (validateFuellingPointO[1] != Convert.ToInt32(getPOSInformationResponse.PosInformation.Code))
+                if (validateFuellingPointO[1] != request.idInternoPOS)
                 {
                     return new Salida_Info_Forma_Pago
                     {
@@ -1769,33 +1770,19 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //---------------------------------------------------termina metodo de pago---------------------------------------------------------
 
-
-
-
-
-
-
             GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
             GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
-
-
             string serieWebId = null;
-
-
 
 
             GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
             GetSeriesResponse getSeriesResponse = await invokeHubbleWebAPIServices.GetSeries(getSeriesRequest);
 
-
-
             foreach (var series in getSeriesResponse.SeriesList)
             {
                 serieWebId = series.Code;
             }
-
-
 
 
 
@@ -1806,17 +1793,31 @@ namespace ControlVolumetricoShellWS.Implementation
             string nticketco = responsegetdocument.Document.Id;
             string horaFormatFact = fechaticket.Replace(" ", "");
 
-
-
             string hourWebID = horaFormatFact.Substring(10, 2);
             string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
             string minutWebID = horaFormatFact.Substring(13, 2);
             string serieTicket = serieWebId;
             string secontWebID = horaFormatFact.Substring(16, 2);
 
-
-
             string webidnwe = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
+
+
+
+
+
+            //string formatofecha = Convert.ToString(responsegetdocument.Document.EmissionLocalDateTime);
+            //DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
+            //string fechaticket = Convert.ToString(fechaticketstring.DateTime);
+            //string nticketco = responsegetdocument.Document.Id;
+            //string horaformatnews = fechaticket.Replace(" ", "");
+
+            //string wid = horaformatnews.Substring(10, 2);
+            //string wid2 = nticketco.Substring(0, 5);
+            //string wid3 = horaformatnews.Substring(13, 2);
+            //string wid4 = nticketco.Substring(5, 4);
+            //string wid5 = horaformatnews.Substring(16, 2);
+
+            //string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
             #endregion
 
 
@@ -1882,31 +1883,80 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                 {
-                    isFacturar = false;
                     salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
                     salida.RFC = rfccliente;
+                    isFacturar = false;
                     salida.Resultado = true;
                     salida.Msj = "OPERACION REALIZADA CON EXITO";
                 }
+
+
             }
+
+            //if (request.TipoOperacion == 1 && responsecustomer.Customer == null || responsegetdocument.Document == null)
+            //{
+            //    isFacturar = false;
+
+            //    salida.Resultado = false;
+            //    salida.Msj = "El cliente y el ticket no son validos";
+            //    return salida;
+            //}
+
+
+
+
+
+
 
             if (request.TipoOperacion == 2)
             {
-                if (responsecustomer.Customer == null)
+                if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                 {
-
-                    isFacturar = false;
-                    rfccliente = null;
-                    razoonsocial = null;
-                    salida.Msj = "OPERACION REALIZADA CON EXITO";
-                    salida.Resultado = true;
+                    salida.Msj = "Numero de cliente y numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
                 }
-                if (responsecustomer.Customer != null)
+                if (responsegetdocument.Document == null && responsecustomer.Customer != null)
                 {
-                    isFacturar = true;
+                    salida.Msj = "Numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer == null)
+                {
+                    isFacturar = false;
+                    salida.Resultado = false;
+                    salida.Msj = "Numero de cliente no valido";
+                    return salida;
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer != null)
+                {
                     salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
                     salida.RFC = rfccliente;
+                    isFacturar = true;
+                    //salida.Resultado = true;
+                    //salida.Msj = "OPERACION REALIZADA CON EXITO";
                 }
+
+
+
+                //if (responsecustomer.Customer == null)
+                //{
+
+                //    isFacturar = false;
+                //    rfccliente = null;
+                //    razoonsocial = null;
+                //    salida.Msj = "OPERACION REALIZADA CON ÉXITO";
+                //    salida.Resultado = true;
+
+
+                //}
+                //if (responsecustomer.Customer != null)
+                //{
+                //    isFacturar = true;
+                //    salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                //    salida.RFC = rfccliente;
+                //}
 
             }
 
@@ -1914,6 +1964,11 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
             #region information
+            //// GetPOSInformationResponse  GetPOSInformation(GetPosInformationRequest getPosInformationRequest
+            //GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest
+            //{
+            //    Identity = bsObj.Identity
+            //};
 
             //   //   InvokeHubbleWebAPIServices invokeHubbleWebAPIServices3 = new InvokeHubbleWebAPIServices();
             //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
@@ -2005,7 +2060,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     //salida.ImporteEnLetra = letraconvert;
                     //salida.iva = salidaiva;
                     //salida.ivaMonto = salidaivamonto;
-                    //salida.productos = listan;wa
+                    //salida.productos = listan;
                     //salida.Fecha = fechaticket;
                     //salida.WebID = webidnwe;
                     //salida.Estacion = informationresponses.PosInformation.ShopCode;
@@ -2035,14 +2090,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
                 {
                     salida.Msj = responsefacturacion.mensaje;
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
                 }
 
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                 {
                     salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     return salida;
 
                 }

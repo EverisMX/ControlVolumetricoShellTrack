@@ -61,7 +61,16 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public bool parciales { get; set; }
 
+        /// <summary>
+        /// IDPOS usado en la parte de DOMS POSID
+        /// </summary>
         [DataMember]
         public int idInternoPOS { get; set; }
+
+        /// <summary>
+        /// Valor ---
+        /// </summary>
+        [DataMember]
+        public bool aprobado { get; set; }
     }
 }

@@ -318,6 +318,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
                 };
             }
+            //VALIDACION PARA EL IDPOS
             //if (validateFuellingPointO[1] <= -1)
             //{
             //    return new Salida_Info_Forma_Pago
@@ -1925,9 +1926,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (responsegetdocument.Document != null && responsecustomer.Customer == null)
                 {
                     isFacturar = false;
-                    salida.Resultado = false;
+                    salida.Resultado = true;
                     salida.Msj = "Numero de cliente no valido";
-                    return salida;
+
                 }
                 if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                 {

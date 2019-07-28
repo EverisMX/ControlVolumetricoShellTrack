@@ -223,5 +223,20 @@ namespace ControlVolumetricoShellWS.Implementation
         {
             return hubProxy.Invoke<SetDefinitiveDocumentIdForSupplyTransactionsResponse>("SetDefinitiveDocumentIdForSupplyTransactions", request).Result;
         }
+
+        public void UnlockSupplyTransactionOfFuellingPointWS(int supplyTransactionId, int fuellingPointId)
+        {
+            //hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId).ContinueWith(task =>
+            //{
+            //    if (task.IsFaulted && task.Exception != null)
+            //    {
+            //        log error
+            //    }
+            //});
+            //hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId).Wait();
+            //hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId).Start();
+
+            hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId);
+        }
     }
 }

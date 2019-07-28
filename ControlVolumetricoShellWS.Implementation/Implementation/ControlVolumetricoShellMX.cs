@@ -232,6 +232,24 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
+            #region VALIDACION SOBRE EL REGISTRO DE LA TARJETA.
+            // Se colocara la validacion si la tarjeta ha sido rechazada o paso de manera correcta para la venta.
+            // si la condicion es verdadera se debe desbloquear la bomba. :)
+
+            ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
+            conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga);
+
+            if (!request.aprobado)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = true,
+                    Msj = "@ SHELLMX- TARJETA NO APROBADA, SE INICIA EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga
+                };
+            }
+
+            #endregion
+
             //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
@@ -287,7 +305,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             #region CONFIGURACION PARA EL DOMS
-            ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
+            //ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
             if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
             {
                 //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
@@ -318,6 +336,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
                 };
             }
+
             //VALIDACION PARA EL IDPOS
             //if (validateFuellingPointO[1] <= -1)
             //{
@@ -1227,7 +1246,7 @@ namespace ControlVolumetricoShellWS.Implementation
             #region VALIDACION DEL TOTAL DE LA ENTRADA CON LA QUE SE CALCULO EN LOS ARTICULOS ORIGINALES.
             if(TotalAmountWithTaxMontoPerifericos != 0)
             {
-                if(TotalAmountWithTaxMontoPerifericos > (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
+                if(TotalAmountWithTaxMontoPerifericos < (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
                 {
                     return new Salida_Info_Forma_Pago
                     {
@@ -1235,7 +1254,14 @@ namespace ControlVolumetricoShellWS.Implementation
                         Msj = "@SHELLMX- EL TOTAL DEL CAMPO MONTOPAGODOPARCIAL NO CORRESPONDE CON EL TOTAL EL IMPORTE TOTAL DE LOS (PERIFERICOS) VERIFICAR! -- TOTAL_REQUEST: " + TotalAmountWithTaxMontoPerifericos + " | TOTAL_CALCULADO: " + (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE) + " --"
                     };
                 }
-
+                if (TotalAmountWithTaxMontoPerifericos > (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@SHELLMX- EL TOTAL DEL CAMPO MONTOPAGODOPARCIAL NO CORRESPONDE CON EL TOTAL EL IMPORTE TOTAL DE LOS (PERIFERICOS) VERIFICAR! -- TOTAL_REQUEST: " + TotalAmountWithTaxMontoPerifericos + " | TOTAL_CALCULADO: " + (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE) + " --"
+                    };
+                }
             }
 
             #endregion

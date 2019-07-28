@@ -158,7 +158,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
                     Producto = Convert.ToString(lockTransactionInformation.GradeId),      //lockTransactionInformation.ProductReference,
-                    idInternoPOS = lockTransactionInformation.posID
+                    idInternoPOS = 4  //idInternoPOS = lockTransactionInformation.posID
                     //Id_product = lockTransactionInformation.ProductReference
                 };
             }
@@ -336,26 +336,26 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
-            try
-            {
-                if (validateFuellingPointO[1] != request.idInternoPOS)
-                {
-                    return new Salida_Info_Forma_Pago
-                    {
-                        Resultado = false,
-                        Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDR NO CORRESPONDE CON EL POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
-                    };
-                }
-            }
-            catch (Exception e)
-            {
-                return new Salida_Info_Forma_Pago
-                {
-                    Resultado = false,
-                    Msj = "SHELLMX- EL POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
-                };
-                throw e;
-            }
+            //try
+            //{
+            //    if (validateFuellingPointO[1] != request.idInternoPOS)
+            //    {
+            //        return new Salida_Info_Forma_Pago
+            //        {
+            //            Resultado = false,
+            //            Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDR NO CORRESPONDE CON EL POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+            //        };
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    return new Salida_Info_Forma_Pago
+            //    {
+            //        Resultado = false,
+            //        Msj = "SHELLMX- EL POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+            //    };
+            //    throw e;
+            //}
 
             #endregion
 

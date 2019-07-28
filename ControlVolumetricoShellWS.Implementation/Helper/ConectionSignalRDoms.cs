@@ -155,15 +155,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 // SHELLMX- Se invoca al cliente de SignalR para el consumo del PSS, que se necesita para las transaccion que se tiene en el surtidor seleccinado.
                 //        donde se entrega un objeto de la transaccion que esta habilitado en un surtudor. 
 
-                GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint1;
-                supplyTransactionOfFuellingPoint1 = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
-                int idPOS = 0;
-                foreach (var supply1 in supplyTransactionOfFuellingPoint.SupplyTransactionList)
-                {
-                    idPOS = Convert.ToInt32(supply1.LockingPOSId);
-                }
-                lockSupplyTransactionOfFuellingPoint.posID = idPOS;
+                //GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint1;
+                //supplyTransactionOfFuellingPoint1 = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
+                //foreach (var supply1 in supplyTransactionOfFuellingPoint.SupplyTransactionList)
+                //{
+                    //lockSupplyTransactionOfFuellingPoint.posID = Convert.ToInt32(supply1.LockingPOSId);
+                //}
                 return lockSupplyTransactionOfFuellingPoint;
             }
             catch (Exception e)

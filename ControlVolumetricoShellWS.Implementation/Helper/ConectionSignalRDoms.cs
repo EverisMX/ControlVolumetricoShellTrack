@@ -155,13 +155,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 // SHELLMX- Se invoca al cliente de SignalR para el consumo del PSS, que se necesita para las transaccion que se tiene en el surtidor seleccinado.
                 //        donde se entrega un objeto de la transaccion que esta habilitado en un surtudor. 
 
-                //GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint1;
-                //supplyTransactionOfFuellingPoint1 = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+                GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint1;
+                supplyTransactionOfFuellingPoint1 = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                //foreach (var supply1 in supplyTransactionOfFuellingPoint.SupplyTransactionList)
-                //{
-                    //lockSupplyTransactionOfFuellingPoint.posID = Convert.ToInt32(supply1.LockingPOSId);
-                //}
+                foreach (var supply1 in supplyTransactionOfFuellingPoint1.SupplyTransactionList)
+                {
+                    lockSupplyTransactionOfFuellingPoint.posID = Convert.ToInt32(supply1.LockingPOSId);
+                }
+
                 return lockSupplyTransactionOfFuellingPoint;
             }
             catch (Exception e)
@@ -224,19 +225,10 @@ namespace ControlVolumetricoShellWS.Implementation
             return hubProxy.Invoke<SetDefinitiveDocumentIdForSupplyTransactionsResponse>("SetDefinitiveDocumentIdForSupplyTransactions", request).Result;
         }
 
-        public void UnlockSupplyTransactionOfFuellingPointWS(int supplyTransactionId, int fuellingPointId)
+        public UnlockSupplyTransactionOfFuellingPointResponse UnlockSupplyTransactionOfFuellingPointWS(UnlockSupplyTransactionOfFuellingPointRequest request)
         {
-            //hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId).ContinueWith(task =>
-            //{
-            //    if (task.IsFaulted && task.Exception != null)
-            //    {
-            //        log error
-            //    }
-            //});
-            //hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId).Wait();
-            //hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId).Start();
-
-            hubProxy.Invoke("UnlockSupplyTransactionOfFuellingPoint", supplyTransactionId, fuellingPointId);
+            return hubProxy.Invoke<UnlockSupplyTransactionOfFuellingPointResponse>("UnlockSupplyTransactionOfFuellingPoint", request).Result;
         }
+
     }
 }

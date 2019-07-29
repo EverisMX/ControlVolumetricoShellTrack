@@ -158,7 +158,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     PosID = Convert.ToInt32(getPOSInformationResponse.PosInformation.Code),
                     Precio_Uni = lockTransactionInformation.GradeUnitPrice,
                     Producto = Convert.ToString(lockTransactionInformation.GradeId),      //lockTransactionInformation.ProductReference,
-                    idInternoPOS = 4  //idInternoPOS = lockTransactionInformation.posID
+                    idInternoPOS = lockTransactionInformation.posID
                     //Id_product = lockTransactionInformation.ProductReference
                 };
             }
@@ -232,23 +232,6 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
-            #region VALIDACION SOBRE EL REGISTRO DE LA TARJETA.
-            // Se colocara la validacion si la tarjeta ha sido rechazada o paso de manera correcta para la venta.
-            // si la condicion es verdadera se debe desbloquear la bomba. :)
-
-            ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
-            conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga);
-
-            if (!request.aprobado)
-            {
-                return new Salida_Info_Forma_Pago
-                {
-                    Resultado = true,
-                    Msj = "@ SHELLMX- TARJETA NO APROBADA, SE INICIA EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga
-                };
-            }
-
-            #endregion
 
             //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
             // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
@@ -293,6 +276,39 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
+            #region VALIDACION SOBRE EL REGISTRO DE LA TARJETA.
+            // Se colocara la validacion si la tarjeta ha sido rechazada o paso de manera correcta para la venta.
+            // si la condicion es verdadera se debe desbloquear la bomba. :)
+
+            ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
+
+            if (request.aprobado == false)
+            {
+                //conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga, idOperator);
+                UnlockSupplyTransactionOfFuellingPointRequest unlockSupplyTransactionOfFuellingPointRequest = new UnlockSupplyTransactionOfFuellingPointRequest
+                {
+                    FuellingPointId = request.Pos_Carga,
+                    OperatorId = idOperator,
+                    SupplyTransactionId = Convert.ToUInt16(request.Id_Transaccion)
+                };
+
+                UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
+                if(unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = true,
+                        Msj = "@ SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA LOG::256"
+                    };
+                }
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = true,
+                    Msj = "@ SHELLMX- TARJETA NO APROBADA, SE INICIA EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status
+                };
+            }
+
+            #endregion
 
             if (request.Info_Forma_Pago == null || request.Info_Forma_Pago.Count == 0)
             {
@@ -337,6 +353,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
+
+
             //VALIDACION PARA EL IDPOS
             //if (validateFuellingPointO[1] <= -1)
             //{
@@ -356,26 +374,26 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
             }
 
-            //try
-            //{
-            //    if (validateFuellingPointO[1] != request.idInternoPOS)
-            //    {
-            //        return new Salida_Info_Forma_Pago
-            //        {
-            //            Resultado = false,
-            //            Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDR NO CORRESPONDE CON EL POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
-            //        };
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    return new Salida_Info_Forma_Pago
-            //    {
-            //        Resultado = false,
-            //        Msj = "SHELLMX- EL POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
-            //    };
-            //    throw e;
-            //}
+            try
+            {
+                if (validateFuellingPointO[1] != request.idInternoPOS)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                    };
+                }
+            }
+            catch (Exception e)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Resultado = false,
+                    Msj = "SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                };
+                throw e;
+            }
 
             #endregion
 
@@ -624,6 +642,7 @@ namespace ControlVolumetricoShellWS.Implementation
             //Se agrega el IDCOMPANY para que se haga la venta segura y no truene.
             #region COMBUSTIBLE.
             decimal Importe_TotalCOMBUSTIBLE = 0M;
+            //decimal Importe_TotalCOMBUSTIBLE = 0M;
             try
             {
                 for (int intCombu = 0; intCombu < countUniversalCombu; intCombu++)
@@ -1244,25 +1263,25 @@ namespace ControlVolumetricoShellWS.Implementation
             #endregion
 
             #region VALIDACION DEL TOTAL DE LA ENTRADA CON LA QUE SE CALCULO EN LOS ARTICULOS ORIGINALES.
-            if(TotalAmountWithTaxMontoPerifericos != 0)
-            {
-                if(TotalAmountWithTaxMontoPerifericos < (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
-                {
-                    return new Salida_Info_Forma_Pago
-                    {
-                        Resultado = false,
-                        Msj = "@SHELLMX- EL TOTAL DEL CAMPO MONTOPAGODOPARCIAL NO CORRESPONDE CON EL TOTAL EL IMPORTE TOTAL DE LOS (PERIFERICOS) VERIFICAR! -- TOTAL_REQUEST: " + TotalAmountWithTaxMontoPerifericos + " | TOTAL_CALCULADO: " + (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE) + " --"
-                    };
-                }
-                if (TotalAmountWithTaxMontoPerifericos > (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
-                {
-                    return new Salida_Info_Forma_Pago
-                    {
-                        Resultado = false,
-                        Msj = "@SHELLMX- EL TOTAL DEL CAMPO MONTOPAGODOPARCIAL NO CORRESPONDE CON EL TOTAL EL IMPORTE TOTAL DE LOS (PERIFERICOS) VERIFICAR! -- TOTAL_REQUEST: " + TotalAmountWithTaxMontoPerifericos + " | TOTAL_CALCULADO: " + (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE) + " --"
-                    };
-                }
-            }
+            //if(TotalAmountWithTaxMontoPerifericos != 0)
+            //{
+            //    if(TotalAmountWithTaxMontoPerifericos < (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
+            //    {
+            //        return new Salida_Info_Forma_Pago
+            //        {
+            //            Resultado = false,
+            //            Msj = "@SHELLMX- EL TOTAL DEL CAMPO MONTOPAGODOPARCIAL NO CORRESPONDE CON EL TOTAL EL IMPORTE TOTAL DE LOS (PERIFERICOS) VERIFICAR! -- TOTAL_REQUEST: " + TotalAmountWithTaxMontoPerifericos + " | TOTAL_CALCULADO: " + (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE) + " --"
+            //        };
+            //    }
+            //    if (TotalAmountWithTaxMontoPerifericos > (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE))
+            //    {
+            //        return new Salida_Info_Forma_Pago
+            //        {
+            //            Resultado = false,
+            //            Msj = "@SHELLMX- EL TOTAL DEL CAMPO MONTOPAGODOPARCIAL NO CORRESPONDE CON EL TOTAL EL IMPORTE TOTAL DE LOS (PERIFERICOS) VERIFICAR! -- TOTAL_REQUEST: " + TotalAmountWithTaxMontoPerifericos + " | TOTAL_CALCULADO: " + (validateTotalAmountWithTax - Importe_TotalCOMBUSTIBLE) + " --"
+            //        };
+            //    }
+            //}
 
             #endregion
 
@@ -1553,6 +1572,11 @@ namespace ControlVolumetricoShellWS.Implementation
             bool isFacturar = false;
             #endregion
 
+            string numeroclientere = "";
+            if (request.NoCliente == null || request.NoCliente.Trim() == "" || request.NoCliente == String.Empty)
+            {
+                numeroclientere = null;
+            }
 
             if (request.EESS == null && request.NoCliente == null && request.Nticket == null && request.WebID == null)
             {
@@ -1719,7 +1743,7 @@ namespace ControlVolumetricoShellWS.Implementation
             //lista = responsegetdocument.Document.LineList();
             foreach (DocumentLine item in responsegetdocument.Document.LineList)
             {
-                listan.Add(new Productos { ProductName = item.ProductName, Quantity = Convert.ToInt32(item.Quantity), TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2"), UnitaryPriceWithTax = (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
+                listan.Add(new Productos { ProductName = item.ProductName, Quantity = item.Quantity, TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2"), UnitaryPriceWithTax = (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
             }
 
             IList<Iva> porcentaje = new List<Iva>();
@@ -1770,7 +1794,8 @@ namespace ControlVolumetricoShellWS.Implementation
             string salidaivamonto = strImprime2.ToString();
             //----------------------------------------------------termina iva--------------------------------------------------------------------
 
-
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
+            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
             //---------------------------------------------------mrtodo de pago------------------------------------------------------------------
             IList<PaymentDetail> paymentDetails = new List<PaymentDetail>();
@@ -1783,6 +1808,8 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
 
+
+
             string[] arraymetodopago = new string[paymentDetails.Count];
             int i = 0;
             foreach (PaymentDetail item in paymentDetails)
@@ -1790,15 +1817,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 arraymetodopago[i++] = item.PaymentMethodId;
             }
 
+
+
             string metodopago = String.Join(" | ", arraymetodopago);
 
-            metodopago = metodopago.Replace("0393301", "EFECTIVO").Replace("0393308", "TARJETA").Replace("0393309", "FUGA").Replace("0393310", "PROPINA");
+
+
+            metodopago = metodopago.Replace(getPOSInformationResponse.PosInformation.CompanyCode + "01", "EFECTIVO").Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA").Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA").Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PROPINA");
+
 
 
             //---------------------------------------------------termina metodo de pago---------------------------------------------------------
-
-            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
-            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
             string serieWebId = null;
 
@@ -1949,12 +1978,23 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida.Resultado = false;
                     return salida;
                 }
-                if (responsegetdocument.Document != null && responsecustomer.Customer == null)
+                //if ((responsegetdocument.Document != null && request.NoCliente == null )||
+                //    (responsegetdocument.Document != null && request.NoCliente.Trim() == "" )||
+                //    (responsegetdocument.Document != null && request.NoCliente == String.Empty)
+                //   )
+                if (responsegetdocument.Document != null && numeroclientere == null)
                 {
                     isFacturar = false;
                     salida.Resultado = true;
                     salida.Msj = "Numero de cliente no valido";
 
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer == null && numeroclientere != null)
+                {
+                    isFacturar = false;
+                    salida.Resultado = true;
+                    salida.Msj = "Numero de cliente no valido";
+                    return salida;
                 }
                 if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                 {
@@ -2111,6 +2151,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida.NumCertificado = responsefacturacion.NumCertificado;
                     salida.DateCertificacion = responsefacturacion.DateCertificacion;
                     salida.Msj = responsefacturacion.mensaje;
+                    salida.Representacioncfdi = "Este documento es una representacion impresa de un CFDI";
                     salida.Resultado = true;
                 }
 
@@ -2181,7 +2222,7 @@ namespace ControlVolumetricoShellWS.Implementation
             salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
             salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
             salida.PermisoCRE = listaPrinting[32];
-            salida.Tienda = textosincarspecial.transformtext(listaPrinting[33]);
+            salida.Tienda = textosincarspecial.transformtext(listaPrinting[25]);
             salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
             salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
             return salida;

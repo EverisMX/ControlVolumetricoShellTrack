@@ -31,6 +31,8 @@ namespace ControlVolumetricoShellWS.Dominio
         public string SelloDigitaCFDI { get; set; }
         [DataMember]
         public string CadenaOrigTimbre { get; set; }
+        [DataMember]
+        public string Representacioncfdi { get; set; }
         #endregion
 
         #region PINTADO DE TICKET IMPRESION
@@ -133,7 +135,7 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public string ProductName { get; set; }
         [DataMember]
-        public int Quantity { get; set; }
+        public decimal Quantity { get; set; }
         [DataMember]
         public string UnitaryPriceWithTax { get; set; }
         [DataMember]

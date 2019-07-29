@@ -100,7 +100,7 @@ namespace ControlVolumetricoShellWS.Dominio
 
 
         //public List<Productos>productos
-       public IList<Productos> productos { get; set; } = new List<Productos>();
+       public IList<Producto> productos { get; set; } = new List<Producto>();
 
         // public Productos Producto { get; set; }
         [DataMember]
@@ -130,7 +130,7 @@ namespace ControlVolumetricoShellWS.Dominio
     }
 
     [DataContract]
-    public class Productos
+    public class Producto
     {
         [DataMember]
         public string ProductName { get; set; }

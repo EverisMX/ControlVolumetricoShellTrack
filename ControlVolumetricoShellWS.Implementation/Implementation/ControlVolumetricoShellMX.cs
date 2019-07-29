@@ -285,6 +285,8 @@ namespace ControlVolumetricoShellWS.Implementation
             if (request.aprobado == false)
             {
                 //conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga, idOperator);
+
+
                 UnlockSupplyTransactionOfFuellingPointRequest unlockSupplyTransactionOfFuellingPointRequest = new UnlockSupplyTransactionOfFuellingPointRequest
                 {
                     FuellingPointId = request.Pos_Carga,
@@ -293,7 +295,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
 
                 UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
-                if(unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
+                if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
                 {
                     return new Salida_Info_Forma_Pago
                     {
@@ -642,6 +644,8 @@ namespace ControlVolumetricoShellWS.Implementation
             //Se agrega el IDCOMPANY para que se haga la venta segura y no truene.
             #region COMBUSTIBLE.
             decimal Importe_TotalCOMBUSTIBLE = 0M;
+            List<Products> OlisAuxForPreview = new List<Products>();
+            List<Products> OlisAuxForRespaldo = new List<Products>();
             //decimal Importe_TotalCOMBUSTIBLE = 0M;
             try
             {
@@ -676,8 +680,48 @@ namespace ControlVolumetricoShellWS.Implementation
                             }
                             flagContCombu++;
                         }
-                        InformListProducts.Add(producto);
+                        //InformListProducts.Add(producto);
+                        OlisAuxForPreview.Add(producto);
                         producto = null;
+                    }
+                }
+                // VERIFICADOR DE QUE UNIFIFICAR SI UN PRODUCTO ESTA REPETIDO.
+                foreach(Products oilsPreview in OlisAuxForPreview)
+                {
+                    decimal amountOilsP = 0M;
+                    foreach (Products oilsPreviewCountPoint in OlisAuxForPreview)
+                    {
+                        if(oilsPreviewCountPoint.Id_producto == oilsPreview.Id_producto)
+                        {
+                            amountOilsP = amountOilsP + oilsPreviewCountPoint.Importe_Total;
+                        }
+                    }
+                    // Se setea los demas valores porque pertenece al mismo objeto a invocar.
+                    // En esta condicion se setea el primer objeto.
+                    if(InformListProducts.Count == 0)
+                    {
+                        oilsPreview.Importe_Total = amountOilsP;
+                        InformListProducts.Add(oilsPreview);
+                        OlisAuxForRespaldo.Add(oilsPreview);
+                    }
+                    else
+                    {
+                        // Si ya se tiene un valor en la parte de la lista global se compara para que no este repetido el ID del producto.
+                        //Products productRespado = new Products();
+                        bool flag = false;
+                        foreach(Products oilsGlobals in OlisAuxForRespaldo)
+                        {
+                            if(oilsGlobals.Id_producto != oilsPreview.Id_producto)
+                            {
+                                oilsPreview.Importe_Total = amountOilsP;
+                                InformListProducts.Add(oilsPreview);
+                                flag = true;
+                            }
+                        }
+                        if(flag)
+                        {
+                            OlisAuxForRespaldo.Add(new Products { Cantidad = oilsPreview.Cantidad, Id_producto = oilsPreview.Id_producto, Importe_Total = oilsPreview.Importe_Total, Importe_Unitario = oilsPreview.Importe_Unitario });
+                        }
                     }
                 }
             } catch (Exception e)
@@ -685,10 +729,44 @@ namespace ControlVolumetricoShellWS.Implementation
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- ERRORES DE CONVERSION DE ID_PRODUCTO | CANTIDAD | IMPORTE_UNITARIO | IMPORTE_TOTAL VERIFICAR DATOS.",
+                    Msj = "@SHELLMX- LOG:: " + e.ToString(),
                 };
-                throw e;
+                //throw e;
             }
+
+            // ------------- PROCESO DE RAUL RIVERA ----------------- //
+            //IList<Products> objProducto = new List<Products>();
+            //objProducto.Add(new Products { Id_producto = "1", Importe_Total = decimal.Parse("5.45") });
+            //objProducto.Add(new Products { Id_producto = "2", Importe_Total = decimal.Parse("2.45") });
+            //objProducto.Add(new Products { Id_producto = "1", Importe_Total = decimal.Parse("3.45") });
+            //objProducto.Add(new Products { Id_producto = "1", Importe_Total = decimal.Parse("1.45") });
+            //string strImprime = String.Empty;
+            //string[] _id = new string[InformListProducts.Count()];
+            //IList<Products> objProductoUnico = new List<Products>();
+            //int cuenta = 0;
+            //decimal decSumaTotal = 0;
+            //foreach (var item in InformListProducts)
+            //{
+            //    if (Array.IndexOf(_id, item.Id_producto.ToString()) == -1)
+            //    {
+            //        objProductoUnico.Add(new Products { Id_producto = item.Id_producto });
+            //        _id[cuenta] = item.Id_producto;
+            //    }
+            //    cuenta += 1;
+            //}
+            //foreach (var item in objProductoUnico)
+            //{
+            //    foreach (var item2 in InformListProducts)
+            //    {
+            //        if (item.Id_producto.ToString() == item2.Id_producto.ToString())
+            //            decSumaTotal += item2.Importe_Total;
+            //    }
+            //    strImprime += item.Id_producto + " Total:" + decSumaTotal.ToString() + "\n";
+            //    decSumaTotal = 0;
+            //}
+            //Console.WriteLine(strImprime.ToString());
+            //Console.ReadLine();
+            // ------------- PROCESO DE RAUL RIVERA ----------------- //
 
             #endregion
 
@@ -1186,7 +1264,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         ///summary 
                         /// PROCESO DE VALIDACION DEL QUE SE DEBE ENTREGAR EL TOTAL CORRESPONDIENTE EN LA VENTA PARA EVITAR DATOS ELEVADOS.
                         /// 
-                        validateTotalAmountWithTax = validateTotalAmountWithTax + getProductForSaleResponse.FinalAmount;
+                        validateTotalAmountWithTax = validateTotalAmountWithTax + informListProducts.Importe_Total;
                         ///summary 
                         /// FIN DEL PROCESO DE LLENADO DEL TOTAL DE LA VENTA.
                         /// 
@@ -1220,6 +1298,9 @@ namespace ControlVolumetricoShellWS.Implementation
                         /// 
 
                         decimal ivaaplicado = 0M;
+                        decimal priceTaxW = 0M;
+                        decimal priceWTax = 0M;
+                        decimal taxAmount = 0M;
                         foreach (Products informListPro in InformListProducts)
                         {
                             GetProductForSaleRequest getProduct = new GetProductForSaleRequest { ProductId = informListPro.Id_producto.ToString(), Quantity = informListPro.Cantidad, Identity = bsObj.Identity };
@@ -1227,10 +1308,10 @@ namespace ControlVolumetricoShellWS.Implementation
 
                             if (IvaProducto == getProductFor.TaxPercentage)
                             {
-                                decimal priceTaxW = getProductForSaleResponse.FinalAmount / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
-                                decimal priceWTax = Math.Round(priceWithoutTaxW, 6);
-                                decimal taxAmount = informListProducts.Importe_Total - createDocumentLineDAO.PriceWithoutTax;
-                                ivaaplicado = ivaaplicado + taxAmount;
+                                priceTaxW = informListPro.Importe_Total / ((getProductForSaleResponse.TaxPercentage / 100) + 1);
+                                priceWTax = Math.Round(priceTaxW, 6);//Math.Round(priceWithoutTaxW, 6);
+                                taxAmount = informListPro.Importe_Total - priceWTax;//createDocumentLineDAO.PriceWithoutTax;
+                                ivaaplicado += taxAmount;
                             }
                         }
                         if (ZERO)
@@ -1739,11 +1820,11 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //responseGetPrinting.GlobalSettings.Values;
 
-            IList<Productos> listan = new List<Productos>();
+            IList<Producto> listan = new List<Producto>();
             //lista = responsegetdocument.Document.LineList();
             foreach (DocumentLine item in responsegetdocument.Document.LineList)
             {
-                listan.Add(new Productos { ProductName = item.ProductName, Quantity = item.Quantity, TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2"), UnitaryPriceWithTax = (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
+                listan.Add(new Producto { ProductName = item.ProductName, Quantity = item.Quantity, TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2"), UnitaryPriceWithTax = (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
             }
 
             IList<Iva> porcentaje = new List<Iva>();
@@ -1823,7 +1904,17 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
 
-            metodopago = metodopago.Replace(getPOSInformationResponse.PosInformation.CompanyCode + "01", "EFECTIVO").Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA").Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA").Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PROPINA");
+            metodopago = metodopago.Replace(
+                 getPOSInformationResponse.PosInformation.CompanyCode + "00", "VARIOS")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "01", "EFECTIVO")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "02", "CHEQUE")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "04", "TRANSFERENCIA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "07", "VALE")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PRUEBA")
+
+                ;
 
 
 

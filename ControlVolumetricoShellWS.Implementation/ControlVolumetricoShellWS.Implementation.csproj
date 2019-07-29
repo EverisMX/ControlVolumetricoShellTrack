@@ -90,6 +90,8 @@
     <Compile Include="Models\SupplyTransaction.cs" />
     <Compile Include="Models\TokenTPV.cs" />
     <Compile Include="Implementation\ControlVolumetricoShellMX.cs" />
+    <Compile Include="Models\UnlockSupplyTransactionOfFuellingPointRequest.cs" />
+    <Compile Include="Models\UnlockSupplyTransactionOfFuellingPointResponse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -293,7 +293,7 @@ namespace ControlVolumetricoShellWS.Implementation
             ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
 
             // Se coloca esta parte para amaagar de que venga los objetos en la parte de Carburante y lubricantes.
-            if (request.aprobado == false && request.Info_Forma_Pago.Count == 2)
+            if (request.aprobado == false && Convert.ToInt32(request.Id_Transaccion) > 0)
             {
                 //conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga, idOperator); --NO SE USA
 
@@ -338,7 +338,7 @@ namespace ControlVolumetricoShellWS.Implementation
             GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
             GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
-            if (request.Info_Forma_Pago.Count == 2)
+            if (request.Info_Forma_Pago.Count == 2 || Convert.ToInt32(request.Id_Transaccion) != 0)
             {
                 if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
                 {

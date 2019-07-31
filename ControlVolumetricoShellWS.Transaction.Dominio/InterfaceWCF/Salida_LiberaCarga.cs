@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace ControlVolumetricoShellWS.Dominio
 {
     [DataContract]
-    public class Salida_LiberaCarga
+    public class Salida_DesbloquearCarga
     {
         [DataMember]
         public Boolean Resultado { get; set; }

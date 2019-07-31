@@ -118,6 +118,11 @@ namespace ControlVolumetricoShellWS.Implementation
                     idOperatorObtTran = searchOperator.Id;
                     codeOperatorOntTran = searchOperator.Code;
                 }
+                if (searchOperatorResponse.OperatorList.Count == 2)
+                {
+                    idOperatorObtTran = searchOperator.Id;
+                    codeOperatorOntTran = searchOperator.Code;
+                }
             }
 
             #endregion
@@ -178,7 +183,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             try
             {
-                if (Convert.ToInt32(request.Id_Transaccion) <= 0)
+                if (Convert.ToInt32(request.Id_Transaccion) <= -1)  // Se coloca 0 por la parte del Efectivo.
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                     return new Salida_Info_Forma_Pago
@@ -256,7 +261,7 @@ namespace ControlVolumetricoShellWS.Implementation
             string idOperator = null;
             string codeOperator = null;
 
-            if(searchOperatorResponse.OperatorList.Count == 0)
+            if (searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                 return new Salida_Info_Forma_Pago
@@ -265,15 +270,20 @@ namespace ControlVolumetricoShellWS.Implementation
                     Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                 };
             }
-            foreach(var searchOperator in searchOperatorResponse.OperatorList)
+            foreach (var searchOperator in searchOperatorResponse.OperatorList)
             {
-                if(searchOperatorResponse.OperatorList.Count == 1)
+                if (searchOperatorResponse.OperatorList.Count == 1)
+                {
+                    idOperator = searchOperator.Id;
+                    codeOperator = searchOperator.Code;
+                }
+                if (searchOperatorResponse.OperatorList.Count == 2)
                 {
                     idOperator = searchOperator.Id;
                     codeOperator = searchOperator.Code;
                 }
             }
-
+            
             #endregion
 
             #region VALIDACION SOBRE EL REGISTRO DE LA TARJETA.
@@ -282,9 +292,10 @@ namespace ControlVolumetricoShellWS.Implementation
 
             ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
 
-            if (request.aprobado == false)
+            // Se coloca esta parte para amaagar de que venga los objetos en la parte de Carburante y lubricantes.
+            if (request.aprobado == false && request.Info_Forma_Pago.Count == 2)
             {
-                //conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga, idOperator);
+                //conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(Convert.ToInt32(request.Id_Transaccion), request.Pos_Carga, idOperator); --NO SE USA
 
 
                 UnlockSupplyTransactionOfFuellingPointRequest unlockSupplyTransactionOfFuellingPointRequest = new UnlockSupplyTransactionOfFuellingPointRequest
@@ -323,82 +334,85 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             #region CONFIGURACION PARA EL DOMS
-            //ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();
-            if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
-            {
-                //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
-                return new Salida_Info_Forma_Pago
-                {
-                    Resultado = false,
-                    Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
-                };
-            }
-
+            //ConectionSignalRDoms conectionSignalRDomsInform = new ConectionSignalRDoms();   ---- NO SE USA
             GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
             GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
-            #region SE VALIDA EL ID_TRANSACTION QUE CORRESPONDA AL SURTIDOR
-
-            GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPoint = new GetAllSupplyTransactionsOfFuellingPointRequest
+            if (request.Info_Forma_Pago.Count == 2)
             {
-                OperatorId = idOperator,
-                FuellingPointId = request.Pos_Carga
-            };
-
-            int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint);
-            if (validateFuellingPointO[0] <= 0)
-            {
-                return new Salida_Info_Forma_Pago
+                if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
                 {
-                    Resultado = false,
-                    Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
-                };
-            }
+                    //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
+                    };
+                }
 
+                #region SE VALIDA EL ID_TRANSACTION QUE CORRESPONDA AL SURTIDOR
 
-
-            //VALIDACION PARA EL IDPOS
-            //if (validateFuellingPointO[1] <= -1)
-            //{
-            //    return new Salida_Info_Forma_Pago
-            //    {
-            //        Resultado = false,
-            //        Msj = "SHELLMX- NO EXISTE UN ID DE BLOQUEO EN EL SURTIDOR OBTENER LA INFORMACION DEL SURTIDOR PARA SER BLOQUEADO.!",
-            //    };
-            //}
-
-            if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
-            {
-                return new Salida_Info_Forma_Pago
+                GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPoint = new GetAllSupplyTransactionsOfFuellingPointRequest
                 {
-                    Resultado = false,
-                    Msj = "SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                    OperatorId = idOperator,
+                    FuellingPointId = request.Pos_Carga
                 };
-            }
 
-            try
-            {
-                if (validateFuellingPointO[1] != request.idInternoPOS)
+                int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint);
+                if (validateFuellingPointO[0] <= 0)
                 {
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                        Msj = "SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!",
                     };
                 }
-            }
-            catch (Exception e)
-            {
-                return new Salida_Info_Forma_Pago
+
+
+
+                //VALIDACION PARA EL IDPOS  ---------- NO SE USA.
+                //if (validateFuellingPointO[1] <= -1)
+                //{
+                //    return new Salida_Info_Forma_Pago
+                //    {
+                //        Resultado = false,
+                //        Msj = "SHELLMX- NO EXISTE UN ID DE BLOQUEO EN EL SURTIDOR OBTENER LA INFORMACION DEL SURTIDOR PARA SER BLOQUEADO.!",
+                //    };
+                //}
+
+                if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
                 {
-                    Resultado = false,
-                    Msj = "SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
-                };
-                throw e;
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                    };
+                }
+
+                try
+                {
+                    if (validateFuellingPointO[1] != request.idInternoPOS)
+                    {
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Resultado = false,
+                            Msj = "SHELLMX- EL ID dE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                        };
+                    }
+                }
+                catch (Exception e)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.!",
+                    };
+                    throw e;
+                }
+
+                #endregion
             }
-
-            #endregion
-
+            
             #endregion
 
             #region VALIDACION SOBRE EL PARCIAL DE LA ENTRADA.
@@ -468,6 +482,9 @@ namespace ControlVolumetricoShellWS.Implementation
             List<int> countMontoPagar = new List<int>();
             bool flagCountMontoPagar = false;
 
+            // Variable para controlar el estus de la venta de perifericos.
+            bool IsCombustibleEnabler = false;
+
             #region PROCESO DE SEPARACION DE LOS PRODUCTOS Y ALMACENAR LOS EN UNA LISTA
             try
             {
@@ -476,6 +493,8 @@ namespace ControlVolumetricoShellWS.Implementation
                     //Se verifica si es producto o combustible.
                     if (varPrincipal.Producto)
                     {
+                        IsCombustibleEnabler = true;
+
                         //nNum_autorizacions = varPrincipal.nNum_autorizacions.Split('|');
                         //Ultimos_Digitoss = varPrincipal.Ultimos_Digitoss.Split('|');
                         Id_product = varPrincipal.Id_product.Split('|');
@@ -563,22 +582,27 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             #region VERIFICAR LA LONGITUD QUE COINCIDAN EN LOS PRODUCTOS.
+
+            // Validador para los Combustiblees.
             int countUniversalCombu = 0;
-            int valOldCombu = -1;
-            foreach (int lengthCombu in countCombustible)
+            if (IsCombustibleEnabler)
             {
-                countUniversalCombu = lengthCombu;
-                valOldCombu = valOldCombu == -1 ? lengthCombu : valOldCombu;
-                flagCountCombustible = countUniversalCombu == valOldCombu ? true : false;
-                if (!flagCountCombustible)
+                int valOldCombu = -1;
+                foreach (int lengthCombu in countCombustible)
                 {
-                    return new Salida_Info_Forma_Pago
+                    countUniversalCombu = lengthCombu;
+                    valOldCombu = valOldCombu == -1 ? lengthCombu : valOldCombu;
+                    flagCountCombustible = countUniversalCombu == valOldCombu ? true : false;
+                    if (!flagCountCombustible)
                     {
-                        Resultado = false,
-                        Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS CARBURANTES EN LA SOLICITUD VERIFICAR",
-                    };
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Resultado = false,
+                            Msj = "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS CARBURANTES EN LA SOLICITUD VERIFICAR",
+                        };
+                    }
+                    valOldCombu = lengthCombu;
                 }
-                valOldCombu = lengthCombu;
             }
 
             int countUniversalProduc = 0;
@@ -642,133 +666,176 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //Se separa para poder extraer la informacion sobre los productos y almacenarlos.
             //Se agrega el IDCOMPANY para que se haga la venta segura y no truene.
-            #region COMBUSTIBLE.
-            decimal Importe_TotalCOMBUSTIBLE = 0M;
-            List<Products> OlisAuxForPreview = new List<Products>();
-            List<Products> OlisAuxForRespaldo = new List<Products>();
-            //decimal Importe_TotalCOMBUSTIBLE = 0M;
-            try
+
+            decimal totalOriginalON = 0M;
+            if (IsCombustibleEnabler)
             {
-                for (int intCombu = 0; intCombu < countUniversalCombu; intCombu++)
+                #region COMBUSTIBLE.
+                decimal Importe_TotalCOMBUSTIBLE = 0M;
+                List<Products> OlisAuxForPreview = new List<Products>();
+                List<Products> OlisAuxForRespaldo = new List<Products>();
+                // Variable para verificar la cantidad de del importe total del carburante.
+                //decimal totalAmountTOTALOIL = 0M;
+
+                //decimal Importe_TotalCOMBUSTIBLE = 0M;
+                try
                 {
-                    int flagContCombu = 0;
-                    foreach (List<string[]> combustibleGlobal in CombustibleGlobal)
+                    for (int intCombu = 0; intCombu < countUniversalCombu; intCombu++)
                     {
-                        Products producto = new Products();
-                        foreach (string[] combustible in Combustible)
+                        int flagContCombu = 0;
+                        foreach (List<string[]> combustibleGlobal in CombustibleGlobal)
                         {
-                            for (int intValueCombustible = 0; intValueCombustible <= intCombu; intValueCombustible++)
+                            Products producto = new Products();
+                            foreach (string[] combustible in Combustible)
                             {
-                                switch (flagContCombu)
+                                for (int intValueCombustible = 0; intValueCombustible <= intCombu; intValueCombustible++)
                                 {
-                                    case 0:
-                                        producto.Id_producto = getPOSInformationResponse.PosInformation.CompanyCode +  combustible[intValueCombustible];
-                                        break;
-                                    case 1:
-                                        producto.Cantidad = Convert.ToDecimal(combustible[intValueCombustible]);
-                                        break;
-                                    case 2:
-                                        producto.Importe_Unitario = Convert.ToDecimal(combustible[intValueCombustible]);
-                                        break;
-                                    case 3:
-                                        producto.Importe_Total = Convert.ToDecimal(combustible[intValueCombustible]);
-                                        Importe_TotalCOMBUSTIBLE = Importe_TotalCOMBUSTIBLE + Convert.ToDecimal(combustible[intValueCombustible]);
-                                        break;
-                                    default:
-                                        break;
+                                    switch (flagContCombu)
+                                    {
+                                        case 0:
+                                            producto.Id_producto = getPOSInformationResponse.PosInformation.CompanyCode + combustible[intValueCombustible];
+                                            break;
+                                        case 1:
+                                            producto.Cantidad = Convert.ToDecimal(combustible[intValueCombustible]);
+                                            break;
+                                        case 2:
+                                            producto.Importe_Unitario = Convert.ToDecimal(combustible[intValueCombustible]);
+                                            break;
+                                        case 3:
+                                            producto.Importe_Total = Convert.ToDecimal(combustible[intValueCombustible]);
+                                            Importe_TotalCOMBUSTIBLE = Importe_TotalCOMBUSTIBLE + Convert.ToDecimal(combustible[intValueCombustible]);
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                                flagContCombu++;
+                            }
+                            //InformListProducts.Add(producto);
+                            OlisAuxForPreview.Add(producto);
+                            producto = null;
+                        }
+                    }
+
+                    // VERIFICADOR DE QUE UNIFIFICAR SI UN PRODUCTO ESTA REPETIDO.
+
+                    foreach (Products oilsPreview in OlisAuxForPreview)
+                    {
+                        // Se coloca la condicion para obtener el total de la unificacion sobre el carburante.
+                        decimal amountOilsP = 0M;
+
+                        foreach (Products oilsPreviewCountPoint in OlisAuxForPreview)
+                        {
+                            if (oilsPreviewCountPoint.Id_producto == oilsPreview.Id_producto)
+                            {
+                                amountOilsP = amountOilsP + oilsPreviewCountPoint.Importe_Total;
+                            }
+                        }
+
+                        // Se setea los demas valores porque pertenece al mismo objeto a invocar.
+                        // En esta condicion se setea el primer objeto.
+                        if (InformListProducts.Count == 0)
+                        {
+                            oilsPreview.Importe_Total = amountOilsP;
+
+                            // Se obtiene los valores originales para la comparacion sobre el importe total de entrada y la original.
+                            //totalAmountTOTALOIL = amountOilsP;
+                            totalOriginalON = oilsPreview.Cantidad * oilsPreview.Importe_Unitario;
+
+                            InformListProducts.Add(oilsPreview);
+                            OlisAuxForRespaldo.Add(oilsPreview);
+                        }
+                        else
+                        {
+                            // Si ya se tiene un valor en la parte de la lista global se compara para que no este repetido el ID del producto.
+                            //Products productRespado = new Products();
+                            bool flag = false;
+                            foreach (Products oilsGlobals in OlisAuxForRespaldo)
+                            {
+                                if (oilsGlobals.Id_producto != oilsPreview.Id_producto)
+                                {
+                                    oilsGlobals.Importe_Total = amountOilsP;
+                                    InformListProducts.Add(oilsPreview);
+                                    flag = true;
                                 }
                             }
-                            flagContCombu++;
-                        }
-                        //InformListProducts.Add(producto);
-                        OlisAuxForPreview.Add(producto);
-                        producto = null;
-                    }
-                }
-                // VERIFICADOR DE QUE UNIFIFICAR SI UN PRODUCTO ESTA REPETIDO.
-                foreach(Products oilsPreview in OlisAuxForPreview)
-                {
-                    decimal amountOilsP = 0M;
-                    foreach (Products oilsPreviewCountPoint in OlisAuxForPreview)
-                    {
-                        if(oilsPreviewCountPoint.Id_producto == oilsPreview.Id_producto)
-                        {
-                            amountOilsP = amountOilsP + oilsPreviewCountPoint.Importe_Total;
-                        }
-                    }
-                    // Se setea los demas valores porque pertenece al mismo objeto a invocar.
-                    // En esta condicion se setea el primer objeto.
-                    if(InformListProducts.Count == 0)
-                    {
-                        oilsPreview.Importe_Total = amountOilsP;
-                        InformListProducts.Add(oilsPreview);
-                        OlisAuxForRespaldo.Add(oilsPreview);
-                    }
-                    else
-                    {
-                        // Si ya se tiene un valor en la parte de la lista global se compara para que no este repetido el ID del producto.
-                        //Products productRespado = new Products();
-                        bool flag = false;
-                        foreach(Products oilsGlobals in OlisAuxForRespaldo)
-                        {
-                            if(oilsGlobals.Id_producto != oilsPreview.Id_producto)
+                            if (flag)
                             {
-                                oilsPreview.Importe_Total = amountOilsP;
-                                InformListProducts.Add(oilsPreview);
-                                flag = true;
+                                OlisAuxForRespaldo.Add(new Products { Cantidad = oilsPreview.Cantidad, Id_producto = oilsPreview.Id_producto, Importe_Total = oilsPreview.Importe_Total, Importe_Unitario = oilsPreview.Importe_Unitario });
                             }
                         }
-                        if(flag)
-                        {
-                            OlisAuxForRespaldo.Add(new Products { Cantidad = oilsPreview.Cantidad, Id_producto = oilsPreview.Id_producto, Importe_Total = oilsPreview.Importe_Total, Importe_Unitario = oilsPreview.Importe_Unitario });
-                        }
                     }
                 }
-            } catch (Exception e)
+                catch (Exception e)
+                {
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@SHELLMX- LOG:: " + e.ToString(),
+                    };
+                    //throw e;
+                }
+
+                #endregion
+            }
+
+            #region MONTO
+            decimal TotalAmountWithTaxMonto = 0M;
+            decimal TotalAmountWithTaxMontoPerifericos = 0M;
+
+            decimal TotalAmountWithTaxMontoCombu = 0M;
+            try
+            {
+                //OIL
+                foreach (string[] montoComb in ProcessAmountOfSaleCombu)
+                {
+                    int countMontoComb = montoComb.Length;
+                    for (int i = 0; i < countMontoComb; i++)
+                    {
+                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(montoComb[i]);
+                        TotalAmountWithTaxMontoCombu = TotalAmountWithTaxMontoCombu + Convert.ToDecimal(montoComb[i]);
+                    }
+                }
+                //PaymentSale
+                foreach (string[] montoPeri in ProcessAmountOfSalePeri)
+                {
+                    int countMontoPeri = montoPeri.Length;
+                    for (int i = 0; i < countMontoPeri; i++)
+                    {
+                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(montoPeri[i]);
+                        TotalAmountWithTaxMontoPerifericos = TotalAmountWithTaxMontoPerifericos + Convert.ToDecimal(montoPeri[i]);
+                    }
+                }
+            }
+            catch (Exception e)
             {
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
-                    Msj = "@SHELLMX- LOG:: " + e.ToString(),
+                    Msj = "@SHELLMX- ERRORES DE CONVERSION  O FORMATO DE MONTOAPAGAR VERIFICAR DATOS.",
                 };
-                //throw e;
+                throw e;
             }
 
-            // ------------- PROCESO DE RAUL RIVERA ----------------- //
-            //IList<Products> objProducto = new List<Products>();
-            //objProducto.Add(new Products { Id_producto = "1", Importe_Total = decimal.Parse("5.45") });
-            //objProducto.Add(new Products { Id_producto = "2", Importe_Total = decimal.Parse("2.45") });
-            //objProducto.Add(new Products { Id_producto = "1", Importe_Total = decimal.Parse("3.45") });
-            //objProducto.Add(new Products { Id_producto = "1", Importe_Total = decimal.Parse("1.45") });
-            //string strImprime = String.Empty;
-            //string[] _id = new string[InformListProducts.Count()];
-            //IList<Products> objProductoUnico = new List<Products>();
-            //int cuenta = 0;
-            //decimal decSumaTotal = 0;
-            //foreach (var item in InformListProducts)
-            //{
-            //    if (Array.IndexOf(_id, item.Id_producto.ToString()) == -1)
-            //    {
-            //        objProductoUnico.Add(new Products { Id_producto = item.Id_producto });
-            //        _id[cuenta] = item.Id_producto;
-            //    }
-            //    cuenta += 1;
-            //}
-            //foreach (var item in objProductoUnico)
-            //{
-            //    foreach (var item2 in InformListProducts)
-            //    {
-            //        if (item.Id_producto.ToString() == item2.Id_producto.ToString())
-            //            decSumaTotal += item2.Importe_Total;
-            //    }
-            //    strImprime += item.Id_producto + " Total:" + decSumaTotal.ToString() + "\n";
-            //    decSumaTotal = 0;
-            //}
-            //Console.WriteLine(strImprime.ToString());
-            //Console.ReadLine();
-            // ------------- PROCESO DE RAUL RIVERA ----------------- //
-
             #endregion
+
+            if(IsCombustibleEnabler)
+            {
+                #region SE VERIFICA LA PARTE DE LA CANTIDAD DEL IMPORTE TOTAL EN LA PARTE DEL COMBUSTIBLE.
+                if (TotalAmountWithTaxMontoCombu != Convert.ToDecimal(0))
+                {
+                    decimal totalOriginalONN = Math.Round(TotalAmountWithTaxMontoCombu, 2);
+                    if (totalOriginalONN != totalOriginalON)
+                    {
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Resultado = false,
+                            Msj = "@SHELLMX- EL TOTAL DEL IMPORTE TOTAL DEL CARBURANTE ES DIFERENTE A LA QUE SE SOLICITO EN EL SURTUDOR. | CANTIDAD ENTRANTE : " + totalOriginalONN + " ! CANTIDAD ORIGINAL : " + totalOriginalON
+                        };
+                    }
+                }
+                #endregion
+            }
 
             #region PERIFERICOS.
             try
@@ -818,43 +885,6 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             #endregion
 
-            #region MONTO
-            decimal TotalAmountWithTaxMonto = 0M;
-            decimal TotalAmountWithTaxMontoPerifericos = 0M;
-            try
-            {
-                //OIL
-                foreach (string[] montoComb in ProcessAmountOfSaleCombu)
-                {
-                    int countMontoComb = montoComb.Length;
-                    for (int i = 0; i < countMontoComb; i++)
-                    {
-                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(montoComb[i]);
-                    }
-                }
-                //PaymentSale
-                foreach (string[] montoPeri in ProcessAmountOfSalePeri)
-                {
-                    int countMontoPeri = montoPeri.Length;
-                    for (int i = 0; i < countMontoPeri; i++)
-                    {
-                        TotalAmountWithTaxMonto = TotalAmountWithTaxMonto + Convert.ToDecimal(montoPeri[i]);
-                        TotalAmountWithTaxMontoPerifericos = TotalAmountWithTaxMontoPerifericos + Convert.ToDecimal(montoPeri[i]);
-                    }
-                }
-            }
-            catch(Exception e)
-            {
-                return new Salida_Info_Forma_Pago
-                {
-                    Resultado = false,
-                    Msj = "@SHELLMX- ERRORES DE CONVERSION  O FORMATO DE MONTOAPAGAR VERIFICAR DATOS.",
-                };
-                throw e;
-            }
-
-            #endregion
-
             #endregion
 
             //SHELMX- Se realiza los calculos para el iva y el total de la venta y otros procesos para CreateD.
@@ -873,6 +903,8 @@ namespace ControlVolumetricoShellWS.Implementation
             GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
             GetSeriesResponse getSeriesResponse = await invokeHubbleWebAPIServices.GetSeries(getSeriesRequest);
 
+            serieId = getSeriesResponse.SeriesList[0].Id.ToString();
+            serieWebId = getSeriesResponse.SeriesList[0].Code.ToString();
             foreach (var series in getSeriesResponse.SeriesList)
             {
                 serieId = series.Id;
@@ -924,115 +956,120 @@ namespace ControlVolumetricoShellWS.Implementation
             #region OIL STATION
             //List<CreateDocumentPaymentDetailDAO> DetailsCardSale = new List<CreateDocumentPaymentDetailDAO>();
             //bool isValidFormaPagoT = false;
-            try
+
+            if(IsCombustibleEnabler)
             {
-                foreach (string[] processPaymentsCombu in ProcessPaymentsCombu)
+                try
                 {
-                    foreach (string[] processAmountOfSaleCombu in ProcessAmountOfSaleCombu)
+                    foreach (string[] processPaymentsCombu in ProcessPaymentsCombu)
                     {
-                        int processPaymentsCombuCount = processPaymentsCombu.Length;
-                        int processAmountOfSaleCount = processAmountOfSaleCombu.Length;
-                        foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                        foreach (string[] processAmountOfSaleCombu in ProcessAmountOfSaleCombu)
                         {
-                            //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                            if (paymentMethods.Description.ToUpper() == "TARJETA")
+                            int processPaymentsCombuCount = processPaymentsCombu.Length;
+                            int processAmountOfSaleCount = processAmountOfSaleCombu.Length;
+                            foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
                             {
-                                for (int i = 0; i < processPaymentsCombuCount; i++)
+                                //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                if (paymentMethods.Description.ToUpper() == "TARJETA")
                                 {
-                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                    for (int i = 0; i < processPaymentsCombuCount; i++)
                                     {
-                                        if (Convert.ToInt32(processPaymentsCombu[i]) == 32) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
+                                        CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                        foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                         {
-                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                            if (Convert.ToInt32(processPaymentsCombu[i]) == 32) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
                                             {
-                                                if (i < processAmountOfSaleCount)
+                                                if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                                 {
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
-                                                    currencyId = CurrenciesBase.Id;
-                                                    paymentCard = paymentMethods.Id;
+                                                    if (i < processAmountOfSaleCount)
+                                                    {
+                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                        createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                        PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
+                                                        currencyId = CurrenciesBase.Id;
+                                                        paymentCard = paymentMethods.Id;
+                                                    }
                                                 }
+                                                //createDocumentPaymentDetailDAO = null;
                                             }
-                                            //createDocumentPaymentDetailDAO = null;
                                         }
                                     }
                                 }
+                                if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                                {
+                                    for (int i = 0; i < processPaymentsCombuCount; i++)
+                                    {
+                                        CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                        foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                        {
+                                            if (Convert.ToInt32(processPaymentsCombu[i]) == 3) //if (processPaymentsCombu[i].ToUpper() == "EFECTIVO")
+                                            {
+                                                if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                                {
+                                                    if (i < processAmountOfSaleCount)
+                                                    {
+                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                        createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                        PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
+                                                        currencyId = CurrenciesBase.Id;
+                                                        paymentCash = paymentMethods.Id;
+                                                    }
+                                                }
+                                                //createDocumentPaymentDetailDAO = null;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (paymentMethods.Description.ToUpper() == "VARIOS")
+                                {
+                                    for (int i = 0; i < processPaymentsCombuCount; i++)
+                                    {
+                                        CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                        foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                        {
+                                            if (Convert.ToInt32(processPaymentsCombu[i]) != 3 && Convert.ToInt32(processPaymentsCombu[i]) != 32)
+                                            {
+                                                if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                                {
+                                                    if (i < processAmountOfSaleCount)
+                                                    {
+                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                        createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                                        PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
+                                                        currencyId = CurrenciesBase.Id;
+                                                        paymentany = paymentMethods.Id;
+                                                    }
+                                                }
+                                                //createDocumentPaymentDetailDAO = null;
+                                            }
+                                        }
+                                    }
+                                }//end
                             }
-                            if (paymentMethods.Description.ToUpper() == "EFECTIVO")
-                            {
-                                for (int i = 0; i < processPaymentsCombuCount; i++)
-                                {
-                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
-                                    {
-                                        if (Convert.ToInt32(processPaymentsCombu[i]) == 3) //if (processPaymentsCombu[i].ToUpper() == "EFECTIVO")
-                                        {
-                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
-                                            {
-                                                if (i < processAmountOfSaleCount)
-                                                {
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
-                                                    currencyId = CurrenciesBase.Id;
-                                                    paymentCash = paymentMethods.Id;
-                                                }
-                                            }
-                                            //createDocumentPaymentDetailDAO = null;
-                                        }
-                                    }
-                                }
-                            }
-                            if (paymentMethods.Description.ToUpper() == "VARIOS")
-                            {
-                                for (int i = 0; i < processPaymentsCombuCount; i++)
-                                {
-                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
-                                    {
-                                        if (Convert.ToInt32(processPaymentsCombu[i]) != 3 && Convert.ToInt32(processPaymentsCombu[i]) != 32)
-                                        {
-                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
-                                            {
-                                                if (i < processAmountOfSaleCount)
-                                                {
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
-                                                    currencyId = CurrenciesBase.Id;
-                                                    paymentany = paymentMethods.Id;
-                                                }
-                                            }
-                                            //createDocumentPaymentDetailDAO = null;
-                                        }
-                                    }
-                                }
-                            }//end
                         }
                     }
                 }
-            }catch(Exception e)
-            {
-                return new Salida_Info_Forma_Pago
+                catch (Exception e)
                 {
-                    Resultado = false,
-                    Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! LOG:: "
-                };
-                throw e;
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! LOG:: "
+                    };
+                    throw e;
+                }
             }
 
             #endregion
@@ -1416,6 +1453,36 @@ namespace ControlVolumetricoShellWS.Implementation
                     possibleDocumentId = resultCreateDocuments.Key == 1 ? resultCreateDocuments.Value : null;
                 }
             }
+
+            #region VALIDACION SOBRE EL WEBID Y OTROS COMPONENTES PARA LA FACTURA
+
+            DateTimeOffset fechaTicketSale = DateTimeOffset.Parse(emissionLocalDateTime);
+            string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
+            string horaFormatFact = fechaTicketFact.Replace(" ", "");
+
+            string hourWebID = horaFormatFact.Substring(10, 2);
+            string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
+            string minutWebID = horaFormatFact.Substring(13, 2);
+            string serieTicket = serieWebId;
+            string secontWebID = horaFormatFact.Substring(16, 2);
+
+            string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
+
+            #endregion
+
+            // Se Revisa que se realizo correctamente la subida de la venta de producto menos carburante.
+            if (IsCombustibleEnabler == false)
+            {
+                return new Salida_Info_Forma_Pago
+                {
+                    Msj = "SHELLHUBBLE- VENTA SATISFACTORIA DE PERIFERICOS OK.",
+                    Resultado = true,
+                    EESS = getPOSInformationResponse.PosInformation.ShopCode,
+                    Nticket = possibleDocumentId,
+                    WebId = webIDFact
+                };
+            }
+
             #endregion
 
             #region COMUNICACION CON EL DOMS
@@ -1485,22 +1552,10 @@ namespace ControlVolumetricoShellWS.Implementation
 
             #endregion
 
-            DateTimeOffset fechaTicketSale = DateTimeOffset.Parse(emissionLocalDateTime);
-            string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
-            string horaFormatFact = fechaTicketFact.Replace(" ", "");
-
-            string hourWebID = horaFormatFact.Substring(10, 2);
-            string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-            string minutWebID = horaFormatFact.Substring(13, 2);
-            string serieTicket = serieWebId;
-            string secontWebID = horaFormatFact.Substring(16, 2);
-
-            string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
-
             if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == 1)
             {
                return new Salida_Info_Forma_Pago
-                {
+               {
                     Msj = "SHELLHUBBLE- VENTA SATISFACTORIA",
                     Resultado = true,
                     EESS = getPOSInformationResponse.PosInformation.ShopCode,
@@ -1518,21 +1573,124 @@ namespace ControlVolumetricoShellWS.Implementation
             return null;
         }
 
-        public Salida_LiberaCarga LiberaCarga(Entrada_LiberaCarga request)
+        public async Task<Salida_DesbloquearCarga> DesbloquearCarga(Entrada_DesbloquearCarga request)
         {
+            #region PROCESOS DE VALIDACION EN LAS ENTRADA.
+
+            try
+            {
+                if (Convert.ToDecimal(request.Id_Transaccion) <= Convert.ToDecimal(0))
+                {
+                    return new Salida_DesbloquearCarga
+                    {
+                        Msj = "SHELLMXHUBBLE:: ES ID TRANSACCION NO ES VALIDO O NO EXISTE.",
+                        Resultado = false
+                    };
+                }
+                if (Convert.ToDecimal(request.Pos_Carga) <= Convert.ToDecimal(0))
+                {
+                    return new Salida_DesbloquearCarga
+                    {
+                        Msj = "SHELLMXHUBBLE:: EL NUMERO DE LA BOMBA NO ES VALIDO O NO EXISTE.",
+                        Resultado = false
+                    };
+                }
+            }
+            catch(Exception e)
+            {
+                return new Salida_DesbloquearCarga
+                {
+                    Msj = "SHELLMXHUBBLE:: NO CORRESPONDE CON EL FORMATO EL ID_TRANSACION | POS_CARGA LOG:: " + e.ToString(),
+                    Resultado = false
+                };
+            }
+            
+            if(request.idpos == null || request.PTID == null || request.serial == null || request.pss == null || request.nHD <= -1)
+            {
+                return new Salida_DesbloquearCarga
+                {
+                    Msj = "SHELLMXHUBBLE:: NO CORRESPONDE CON EL FORMATO EL idpos | PTID | serial | pss | nHD",
+                    Resultado = false
+                };
+            }
+
+            #endregion
+
             // SHELLMX- Se manda a consumir el Identity del POS a activar.
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
 
-            //ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
-            //await conectionSignalRDoms.CancelAuthorizationOfFuellingPoint("", 4);
-
-            var salida = new Salida_LiberaCarga
+            #region VALIDACION DEL OPERADOR ID | CODE
+            List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
             {
-                Msj = "Liberacion de bomba",
-                Resultado = true
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Id , MatchingType = SearchOperatorCriteriaMatchingType.Exact },
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Code , MatchingType = SearchOperatorCriteriaMatchingType.Exact }
             };
-            return salida;
+            SearchOperatorRequest searchOperatorRequest = new SearchOperatorRequest
+            {
+                Identity = bsObj.Identity,
+                CriteriaList = SearchOperatorCriteriaOperator,
+                CriteriaRelationshipType = SearchCriteriaRelationshipType.Or,
+                MustIncludeDischarged = false
+            };
+
+            SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
+            string idOperator = null;
+            string codeOperator = null;
+
+            if (searchOperatorResponse.OperatorList.Count == 0)
+            {
+                //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                return new Salida_DesbloquearCarga
+                {
+                    Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA",
+                    Resultado = false
+                };
+            }
+            foreach (var searchOperator in searchOperatorResponse.OperatorList)
+            {
+                if (searchOperatorResponse.OperatorList.Count == 1)
+                {
+                    idOperator = searchOperator.Id;
+                    codeOperator = searchOperator.Code;
+                }
+                if (searchOperatorResponse.OperatorList.Count == 2)
+                {
+                    idOperator = searchOperator.Id;
+                    codeOperator = searchOperator.Code;
+                }
+            }
+
+            #endregion
+
+            ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+
+            #region PROCESO DE VALIDACION DE DESBLOQUEO
+
+            UnlockSupplyTransactionOfFuellingPointRequest unlockSupplyTransactionOfFuellingPointRequest = new UnlockSupplyTransactionOfFuellingPointRequest
+            {
+                FuellingPointId = request.Pos_Carga,
+                OperatorId = idOperator,
+                SupplyTransactionId = Convert.ToUInt16(request.Id_Transaccion)
+            };
+
+            UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDoms.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
+            if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
+            {
+                return new Salida_DesbloquearCarga
+                {
+                    Msj = "@ SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA LOG::256",
+                    Resultado = false
+                };
+            }
+            return new Salida_DesbloquearCarga
+            {
+                Msj = "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status,
+                Resultado = true,
+            };
+
+            #endregion
         }
 
         public async Task<Salida_getProductInfo> getProductInfo(Entrada_getProductInfo request)
@@ -1606,6 +1764,11 @@ namespace ControlVolumetricoShellWS.Implementation
             foreach (var searchOperator in searchOperatorResponse.OperatorList)
             {
                 if (searchOperatorResponse.OperatorList.Count == 1)
+                {
+                    idOperatorObtTran = searchOperator.Id;
+                    codeOperatorOntTran = searchOperator.Code;
+                }
+                if (searchOperatorResponse.OperatorList.Count == 2)
                 {
                     idOperatorObtTran = searchOperator.Id;
                     codeOperatorOntTran = searchOperator.Code;
@@ -1765,7 +1928,7 @@ namespace ControlVolumetricoShellWS.Implementation
             foreach (var item in responseGetPrinting.GlobalSettings)
             {
                 key = item.Value;
-                listaPrinting.Add(key);
+                listaPrinting.Add(key); 
             }
             listaPrinting.ToArray();
 

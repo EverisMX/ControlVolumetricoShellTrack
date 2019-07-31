@@ -822,18 +822,18 @@ namespace ControlVolumetricoShellWS.Implementation
             if(IsCombustibleEnabler)
             {
                 #region SE VERIFICA LA PARTE DE LA CANTIDAD DEL IMPORTE TOTAL EN LA PARTE DEL COMBUSTIBLE.
-                if (TotalAmountWithTaxMontoCombu != Convert.ToDecimal(0))
-                {
-                    decimal totalOriginalONN = Math.Round(TotalAmountWithTaxMontoCombu, 2);
-                    if (totalOriginalONN != totalOriginalON)
-                    {
-                        return new Salida_Info_Forma_Pago
-                        {
-                            Resultado = false,
-                            Msj = "@SHELLMX- EL TOTAL DEL IMPORTE TOTAL DEL CARBURANTE ES DIFERENTE A LA QUE SE SOLICITO EN EL SURTUDOR. | CANTIDAD ENTRANTE : " + totalOriginalONN + " ! CANTIDAD ORIGINAL : " + totalOriginalON
-                        };
-                    }
-                }
+                //if (TotalAmountWithTaxMontoCombu != Convert.ToDecimal(0))
+                //{
+                //    decimal totalOriginalONN = Math.Round(TotalAmountWithTaxMontoCombu, 2);
+                //    if (totalOriginalONN != totalOriginalON)
+                //    {
+                //        return new Salida_Info_Forma_Pago
+                //        {
+                //            Resultado = false,
+                //            Msj = "@SHELLMX- EL TOTAL DEL IMPORTE TOTAL DEL CARBURANTE ES DIFERENTE A LA QUE SE SOLICITO EN EL SURTUDOR. | CANTIDAD ENTRANTE : " + totalOriginalONN + " ! CANTIDAD ORIGINAL : " + totalOriginalON
+                //        };
+                //    }
+                //}
                 #endregion
             }
 

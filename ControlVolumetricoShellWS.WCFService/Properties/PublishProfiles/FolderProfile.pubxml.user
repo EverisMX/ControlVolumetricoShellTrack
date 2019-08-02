@@ -10,88 +10,97 @@ edite el archivo MSBuild. Visite https://go.microsoft.com/fwlink/?LinkID=208121 
   </PropertyGroup>
   <ItemGroup>
     <File Include="bin/ConectionHubbleWS.dll">
-      <publishTime>07/12/2019 17:49:12</publishTime>
+      <publishTime>07/31/2019 09:01:01</publishTime>
     </File>
     <File Include="bin/ConectionHubbleWS.dll.config">
-      <publishTime>07/12/2019 10:44:35</publishTime>
+      <publishTime>07/28/2019 11:34:51</publishTime>
     </File>
     <File Include="bin/ConectionHubbleWS.pdb">
-      <publishTime>07/12/2019 17:49:12</publishTime>
+      <publishTime>07/31/2019 09:01:01</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Contract.dll">
-      <publishTime>07/12/2019 11:21:48</publishTime>
+      <publishTime>07/31/2019 09:01:02</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Contract.dll.config">
-      <publishTime>07/12/2019 11:21:47</publishTime>
+      <publishTime>07/31/2019 09:01:01</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Contract.pdb">
-      <publishTime>07/12/2019 11:21:48</publishTime>
+      <publishTime>07/31/2019 09:01:02</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Implementation.dll">
-      <publishTime>07/12/2019 20:35:54</publishTime>
+      <publishTime>07/31/2019 09:01:03</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Implementation.dll.config">
-      <publishTime>07/12/2019 11:21:48</publishTime>
+      <publishTime>07/31/2019 09:01:02</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Implementation.pdb">
-      <publishTime>07/12/2019 20:35:54</publishTime>
+      <publishTime>07/31/2019 09:01:03</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Transaction.Dominio.dll">
-      <publishTime>07/12/2019 10:58:55</publishTime>
+      <publishTime>07/31/2019 09:01:01</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Transaction.Dominio.dll.config">
-      <publishTime>07/12/2019 10:44:55</publishTime>
+      <publishTime>07/31/2019 09:00:59</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.Transaction.Dominio.pdb">
-      <publishTime>07/12/2019 10:58:55</publishTime>
+      <publishTime>07/31/2019 09:01:01</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.WCFService.dll">
-      <publishTime>07/12/2019 20:35:55</publishTime>
+      <publishTime>07/31/2019 09:01:04</publishTime>
     </File>
     <File Include="bin/ControlVolumetricoShellWS.WCFService.pdb">
-      <publishTime>07/12/2019 20:35:55</publishTime>
+      <publishTime>07/31/2019 09:01:04</publishTime>
     </File>
     <File Include="bin/Microsoft.AspNet.SignalR.Client.dll">
-      <publishTime>07/12/2019 10:44:57</publishTime>
+      <publishTime>07/28/2019 11:35:20</publishTime>
     </File>
     <File Include="bin/Microsoft.AspNet.SignalR.Client.pdb">
-      <publishTime>07/12/2019 10:44:57</publishTime>
+      <publishTime>07/28/2019 11:35:20</publishTime>
     </File>
     <File Include="bin/Newtonsoft.Json.dll">
-      <publishTime>07/12/2019 10:44:40</publishTime>
+      <publishTime>07/28/2019 11:34:56</publishTime>
+    </File>
+    <File Include="bin/NodaTime.dll">
+      <publishTime>07/02/2019 06:24:26</publishTime>
+    </File>
+    <File Include="bin/NodaTime.pdb">
+      <publishTime>07/02/2019 06:24:26</publishTime>
     </File>
     <File Include="bin/System.Net.Http.dll">
-      <publishTime>07/12/2019 10:44:41</publishTime>
+      <publishTime>07/28/2019 11:34:56</publishTime>
     </File>
     <File Include="bin/System.Net.Http.Extensions.dll">
-      <publishTime>07/12/2019 10:44:39</publishTime>
+      <publishTime>07/28/2019 11:34:55</publishTime>
     </File>
     <File Include="bin/System.Net.Http.Formatting.dll">
-      <publishTime>07/12/2019 10:44:41</publishTime>
+      <publishTime>07/28/2019 11:34:57</publishTime>
     </File>
     <File Include="bin/System.Net.Http.Primitives.dll">
-      <publishTime>07/12/2019 10:44:39</publishTime>
+      <publishTime>07/28/2019 11:34:55</publishTime>
     </File>
     <File Include="bin/System.Security.Cryptography.Algorithms.dll">
-      <publishTime>07/12/2019 10:44:57</publishTime>
+      <publishTime>07/28/2019 11:35:21</publishTime>
     </File>
     <File Include="bin/System.Security.Cryptography.Encoding.dll">
-      <publishTime>07/12/2019 10:44:58</publishTime>
+      <publishTime>07/28/2019 11:35:22</publishTime>
     </File>
     <File Include="bin/System.Security.Cryptography.Primitives.dll">
-      <publishTime>07/12/2019 10:44:59</publishTime>
+      <publishTime>07/28/2019 11:35:22</publishTime>
     </File>
     <File Include="bin/System.Security.Cryptography.X509Certificates.dll">
-      <publishTime>07/12/2019 10:44:59</publishTime>
+      <publishTime>07/28/2019 11:35:23</publishTime>
+    </File>
+    <File Include="ControlVolumetricoShellMX.svc">
+      <publishTime>07/28/2019 11:35:19</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>07/12/2019 20:36:35</publishTime>
+      <publishTime>07/31/2019 09:01:26</publishTime>
     </File>
     <File Include="Service1.svc">
       <publishTime>07/12/2019 10:44:36</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>07/12/2019 11:22:50</publishTime>
+      <publishTime>07/31/2019 09:01:24</publishTime>
     </File>
   </ItemGroup>
 </Project>

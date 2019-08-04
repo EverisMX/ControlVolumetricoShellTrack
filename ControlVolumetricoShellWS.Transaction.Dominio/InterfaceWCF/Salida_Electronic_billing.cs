@@ -95,18 +95,19 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public string WebID { get; set; }
         [DataMember]
-        public string FormaPago { get; set; }
+        // public string FormaPago { get; set; }
+        public IList<pagosimprimir> FormaPago { get; set; } = new List<pagosimprimir>();
         [DataMember]
 
 
         //public List<Productos>productos
-       public IList<Producto> productos { get; set; } = new List<Producto>();
+        public IList<Producto> productos { get; set; } = new List<Producto>();
 
         // public Productos Producto { get; set; }
+        //[DataMember]
+        //public string Subtotal { get; set; }
         [DataMember]
-        public string Subtotal { get; set; }
-        [DataMember]
-       // public decimal Iva { get; set; }
+        // public decimal Iva { get; set; }
         public string iva { get; set; }
         [DataMember]
         // public decimal Iva { get; set; }
@@ -161,6 +162,25 @@ namespace ControlVolumetricoShellWS.Dominio
     {
         [DataMember]
         public string PaymentMethodId { get; set; }
+        [DataMember]
+        public decimal PrimaryCurrencyTakenAmount { get; set; }
 
+    }
+
+
+    [DataContract]
+    public class Pagounico
+    {
+        [DataMember]
+        public string pago { get; set; }
+    }
+
+    [DataContract]
+    public class pagosimprimir
+    {
+        [DataMember]
+        public string PaymentMethodId { get; set; }
+        [DataMember]
+        public string PrimaryCurrencyTakenAmount { get; set; }
     }
 }

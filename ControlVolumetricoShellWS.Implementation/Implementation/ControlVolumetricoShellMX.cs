@@ -1928,7 +1928,14 @@ namespace ControlVolumetricoShellWS.Implementation
             foreach (var item in responseGetPrinting.GlobalSettings)
             {
                 key = item.Value;
-                listaPrinting.Add(key); 
+                if (key == null)
+
+                {
+
+                    key = string.Empty;
+
+                }
+                listaPrinting.Add(key);
             }
             listaPrinting.ToArray();
 
@@ -1996,6 +2003,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 porcentaje.Add(new Iva { TaxPercentage = Convert.ToInt32(item.TaxPercentage), TaxAmount = (Math.Truncate(item.TaxAmount * 100) / 100).ToString("N2") });
             }
 
+            //alamacena metodo pago
+            IList<PaymentDetail> paymentDetails = new List<PaymentDetail>();
+            //lista = responsegetdocument.Document.LineList();
+            foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
+            {
+                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
+            }
+
             //--------------------------------empieza iva ------------------------------------------------------------------------------
             string strImprime = String.Empty;
             string strImprime2 = String.Empty;
@@ -2042,44 +2057,129 @@ namespace ControlVolumetricoShellWS.Implementation
             GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
             //---------------------------------------------------mrtodo de pago------------------------------------------------------------------
-            IList<PaymentDetail> paymentDetails = new List<PaymentDetail>();
-            //lista = responsegetdocument.Document.LineList();
-            foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
+            //IList<PaymentDetail> paymentDetails = new List<PaymentDetail>();
+            ////lista = responsegetdocument.Document.LineList();
+            //foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
+            //{
+            //    paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId, item.PrimaryCurrencyGivenAmount });
+            //}
+            // string metodospayment = paymentDetails.ToString();
+
+            //string[] arraymetodopago = new string[paymentDetails.Count];
+            //int i = 0;
+            //foreach (PaymentDetail item in paymentDetails)
+            //{
+            //    arraymetodopago[i++] = item.PaymentMethodId;
+            //}
+            //string metodopago = String.Join(" | ", arraymetodopago);
+
+            //metodopago = metodopago.Replace(
+            //     getPOSInformationResponse.PosInformation.CompanyCode + "00", "VARIOS")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "01", "EFECTIVO")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "02", "CHEQUE")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "04", "TRANSFERENCIA")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "07", "VALE")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA")
+            //    .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PRUEBA")
+
+            //    ;
+
+            IList<pagosimprimir> guardarpagos = new List<pagosimprimir>();
+
+            string strImprimepago = String.Empty;
+            string strImprime2pago = String.Empty;
+
+            int pagosunico = 0;
+            string[] taxesp;
+            taxesp = new string[paymentDetails.Count()];
+            IList<Pagounico> pagounico = new List<Pagounico>();
+            int cuentap = 0;
+            decimal decSumapago = 0;
+            foreach (var item in paymentDetails)
             {
-                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId });
+                if (Array.IndexOf(taxesp, item.PaymentMethodId.ToString()) == -1)
+                {
+                    pagounico.Add(new Pagounico { pago = item.PaymentMethodId });
+                    taxesp[cuentap] = item.PaymentMethodId.ToString();
+                }
+                cuentap += 1;
             }
-            string metodospayment = paymentDetails.ToString();
-
-
-
-
-
-            string[] arraymetodopago = new string[paymentDetails.Count];
-            int i = 0;
-            foreach (PaymentDetail item in paymentDetails)
+            foreach (var item in pagounico)
             {
-                arraymetodopago[i++] = item.PaymentMethodId;
+                foreach (var item2 in paymentDetails)
+                {
+                    if (item.pago.ToString() == item2.PaymentMethodId.ToString())
+                        decSumapago += item2.PrimaryCurrencyTakenAmount;
+                }
+                if (pagosunico == 0)
+                {
+                    //strImprime = "IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                    strImprimepago = item.pago.ToString();
+                    strImprime2pago = (Math.Truncate(decSumapago * 100) / 100).ToString("N2");
+                    //porcentajelistaguardar.Add(new Iva { TaxPercentage = Convert.ToInt32(strImprime), TaxAmount = strImprime2 });
+                }
+                else
+                    //strImprime += " | IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+
+
+                    strImprimepago = item.pago.ToString();
+                //if (strImprime=="16")
+                //{
+                //    strImprimefinal = "targeta";
+                //}
+
+
+                strImprime2pago = Convert.ToString((Math.Truncate(decSumapago * 100) / 100).ToString("N2"));
+                guardarpagos.Add(new pagosimprimir { PaymentMethodId = strImprimepago, PrimaryCurrencyTakenAmount = strImprime2pago });
+
+                decSumapago = 0;
+                pagosunico += 1;
+
             }
+            IList<pagosimprimir> pagosimpreso = new List<pagosimprimir>();
+
+
+            foreach (pagosimprimir item in guardarpagos)
+            {
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "01")
+                {
+                    item.PaymentMethodId = "EFECTIVO";
+
+                }
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "02")
+                {
+                    item.PaymentMethodId = "CHEQUE";
+                    //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
+                }
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "04")
+                {
+                    item.PaymentMethodId = "TRANSFERENCIA";
+
+                }
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "07")
+                {
+                    item.PaymentMethodId = "VALE";
+                    //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
+                }
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "08")
+                {
+                    item.PaymentMethodId = "TARJETA";
+
+                }
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "09")
+                {
+                    item.PaymentMethodId = "FUGA";
+                    //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
+                }
 
 
 
-            string metodopago = String.Join(" | ", arraymetodopago);
 
 
+                pagosimpreso.Add(new pagosimprimir { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
 
-            metodopago = metodopago.Replace(
-                 getPOSInformationResponse.PosInformation.CompanyCode + "00", "VARIOS")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "01", "EFECTIVO")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "02", "CHEQUE")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "04", "TRANSFERENCIA")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "07", "VALE")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA")
-                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PRUEBA")
-
-                ;
-
-
+            }
 
             //---------------------------------------------------termina metodo de pago---------------------------------------------------------
 
@@ -2439,8 +2539,8 @@ namespace ControlVolumetricoShellWS.Implementation
             }
 
             salida.Ticket = request.Nticket;
-            salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
-            salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+            salida.FormaPago = pagosimpreso;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+            //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
             salida.Terminal = responsegetdocument.Document.PosId;
             salida.Operador = responsegetdocument.Document.OperatorName;
             salida.Folio = Folioidticket;

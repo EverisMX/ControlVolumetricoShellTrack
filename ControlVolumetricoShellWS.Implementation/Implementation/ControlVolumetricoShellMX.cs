@@ -2002,13 +2002,688 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 porcentaje.Add(new Iva { TaxPercentage = Convert.ToInt32(item.TaxPercentage), TaxAmount = (Math.Truncate(item.TaxAmount * 100) / 100).ToString("N2") });
             }
+            
+            //--------------------------------empieza iva ------------------------------------------------------------------------------
+            string strImprime = String.Empty;
+            string strImprime2 = String.Empty;
+            int recorreUnicoIva = 0;
+            string[] taxes;
+            taxes = new string[porcentaje.Count()];
+            IList<IvaUnico> ivaUnico = new List<IvaUnico>();
+            int cuenta = 0;
+            decimal decSumaIva = 0;
+            foreach (var item in porcentaje)
+            {
+                if (Array.IndexOf(taxes, item.TaxPercentage.ToString()) == -1)
+                {
+                    ivaUnico.Add(new IvaUnico { Iva = item.TaxPercentage });
+                    taxes[cuenta] = item.TaxPercentage.ToString();
+                }
+                cuenta += 1;
+            }
+            foreach (var item in ivaUnico)
+            {
+                foreach (var item2 in porcentaje)
+                {
+                    if (item.Iva.ToString() == item2.TaxPercentage.ToString())
+                        decSumaIva += decimal.Parse(item2.TaxAmount);
+                }
+                if (recorreUnicoIva == 0)
+                {
+                    //strImprime = "IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                    strImprime = item.Iva.ToString() + "%:";
+                    strImprime2 = (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                }
+                else
+                    //strImprime += " | IVA " + item.Iva.ToString() + "%:     " + (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                    strImprime += item.Iva.ToString() + "%:";
+                strImprime2 = (Math.Truncate(decSumaIva * 100) / 100).ToString("N2");
+                decSumaIva = 0;
+                recorreUnicoIva += 1;
+            }
+            string salidaiva = strImprime.ToString();
+            string salidaivamonto = strImprime2.ToString();
+            //----------------------------------------------------termina iva--------------------------------------------------------------------
 
-            //alamacena metodo pago
+            GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
+            GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+
+            //---------------------------------------------------mrtodo de pago------------------------------------------------------------------
             IList<PaymentDetail> paymentDetails = new List<PaymentDetail>();
             //lista = responsegetdocument.Document.LineList();
             foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
             {
-                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
+                paymentDetails.Add(new PaymentDetail { PaymentMethodId = item.PaymentMethodId});
+            }
+            string metodospayment = paymentDetails.ToString();
+
+            string[] arraymetodopago = new string[paymentDetails.Count];
+            int i = 0;
+            foreach (PaymentDetail item in paymentDetails)
+            {
+                arraymetodopago[i++] = item.PaymentMethodId;
+            }
+            string metodopago = String.Join(" | ", arraymetodopago);
+
+            metodopago = metodopago.Replace(
+                 getPOSInformationResponse.PosInformation.CompanyCode + "00", "VARIOS")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "01", "EFECTIVO")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "02", "CHEQUE")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "04", "TRANSFERENCIA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "07", "VALE")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PRUEBA")
+
+                ;
+
+
+            //---------------------------------------------------termina metodo de pago---------------------------------------------------------
+
+            string serieWebId = null;
+
+
+            GetSeriesRequest getSeriesRequest = new GetSeriesRequest { Identity = bsObj.Identity };
+            GetSeriesResponse getSeriesResponse = await invokeHubbleWebAPIServices.GetSeries(getSeriesRequest);
+
+            foreach (var series in getSeriesResponse.SeriesList)
+            {
+                serieWebId = series.Code;
+            }
+
+
+
+
+            string formatofecha = Convert.ToString(responsegetdocument.Document.EmissionLocalDateTime);
+            DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
+            string fechaticket = Convert.ToString(fechaticketstring.DateTime);
+            string nticketco = responsegetdocument.Document.Id;
+            string horaFormatFact = fechaticket.Replace(" ", "");
+
+            string hourWebID = horaFormatFact.Substring(10, 2);
+            string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
+            string minutWebID = horaFormatFact.Substring(13, 2);
+            string serieTicket = serieWebId;
+            string secontWebID = horaFormatFact.Substring(16, 2);
+
+            string webidnwe = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
+
+
+
+
+
+            //string formatofecha = Convert.ToString(responsegetdocument.Document.EmissionLocalDateTime);
+            //DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
+            //string fechaticket = Convert.ToString(fechaticketstring.DateTime);
+            //string nticketco = responsegetdocument.Document.Id;
+            //string horaformatnews = fechaticket.Replace(" ", "");
+
+            //string wid = horaformatnews.Substring(10, 2);
+            //string wid2 = nticketco.Substring(0, 5);
+            //string wid3 = horaformatnews.Substring(13, 2);
+            //string wid4 = nticketco.Substring(5, 4);
+            //string wid5 = horaformatnews.Substring(16, 2);
+
+            //string webidnwe = string.Concat(wid + wid2 + wid3 + wid4 + wid5);
+            #endregion
+
+
+            #endregion
+
+
+            #region cliente
+            GetCustomerRequest resquestcustomer = new GetCustomerRequest
+            {
+                Id = request.NoCliente,
+                Identity = bsObj.Identity
+            };
+
+
+
+            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetCustomerResponse responsecustomer = await invokeHubbleWebAPIServices.GetCustomer(resquestcustomer);
+            string rfccliente = "";
+            string razoonsocial = "";
+            if (responsecustomer.Customer != null)
+            {
+                rfccliente = responsecustomer.Customer.TIN;
+                razoonsocial = responsecustomer.Customer.BusinessName;
+
+            }
+            if (responsecustomer.Customer == null)
+            {
+                rfccliente = null;
+                razoonsocial = null;
+
+            }
+
+            //if (responsecustomer.Customer.BusinessName == null && responsecustomer.Customer.TIN == null)
+            //{
+            //    isFacturar = false;
+            //    salida.Resultado = false;
+            //    salida.Msj = "NO SE PUDO ENCONTRAR LA INFORMACION DEL CLIENTE";
+            //    return salida;
+            //}
+
+            #endregion
+
+
+            if (request.TipoOperacion == 1)
+            {
+                if (responsegetdocument.Document == null && responsecustomer.Customer == null)
+                {
+                    salida.Msj = "Numero de cliente y numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsegetdocument.Document == null && responsecustomer.Customer != null)
+                {
+                    salida.Msj = "Numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer == null)
+                {
+                    isFacturar = false;
+                    salida.Resultado = true;
+                    salida.Msj = "OPERACION REALIZADA CON EXITO";
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer != null)
+                {
+                    salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                    salida.RFC = rfccliente;
+                    isFacturar = false;
+                    salida.Resultado = true;
+                    salida.Msj = "OPERACION REALIZADA CON EXITO";
+                }
+
+
+            }
+
+            //if (request.TipoOperacion == 1 && responsecustomer.Customer == null || responsegetdocument.Document == null)
+            //{
+            //    isFacturar = false;
+
+            //    salida.Resultado = false;
+            //    salida.Msj = "El cliente y el ticket no son validos";
+            //    return salida;
+            //}
+
+
+
+
+
+
+
+            if (request.TipoOperacion == 2)
+            {
+                if (responsegetdocument.Document == null && responsecustomer.Customer == null)
+                {
+                    salida.Msj = "Numero de cliente y numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsegetdocument.Document == null && responsecustomer.Customer != null)
+                {
+                    salida.Msj = "Numero de ticket no valido";
+                    salida.Resultado = false;
+                    return salida;
+                }
+                //if ((responsegetdocument.Document != null && request.NoCliente == null )||
+                //    (responsegetdocument.Document != null && request.NoCliente.Trim() == "" )||
+                //    (responsegetdocument.Document != null && request.NoCliente == String.Empty)
+                //   )
+                if (responsegetdocument.Document != null && numeroclientere == null)
+                {
+                    isFacturar = false;
+                    salida.Resultado = true;
+                    salida.Msj = "Numero de cliente no valido";
+
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer == null && numeroclientere != null)
+                {
+                    isFacturar = false;
+                    salida.Resultado = true;
+                    salida.Msj = "Numero de cliente no valido";
+                    return salida;
+                }
+                if (responsegetdocument.Document != null && responsecustomer.Customer != null)
+                {
+                    salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                    salida.RFC = rfccliente;
+                    isFacturar = true;
+                    //salida.Resultado = true;
+                    //salida.Msj = "OPERACION REALIZADA CON EXITO";
+                }
+
+
+
+                //if (responsecustomer.Customer == null)
+                //{
+
+                //    isFacturar = false;
+                //    rfccliente = null;
+                //    razoonsocial = null;
+                //    salida.Msj = "OPERACION REALIZADA CON ÉXITO";
+                //    salida.Resultado = true;
+
+
+                //}
+                //if (responsecustomer.Customer != null)
+                //{
+                //    isFacturar = true;
+                //    salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
+                //    salida.RFC = rfccliente;
+                //}
+
+            }
+
+
+
+
+            #region information
+            //// GetPOSInformationResponse  GetPOSInformation(GetPosInformationRequest getPosInformationRequest
+            //GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest
+            //{
+            //    Identity = bsObj.Identity
+            //};
+
+            //   //   InvokeHubbleWebAPIServices invokeHubbleWebAPIServices3 = new InvokeHubbleWebAPIServices();
+            //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            GetPOSInformationResponse informationresponses = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
+
+            #endregion
+
+
+
+
+            if (isFacturar)
+            {
+
+                GetCompanyRequest GetCompanyreques = new GetCompanyRequest
+                {
+                    Identity = bsObj.Identity
+                };
+
+                //InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
+
+
+
+                #region facturacion
+                //se nesesitan estos datos para facturar agregamos
+
+                var res = new ListTicketDAO
+                {
+                    EESS = request.EESS,
+                    NTicket = request.Nticket,
+                    //RFC = "AAA010101AAA",
+                    RFC = rfccliente,
+                    WebID = request.WebID
+                };
+
+                //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+
+                GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
+                {
+                    EmpresaPortal = "01",
+                    Company = responseCompany.Company.Id,
+                    ListTicket = new List<ListTicketDAO>
+                    {
+                        new ListTicketDAO
+                        {
+                            EESS =res.EESS,
+                            NTicket=res.NTicket,
+                            RFC=res.RFC,
+                            WebID=res.WebID
+                        }
+                    }
+                };
+
+
+
+                facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+
+
+
+                if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
+                {
+                    //salida.Ticket = request.Nticket;
+                    //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+                    //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+                    //salida.Terminal = responsegetdocument.Document.PosId;
+                    //salida.Operador = responsegetdocument.Document.OperatorName;
+                    //salida.Folio = Folioidticket;
+                    //salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+                    //salida.ImporteEnLetra = letraconvert;
+                    //salida.iva = salidaiva;
+                    //salida.ivaMonto = salidaivamonto;
+                    //salida.productos = listan;
+                    //salida.Fecha = fechaticket;
+                    //salida.WebID = webidnwe;
+                    //salida.Estacion = informationresponses.PosInformation.ShopCode;
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
+                {
+                    //salida.Ticket = request.Nticket;
+                    //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+                    //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+                    //salida.Terminal = responsegetdocument.Document.PosId;
+                    //salida.Operador = responsegetdocument.Document.OperatorName;
+                    //salida.Folio = Folioidticket;
+                    //salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+                    //salida.ImporteEnLetra = letraconvert;
+                    //salida.iva = salidaiva;
+                    //salida.ivaMonto = salidaivamonto;
+                    //salida.productos = listan;
+                    //salida.Fecha = fechaticket;
+                    //salida.WebID = webidnwe;
+                    //salida.Estacion = informationresponses.PosInformation.ShopCode;
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = false;
+                    return salida;
+                }
+                if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
+                {
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = true;
+                    return salida;
+                }
+                if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
+                {
+                    salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
+                    salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
+                    salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
+                    salida.FolioFiscal = responsefacturacion.FolioFiscal;
+                    salida.RFCProveedorCert = responsefacturacion.RFCProveedorCert;
+                    salida.NumCertificado = responsefacturacion.NumCertificado;
+                    salida.DateCertificacion = responsefacturacion.DateCertificacion;
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Representacioncfdi = "Este documento es una representacion impresa de un CFDI";
+                    salida.Resultado = true;
+                }
+
+                if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
+                {
+                    salida.Msj = responsefacturacion.mensaje;
+                    salida.Resultado = true;
+                    return salida;
+                }
+
+                if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
+                {
+                    salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
+                    salida.Resultado = true;
+                    return salida;
+
+                }
+                //else
+                //{
+
+
+                //    salida.Msj = "NO SE PUDO FACTURAR";
+                //    salida.Resultado = false;
+
+                //}
+                #endregion
+
+
+
+
+            }
+
+            salida.Ticket = request.Nticket;
+            salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
+            salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
+            salida.Terminal = responsegetdocument.Document.PosId;
+            salida.Operador = responsegetdocument.Document.OperatorName;
+            salida.Folio = Folioidticket;
+            salida.Total = (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2");
+            salida.ImporteEnLetra = letraconvert;
+            salida.iva = salidaiva;
+            salida.ivaMonto = salidaivamonto;
+            salida.productos = listan;
+            salida.Fecha = fechaticket;
+            salida.WebID = webidnwe;
+            salida.Estacion = informationresponses.PosInformation.ShopCode;
+            salida.HeaderTick1 = textosincarspecial.transformtext(deserializeJsonheader.Header1);
+            salida.HeaderTick2 = textosincarspecial.transformtext(deserializeJsonheader.Header2);
+            salida.HeaderTick3 = deserializeJsonheader.Header3;
+            salida.HedaerTick4 = textosincarspecial.transformtext(deserializeJsonheader.Header4);
+            salida.FooterTick1 = textosincarspecial.transformtext(deserializeJsonfooter.Footer1);
+            salida.FooterTick2 = textosincarspecial.transformtext(deserializeJsonfooter.Footer2);
+            salida.FooterTick3 = textosincarspecial.transformtext(deserializeJsonfooter.Footer3);
+            salida.FooterTick4 = textosincarspecial.transformtext(deserializeJsonfooter.Footer4);
+            salida.FooterTick5 = deserializeJsonfooter.Footer5;
+            salida.CodigoPostalCompania = textosincarspecial.transformtext(listaPrinting[17]);
+            salida.CodigoPostalTienda = textosincarspecial.transformtext(listaPrinting[27]);
+            salida.ColoniaCompania = textosincarspecial.transformtext(listaPrinting[16]);
+            salida.ColoniaTienda = textosincarspecial.transformtext(listaPrinting[29]);
+            salida.DireccionCompania = textosincarspecial.transformtext(listaPrinting[14]);
+            salida.DireccionTienda = textosincarspecial.transformtext(listaPrinting[24]);
+            salida.EstadoCompania = textosincarspecial.transformtext(listaPrinting[19]);
+            salida.EstadoTienda = textosincarspecial.transformtext(listaPrinting[31]);
+            salida.ExpedicionTienda = textosincarspecial.transformtext(listaPrinting[27]);
+            salida.MunicipioCompania = textosincarspecial.transformtext(listaPrinting[16]);
+            salida.MunicipioTienda = textosincarspecial.transformtext(listaPrinting[26]);
+            salida.NombreCompania = textosincarspecial.transformtext(listaPrinting[15]);
+            salida.PaisCompania = textosincarspecial.transformtext(listaPrinting[20]);
+            salida.PaisTienda = textosincarspecial.transformtext(listaPrinting[30]);
+            salida.PermisoCRE = listaPrinting[32];
+            salida.Tienda = textosincarspecial.transformtext(listaPrinting[25]);
+            salida.RegFiscal = "REGIMEN GENERAL DE LEY PERSONAS MORALES";
+            salida.RfcCompania = textosincarspecial.transformtext(listaPrinting[5]);
+            return salida;
+        }
+
+        public async Task<Salida_Electronic_billing_FP> Electronic_billing_FP(Entrada_Electronic_billing_FP request)
+        {
+            #region globales
+            InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+            Salida_Electronic_billing_FP salida = new Salida_Electronic_billing_FP();
+            textosincaracterspc textosincarspecial = new textosincaracterspc();
+
+            var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+            TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+            bool isFacturar = false;
+            #endregion
+
+            string numeroclientere = "";
+            if (request.NoCliente == null || request.NoCliente.Trim() == "" || request.NoCliente == String.Empty)
+            {
+                numeroclientere = null;
+            }
+
+            if (request.EESS == null && request.NoCliente == null && request.Nticket == null && request.WebID == null)
+            {
+                salida.Msj = "DATOS INCORRECTOS";
+                salida.Resultado = false;
+            }
+
+            if (request.EESS == null)
+            {
+                isFacturar = false;
+                salida.Msj = "INTRODUSCA UN NUMERO DE ESTACION";
+                salida.Resultado = false;
+                return salida;
+            }
+            /* if (request.NoCliente == null)
+             {
+                 isFacturar = false;
+                 salida.Msj = "INTRODUSCA UN NUMERO DE CLIENTE";
+                 salida.Resultado = false;
+                 return salida;
+             }*/
+            if (request.Nticket == null)
+            {
+                isFacturar = false;
+                salida.Msj = "INTRODUSCA UN NUMERO DE TICKET";
+                salida.Resultado = false;
+                return salida;
+            }
+            if (request.WebID == null)
+            {
+                isFacturar = false;
+                salida.Msj = "INTRODUSCA UN WEBID";
+                salida.Resultado = false;
+                return salida;
+            }
+
+            if (request.TipoOperacion == 0)
+            {
+                salida.Msj = "INTRODUSCA UNA OPERACION VALIDA PORFAVOR";
+                salida.Resultado = false;
+                return salida;
+            }
+
+            #region getprintingconfiguration
+
+            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+            GetPrintingConfigurationRequest requesGetPrinting = new GetPrintingConfigurationRequest
+            {
+                Identity = bsObj.Identity,
+                UsecasesPrintingConfigurationList = new List<UsecasePrintingConfiguration> {
+                    new UsecasePrintingConfiguration {
+                        UseCase="SALE",
+                        PrintingTemplatePlatformType= "VENTA HUBBLEPOS",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "CLOSURE",
+                        PrintingTemplatePlatformType= "CIERRE DE CAJA",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "CASHBOX_RECORD",
+                          PrintingTemplatePlatformType= "MOVIMIENTO DE CAJA HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "FUELLINGPOINT_TEST",
+                          PrintingTemplatePlatformType= "SURTIDOR HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= false
+                    },
+                    new UsecasePrintingConfiguration {
+                          UseCase= "REFUND",
+                          PrintingTemplatePlatformType= "ANULACION HUBBLEPOS",
+                          DefaultNumberOfCopies= 1,
+                          Required= true
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "RUNAWAY",
+                        PrintingTemplatePlatformType= "FUGA HUBBLEPOS",
+                        DefaultNumberOfCopies= 1,
+                        Required= true
+
+
+                    },
+                    new UsecasePrintingConfiguration {
+                        UseCase= "COLLECTION",
+                        PrintingTemplatePlatformType= "JUSTIFICANTE DE PAGO",
+                        DefaultNumberOfCopies= 1,
+                        Required= false
+                    }
+
+                }
+            };
+
+            GetPrintingConfigurationResponse responseGetPrinting = await invokeHubbleWebAPIServices.GetPrintingConfiguration(requesGetPrinting);
+
+
+
+            List<string> listaPrinting = new List<string>();
+            string key;
+            foreach (var item in responseGetPrinting.GlobalSettings)
+            {
+                key = item.Value;
+                if (key == null)
+
+                {
+
+                    key = string.Empty;
+
+                }
+                listaPrinting.Add(key);
+            }
+            listaPrinting.ToArray();
+
+            //string Headerprin = listaPrinting[1];
+
+            Headeresponse deserializeJsonheader = JsonConvert.DeserializeObject<Headeresponse>(listaPrinting[1]);
+            footeresponse deserializeJsonfooter = JsonConvert.DeserializeObject<footeresponse>(listaPrinting[2]);
+
+
+
+
+
+            // var responseGlobalSettings = responseGetPrinting.GlobalSettings.Values;
+
+
+            //string ess = Count[1]=responseGlobalSettings.Values;
+            #endregion
+
+            #region GetDocument validacion del ticket y obtencion de datos ticket
+
+            //despues de crear la lista agregamos los siguientes campos para finalizar el reques de consumo en facturacion 
+            GetDocumentRequest requesgetdocument = new GetDocumentRequest
+            {
+                Identity = bsObj.Identity,
+                Id = request.Nticket,
+                UsageType = DocumentUsageType.PrintCopy,
+            };
+
+            GetDocumentResponse responsegetdocument = await invokeHubbleWebAPIServices.GetDocument(requesgetdocument);
+
+            if (responsegetdocument.Document == null)
+            {
+                salida.Msj = "Ticket o Numero de cliente no valido";
+                salida.Resultado = false;
+                return salida;
+            }
+
+            #region datos del ticket si es !null
+
+            string nticketorigin = responsegetdocument.Document.Id;
+            int ntiquetn = nticketorigin.Length;
+            string Folioidticket = nticketorigin.Substring((ntiquetn - 9), 9);
+
+
+            string conletra = Convert.ToString(responsegetdocument.Document.TotalAmountWithTax);
+            converletra nunletra = new converletra();
+            //double numletra = Convert.ToDouble(conletra);
+            string letraconvert = nunletra.enletras(conletra);
+
+            // decimal caliva = (responsegetdocument.Document.TotalAmountWithTax) - (responsegetdocument.Document.TaxableAmount);
+
+
+            //responseGetPrinting.GlobalSettings.Values;
+
+            IList<Producto> listan = new List<Producto>();
+            //lista = responsegetdocument.Document.LineList();
+            foreach (DocumentLine item in responsegetdocument.Document.LineList)
+            {
+                listan.Add(new Producto { ProductName = item.ProductName, Quantity = item.Quantity, TotalAmountWithTax = (Math.Truncate(item.TotalAmountWithTax * 100) / 100).ToString("N2"), UnitaryPriceWithTax = (Math.Truncate(item.UnitaryPriceWithTax * 100) / 100).ToString("N2") });
+            }
+
+            IList<Iva> porcentaje = new List<Iva>();
+            foreach (DocumentLine item in responsegetdocument.Document.LineList)
+            {
+                porcentaje.Add(new Iva { TaxPercentage = Convert.ToInt32(item.TaxPercentage), TaxAmount = (Math.Truncate(item.TaxAmount * 100) / 100).ToString("N2") });
+            }
+
+            //alamacena metodo pago
+            IList<PaymentDetail_FP> paymentDetails = new List<PaymentDetail_FP>();
+            //lista = responsegetdocument.Document.LineList();
+            foreach (DocumentPaymentDetail item in responsegetdocument.Document.PaymentDetailList)
+            {
+                paymentDetails.Add(new PaymentDetail_FP { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
             }
 
             //--------------------------------empieza iva ------------------------------------------------------------------------------
@@ -2085,7 +2760,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             //    ;
 
-            IList<pagosimprimir> guardarpagos = new List<pagosimprimir>();
+            IList<pagosimprimir_FP> guardarpagos = new List<pagosimprimir_FP>();
 
             string strImprimepago = String.Empty;
             string strImprime2pago = String.Empty;
@@ -2093,14 +2768,14 @@ namespace ControlVolumetricoShellWS.Implementation
             int pagosunico = 0;
             string[] taxesp;
             taxesp = new string[paymentDetails.Count()];
-            IList<Pagounico> pagounico = new List<Pagounico>();
+            IList<Pagounico_FP> pagounico = new List<Pagounico_FP>();
             int cuentap = 0;
             decimal decSumapago = 0;
             foreach (var item in paymentDetails)
             {
                 if (Array.IndexOf(taxesp, item.PaymentMethodId.ToString()) == -1)
                 {
-                    pagounico.Add(new Pagounico { pago = item.PaymentMethodId });
+                    pagounico.Add(new Pagounico_FP { pago = item.PaymentMethodId });
                     taxesp[cuentap] = item.PaymentMethodId.ToString();
                 }
                 cuentap += 1;
@@ -2131,17 +2806,22 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
                 strImprime2pago = Convert.ToString((Math.Truncate(decSumapago * 100) / 100).ToString("N2"));
-                guardarpagos.Add(new pagosimprimir { PaymentMethodId = strImprimepago, PrimaryCurrencyTakenAmount = strImprime2pago });
+                guardarpagos.Add(new pagosimprimir_FP { PaymentMethodId = strImprimepago, PrimaryCurrencyTakenAmount = strImprime2pago });
 
                 decSumapago = 0;
                 pagosunico += 1;
 
             }
-            IList<pagosimprimir> pagosimpreso = new List<pagosimprimir>();
+            IList<pagosimprimir_FP> pagosimpreso = new List<pagosimprimir_FP>();
 
 
-            foreach (pagosimprimir item in guardarpagos)
+            foreach (pagosimprimir_FP item in guardarpagos)
             {
+                if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "00")
+                {
+                    item.PaymentMethodId = "VARIOS";
+
+                }
                 if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "01")
                 {
                     item.PaymentMethodId = "EFECTIVO";
@@ -2177,7 +2857,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
 
-                pagosimpreso.Add(new pagosimprimir { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
+                pagosimpreso.Add(new pagosimprimir_FP { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
 
             }
 

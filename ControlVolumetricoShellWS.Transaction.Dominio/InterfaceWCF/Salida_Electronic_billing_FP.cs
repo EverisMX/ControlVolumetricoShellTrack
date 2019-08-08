@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace ControlVolumetricoShellWS.Dominio
 {
     [DataContract]
-    public class Salida_Electronic_billing
+    public class Salida_Electronic_billing_FP
     {
         [DataMember]
         public Boolean Resultado { get; set; }
@@ -95,17 +95,17 @@ namespace ControlVolumetricoShellWS.Dominio
         [DataMember]
         public string WebID { get; set; }
         [DataMember]
-        public string FormaPago { get; set; }
-        //public IList<pagosimprimir> FormaPago { get; set; } = new List<pagosimprimir>();
-        //[DataMember]
+        // public string FormaPago { get; set; }
+        public IList<pagosimprimir_FP> FormaPago { get; set; } = new List<pagosimprimir_FP>();
+        [DataMember]
 
 
         //public List<Productos>productos
         public IList<Producto> productos { get; set; } = new List<Producto>();
 
         // public Productos Producto { get; set; }
-        [DataMember]
-        public string Subtotal { get; set; }
+        //[DataMember]
+        //public string Subtotal { get; set; }
         [DataMember]
         // public decimal Iva { get; set; }
         public string iva { get; set; }
@@ -131,7 +131,7 @@ namespace ControlVolumetricoShellWS.Dominio
     }
 
     [DataContract]
-    public class Producto
+    public class Producto_FP
     {
         [DataMember]
         public string ProductName { get; set; }
@@ -143,7 +143,7 @@ namespace ControlVolumetricoShellWS.Dominio
         public string TotalAmountWithTax { get; set; }
     }
     [DataContract]
-    public class Iva
+    public class Iva_FP
     {
         [DataMember]
         public int TaxPercentage { get; set; }
@@ -151,34 +151,36 @@ namespace ControlVolumetricoShellWS.Dominio
         public string TaxAmount { get; set; }
     }
     [DataContract]
-    public class IvaUnico
+    public class IvaUnico_FP
     {
         [DataMember]
         public int Iva { get; set; }
     }
 
     [DataContract]
-    public class PaymentDetail
+    public class PaymentDetail_FP
     {
         [DataMember]
         public string PaymentMethodId { get; set; }
+        [DataMember]
+        public decimal PrimaryCurrencyTakenAmount { get; set; }
 
     }
 
 
-    //[DataContract]
-    //public class Pagounico
-    //{
-    //    [DataMember]
-    //    public string pago { get; set; }
-    //}
+    [DataContract]
+    public class Pagounico_FP
+    {
+        [DataMember]
+        public string pago { get; set; }
+    }
 
-    //[DataContract]
-    //public class pagosimprimir
-    //{
-    //    [DataMember]
-    //    public string PaymentMethodId { get; set; }
-    //    [DataMember]
-    //    public string PrimaryCurrencyTakenAmount { get; set; }
-    //}
+    [DataContract]
+    public class pagosimprimir_FP
+    {
+        [DataMember]
+        public string PaymentMethodId { get; set; }
+        [DataMember]
+        public string PrimaryCurrencyTakenAmount { get; set; }
+    }
 }

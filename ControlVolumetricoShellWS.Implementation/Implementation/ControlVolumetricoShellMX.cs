@@ -977,7 +977,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                         CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
                                         foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                         {
-                                            if (Convert.ToInt32(processPaymentsCombu[i]) == 32) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
+                                            if (Convert.ToInt32(processPaymentsCombu[i]) != 3) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
                                             {
                                                 if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                                 {
@@ -1028,35 +1028,35 @@ namespace ControlVolumetricoShellWS.Implementation
                                         }
                                     }
                                 }
-                                if (paymentMethods.Description.ToUpper() == "VARIOS")
-                                {
-                                    for (int i = 0; i < processPaymentsCombuCount; i++)
-                                    {
-                                        CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                        foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
-                                        {
-                                            if (Convert.ToInt32(processPaymentsCombu[i]) != 3 && Convert.ToInt32(processPaymentsCombu[i]) != 32)
-                                            {
-                                                if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
-                                                {
-                                                    if (i < processAmountOfSaleCount)
-                                                    {
-                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                        createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                        createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                        PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
-                                                        currencyId = CurrenciesBase.Id;
-                                                        paymentany = paymentMethods.Id;
-                                                    }
-                                                }
-                                                //createDocumentPaymentDetailDAO = null;
-                                            }
-                                        }
-                                    }
-                                }//end
+                                //if (paymentMethods.Description.ToUpper() == "AMERICAN EXPRESS")
+                                //{
+                                //    for (int i = 0; i < processPaymentsCombuCount; i++)
+                                //    {
+                                //        CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                                //        foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                                //        {
+                                //            if (Convert.ToInt32(processPaymentsCombu[i]) == 1)
+                                //            {
+                                //                if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                                //                {
+                                //                    if (i < processAmountOfSaleCount)
+                                //                    {
+                                //                        createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                //                        createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
+                                //                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                //                        createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                                //                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                                //                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                                //                        PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
+                                //                        currencyId = CurrenciesBase.Id;
+                                //                        paymentany = paymentMethods.Id;
+                                //                    }
+                                //                }
+                                //                //createDocumentPaymentDetailDAO = null;
+                                //            }
+                                //        }
+                                //    }
+                                //}//end
                             }
                         }
                     }
@@ -1095,7 +1095,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                     CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
                                     foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                     {
-                                        if (Convert.ToInt32(processPaymentsPeri[i]) == 32) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
+                                        if (Convert.ToInt32(processPaymentsPeri[i]) != 3) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
                                         {
                                             if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                             {
@@ -1145,35 +1145,35 @@ namespace ControlVolumetricoShellWS.Implementation
                                     }
                                 }
                             }
-                            if (paymentMethods.Description.ToUpper() == "VARIOS")
-                            {
-                                for (int i = 0; i < processPaymentsPeriCount; i++)
-                                {
-                                    CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                    foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
-                                    {
-                                        if (Convert.ToInt32(processPaymentsPeri[i]) != 3 && Convert.ToInt32(processPaymentsPeri[i]) != 32)
-                                        {
-                                            if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
-                                            {
-                                                if (i < processAmountOfSaleCount)
-                                                {
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
-                                                    createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
-                                                    createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
-                                                    createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
-                                                    createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
-                                                    createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
-                                                    PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
-                                                    currencyId = CurrenciesBase.Id;
-                                                    paymentany = paymentMethods.Id; ;
-                                                }
-                                            }
-                                            //createDocumentPaymentDetailDAO = null;
-                                        }
-                                    }
-                                }
-                            }
+                            //if (paymentMethods.Description.ToUpper() == "AMERICAN EXPRESS")
+                            //{
+                            //    for (int i = 0; i < processPaymentsPeriCount; i++)
+                            //    {
+                            //        CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
+                            //        foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
+                            //        {
+                            //            if (Convert.ToInt32(processPaymentsPeri[i]) == 1)
+                            //            {
+                            //                if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
+                            //                {
+                            //                    if (i < processAmountOfSaleCount)
+                            //                    {
+                            //                        createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                            //                        createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
+                            //                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                            //                        createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
+                            //                        createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
+                            //                        createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
+                            //                        PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
+                            //                        currencyId = CurrenciesBase.Id;
+                            //                        paymentany = paymentMethods.Id; ;
+                            //                    }
+                            //                }
+                            //                //createDocumentPaymentDetailDAO = null;
+                            //            }
+                            //        }
+                            //    }
+                            //}//end
                         }
                     }
                 }

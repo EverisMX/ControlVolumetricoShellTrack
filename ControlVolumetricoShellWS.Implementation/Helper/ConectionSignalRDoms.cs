@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.AspNet.SignalR.Client;
 using Conection.HubbleWS;
 using System.Threading.Tasks;
+using MX_LogsHPTPV;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -176,6 +177,7 @@ namespace ControlVolumetricoShellWS.Implementation
         {
             try
             {
+                LogsTPVHP exec = new LogsTPVHP();
                 // Se pregunta si esta conecta
                 if (!IsConnected())
                 {
@@ -204,6 +206,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     validateFuellingPoint = supplyValidate.Id;
                     validateLockFuelling = Convert.ToInt32(supplyValidate.LockingPOSId);
+                    exec.GeneraLogInfo("CODEVOL_TR **","LO QUE RESPONDE EL DOMS SOBRE EL SURTIDOR SELECCIONADO: " + "\n" + "GetAllSupplyTransactionsOfFuellingPointResponse: {" + "\n" + 
+                        "    Id: " + supplyValidate.Id.ToString() + "," + "\n" + 
+                        "    GradeUnitPrice: " + supplyValidate.GradeUnitPrice.ToString() + "," + "\n" +
+                        "    LockingPOSID: " + supplyValidate.LockingPOSId.ToString() + "," + "\n" + 
+                        "    GradeId: " + supplyValidate.GradeId.ToString() + "," + "\n" + 
+                        "    GradeReference: " + supplyValidate.GradeReference.ToString() + "," + "\n" + 
+                        "    Money: " + supplyValidate.Money.ToString() + "," + "\n" +
+                        "    ServiceModeType: " + supplyValidate.ServiceModeType.ToString() + "," + "\n" + 
+                        "    DateStart: " + supplyValidate.StartDateTime.ToString() + "," + "\n" +
+                        "    Type: " + supplyValidate.Type.ToString() + "," + "\n" + 
+                        "    Volume: " + supplyValidate.Volume.ToString() + "\n" + "}");
                 }
 
                 return new int[] { validateFuellingPoint, validateLockFuelling };

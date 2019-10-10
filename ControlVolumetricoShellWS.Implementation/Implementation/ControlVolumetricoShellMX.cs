@@ -10,6 +10,7 @@ using ControlVolumetricoShellWS.Dominio;
 using Conection.HubbleWS;
 using Conection.HubbleWS.Models.Facturacion;
 using NodaTime;
+using MX_LogsHPTPV;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -18,11 +19,14 @@ namespace ControlVolumetricoShellWS.Implementation
         public async Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request)
         {
             #region VALIDACIONES DE LAS ENTRADAS DE OBTENER_TRAN
+            LogsTPVHP exec = new LogsTPVHP();
+            exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA EL METODODE Obtiene_Tran PARA OBTENER LA INFORMACION DE LA BOMBA.");
             try
             {
                 if (request.Pos_Carga < 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    exec.GeneraLogInfo("CODEVOL_FIN 67", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO!");
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
@@ -33,6 +37,7 @@ namespace ControlVolumetricoShellWS.Implementation
             catch (Exception e)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 66", "@SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR NUMERO! Log:: " + e.ToString());
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
@@ -43,6 +48,7 @@ namespace ControlVolumetricoShellWS.Implementation
             if (request.nHD < 0 || request.idpos == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 65", "@SHELLMX- DEBE DE INSERTAR VALORES VALIDOS CON EL FORMATO nHD | idpos .. Verificar!");
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
@@ -57,6 +63,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (conectionSignalRDoms.StatusConectionHubbleR() < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 64", "SHELLHUBLE- FALLO LA CONEXION CON EL DOMS VERIFICAR QUE ESTE CONECTADO! RESPONSE: " + conectionSignalRDoms.StatusConectionHubbleR().ToString());
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
@@ -101,10 +108,12 @@ namespace ControlVolumetricoShellWS.Implementation
             SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
             string idOperatorObtTran = null;
             string codeOperatorOntTran = null;
+            string nameOperator = null;
 
             if (searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 63", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. Id_Teller : " + request.Id_teller.ToString());
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
@@ -117,11 +126,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     idOperatorObtTran = searchOperator.Id;
                     codeOperatorOntTran = searchOperator.Code;
+                    nameOperator = searchOperator.Name.ToString();
                 }
                 if (searchOperatorResponse.OperatorList.Count == 2)
                 {
                     idOperatorObtTran = searchOperator.Id;
                     codeOperatorOntTran = searchOperator.Code;
+                    nameOperator = searchOperator.Name.ToString();
                 }
             }
 
@@ -132,6 +143,9 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (lockTransactionInformation.Status < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 62", "@SHELLMX- FALLO EN BLOQUEAR LA BOMBA Log:: " + "LockSupplyTransactionOfFuellingPointResponse: {" + "\n" +
+                    "    status: " + lockTransactionInformation.Status.ToString() + "," + "\n" + 
+                    "    messaje: " + lockTransactionInformation.Message.ToString() + "\n" + "}");
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
@@ -140,6 +154,13 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             else if (lockTransactionInformation.CorrespondingVolume == 0 && lockTransactionInformation.DiscountedAmount == 0 && lockTransactionInformation.DiscountPercentage == 0 && lockTransactionInformation.FinalAmount == 0 && lockTransactionInformation.ProductName == null && lockTransactionInformation.ProductReference == null)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 61", "@SHELLMX- Transaccion Bloqueada por otra Terminal: LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION: {" + "\n" +
+                    "    CorrespondingVolume: " + lockTransactionInformation.CorrespondingVolume.ToString() + "," + "\n" +
+                    "    DiscountedAmount: " + lockTransactionInformation.DiscountedAmount.ToString() + "," + "\n" +
+                    "    Status: " + lockTransactionInformation.Status.ToString() + "," + "\n" +
+                    "    Message: " + lockTransactionInformation.Message.ToString() + "," + "\n" +
+                    "    PosID: " + lockTransactionInformation.posID.ToString() + "," + "\n" + 
+                    "    ProductReference: " + lockTransactionInformation.ProductReference.ToString() + "," + "\n" + "}");
                 return new Salida_Obtiene_Tran
                 {
                     Resultado = false,
@@ -148,6 +169,16 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             else
             {
+                exec.GeneraLogInfo("CODEVOL_TR **", "EL REQUEST QUE PROPORCIONA PC PARA LA INFO DEL SUTIDOR. " + "\n" + "{" + 
+                    "    idPos: " + request.idpos.ToString() + "," + "\n" + 
+                    "    Id_Teller: " + request.Id_teller.ToString() + "," + "\n" + 
+                    "    nHD: " + request.nHD.ToString() + "," + "\n" + 
+                    "    Pos_Carga: " + request.Pos_Carga.ToString() + "," + "\n" + 
+                    "    Pss: " + request.pss.ToString() + ","+ "\n" +
+                    "    PTID: " + request.PTID.ToString() + "," + "\n" + 
+                    "    Serial: " + request.serial.ToString() + "\n" + "}");
+                exec.GeneraLogInfo("CODEVOL_TR **", "OPERADOR QUE PIDE EL BLOQUEO DE LA BOMBA Y INFO : " + nameOperator);
+
                 GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                 GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
                 salida_Obtiene_Tran = new Salida_Obtiene_Tran
@@ -166,15 +197,31 @@ namespace ControlVolumetricoShellWS.Implementation
                     idInternoPOS = lockTransactionInformation.posID
                     //Id_product = lockTransactionInformation.ProductReference
                 };
+                exec.GeneraLogInfo("CODEVOL_FIN 1", "SE TERMINO EL METODO DE OBTENER_TRAN EXITOSAMENTE CON EL SIGUIENTE RESPONSE: " + "\n" + "Salida_Obtiene_Tran: {" + "\n" +
+                    "    resultado: " + salida_Obtiene_Tran.Resultado.ToString() + "," + "\n" +
+                    "    id_Interno: " + salida_Obtiene_Tran.ID_Interno.ToString() + "," + "\n" +
+                    "    msj: " + salida_Obtiene_Tran.Msj.ToString() + "," + "\n" +
+                    "    estacion: " + salida_Obtiene_Tran.Estacion.ToString() + "," + "\n" +
+                    "    importe: " + salida_Obtiene_Tran.Importe.ToString() + "," + "\n" +
+                    "    litros: " + salida_Obtiene_Tran.Litros.ToString() + "," + "\n" +
+                    "    num_operacion: " + salida_Obtiene_Tran.Num_Operacion.ToString() + "," + "\n" +
+                    "    parcial: " + salida_Obtiene_Tran.Parcial.ToString() + "," + "\n" +
+                    "    pos_id: " + salida_Obtiene_Tran.PosID.ToString() + "," + "\n" +
+                    "    precio_uni: " + salida_Obtiene_Tran.Precio_Uni.ToString() + "," + "\n" + 
+                    "    producto: " + salida_Obtiene_Tran.Producto.ToString() + "," + "\n" + 
+                    "    idInternoPOS: " + salida_Obtiene_Tran.idInternoPOS.ToString() + "\n" + "}");
             }
             return salida_Obtiene_Tran;
         }
 
         public async Task<Salida_Info_Forma_Pago> Info_Forma_Pago(Entrada_Info_Forma_Pagos request)
         {
+            LogsTPVHP exec = new LogsTPVHP();
+            exec.GeneraLogInfo("CODEVOL_INI 0", "@SHELLMX- SE INICIA LA VENTA DE CARBURANTE/PERIFERICOS EN EL METODO INFO_FORMA_PAGO.");
             if (request.Id_Transaccion == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 99", "@SHELLMX- NUMERO DE TRANSACCION VACIO INTRODUCIR EL SURTIDOR !!");
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -186,6 +233,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (Convert.ToInt32(request.Id_Transaccion) <= -1)  // Se coloca 0 por la parte del Efectivo.
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    exec.GeneraLogInfo("CODEVOL_FIN 98", "@SHELLMX- INTRODUCIR UN NUMERO DE SURTIDOR VALIDO. !!");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -196,6 +244,7 @@ namespace ControlVolumetricoShellWS.Implementation
             catch (Exception e)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 97", "@SHELLMX- NO ES UN VALOR VALIDO ID_TRANSACTION VERIFICAR! LOG:: " + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -209,6 +258,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (request.idpos == null || request.nHD <= 0 || request.PorpagarEntrada <= -1)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    exec.GeneraLogInfo("CODEVOL_FIN 96", "@SHELLMX- DATOS VALIDOS EN IDPOS | nHD | PorpagarEntrada VALIDAR !!" );
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -219,6 +269,7 @@ namespace ControlVolumetricoShellWS.Implementation
             catch (Exception e)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 95", "@SHELLMX- DATOS CON FORMATO INCORRECTO EN IDPOS | nHD | PorpagarEntrada VALIDAR Log:: " + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -230,6 +281,7 @@ namespace ControlVolumetricoShellWS.Implementation
             if (request.Id_teller == null)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 94", "@SHELLMX-  OPERADOR ESTA VACIO EN LA ENTRADA VALIDAR");
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -260,10 +312,12 @@ namespace ControlVolumetricoShellWS.Implementation
             SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
             string idOperator = null;
             string codeOperator = null;
+            string nameOperator = null;
 
             if (searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 93", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA");
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -276,11 +330,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     idOperator = searchOperator.Id;
                     codeOperator = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
                 }
                 if (searchOperatorResponse.OperatorList.Count == 2)
                 {
                     idOperator = searchOperator.Id;
                     codeOperator = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
                 }
             }
             
@@ -308,12 +364,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
                 if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 92", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA LOG::256. Variable Aprobado : " + request.aprobado + " : Proceso de PC." + "\n" +
+                        "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" + 
+                        "     " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
+                        "     " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = true,
                         Msj = "@ SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA LOG::256"
                     };
                 }
+                exec.GeneraLogInfo("CODEVOL_FIN 91 PC", "@SHELLMX- TARJETA NO APROBADA, SE INICIA EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status);
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = true,
@@ -326,6 +387,7 @@ namespace ControlVolumetricoShellWS.Implementation
             if (request.Info_Forma_Pago == null || request.Info_Forma_Pago.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                exec.GeneraLogInfo("CODEVOL_FIN 90", "@SHELLMX- INFORM DE LA VENTA VACIO CARGAR LOS DATOS DE VENTA");
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -343,6 +405,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                    exec.GeneraLogInfo("CODEVOL_FIN 89", "@SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado! :: " + "StatusConectionHubbleR : " + conectionSignalRDomsInform.StatusConectionHubbleR().ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -361,6 +424,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint);
                 if (validateFuellingPointO[0] <= 0)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 88", "@SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE.!");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -382,6 +446,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 87", "@SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO.!");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -393,6 +458,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     if (validateFuellingPointO[1] != request.idInternoPOS)
                     {
+                        exec.GeneraLogInfo("CODEVOL_FIN 86", "@SHELLMX- EL ID dE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO.!");
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -402,6 +468,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 85", "@SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO.! Log:: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -419,6 +486,7 @@ namespace ControlVolumetricoShellWS.Implementation
             if (request.parciales)
             {
                 //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
+                exec.GeneraLogInfo("CODEVOL_FIN 84 PC", "@SHELLMX- INFORM VAliDACION DE PRIMERA ENTRADA variable parciales = " + request.parciales.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = true,
@@ -485,6 +553,14 @@ namespace ControlVolumetricoShellWS.Implementation
             // Variable para controlar el estus de la venta de perifericos.
             bool IsCombustibleEnabler = false;
 
+            //Variables para el logs sobre el arreglo de productos de PC.
+            string id_productoPC = null;
+            string cantidadPC = null;
+            string importeUnPC = null;
+            string importeTPC = null;
+            string formasPagPC = null;
+            string montopagPC = null;
+
             #region PROCESO DE SEPARACION DE LOS PRODUCTOS Y ALMACENAR LOS EN UNA LISTA
             try
             {
@@ -530,6 +606,14 @@ namespace ControlVolumetricoShellWS.Implementation
                         ProcessAmountOfSaleCombu.Add(monto_PagadoCombu);
                         //Combustible.Add(iva);
                         CombustibleGlobal.Add(Combustible);
+
+                        //Proceso para almacenaje para los logs
+                        id_productoPC = varPrincipal.Id_product;
+                        cantidadPC = varPrincipal.Cantidad;
+                        importeUnPC = varPrincipal.Importe_Unitario;
+                        importeTPC = varPrincipal.Importetotal;
+                        formasPagPC = varPrincipal.formapagos;
+                        montopagPC = varPrincipal.montoPagadoParcial;
                     }
                     else
                     {
@@ -569,10 +653,19 @@ namespace ControlVolumetricoShellWS.Implementation
                         ProcessAmountOfSalePeri.Add(monto_PagadoPeri);
                         //Products.Add(iva);
                         ProductsGlobal.Add(Products);
+
+                        //Proceso para almacenaje para los logs
+                        id_productoPC = varPrincipal.Id_product;
+                        cantidadPC = varPrincipal.Cantidad;
+                        importeUnPC = varPrincipal.Importe_Unitario;
+                        importeTPC = varPrincipal.Importetotal;
+                        formasPagPC = varPrincipal.formapagos;
+                        montopagPC = varPrincipal.montoPagadoParcial;
                     }
                 }
             } catch (Exception e)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 83", "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_PagoList. Log:: " + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -580,6 +673,25 @@ namespace ControlVolumetricoShellWS.Implementation
                 };
                 throw e;
             }
+
+            exec.GeneraLogInfo("CODEVOL_TR **", "SOLICITUD PARA CONSUMIR EL METODO: \n Info_Forma_Pago() " + "\n" + "{" + "\n" + 
+                "    Id_Transaccion : " + request.Id_Transaccion.ToString() + "," + "\n" +
+                "    Id_Teller : " + request.Id_teller.ToString() + "," + "\n" + 
+                "    Id_Interno_POS : " + request.idInternoPOS.ToString() + "," + "\n" + 
+                "    IdPOS: " + request.idpos.ToString() + "," + "\n" +
+                "Entrada_Info_Forma_Pago_List:[{" + "\n" +
+                "    id_Producto: " + id_productoPC + "," + "\n" + 
+                "    cantidad: " + cantidadPC + "," + "\n" + 
+                "    importeUnitario: " + importeUnPC + "," + "\n" +
+                "    importeTotal: " + importeTPC + "," + "\n" +
+                "    formasPago: " + formasPagPC + "," + "\n" + 
+                "    montoaPagoParcial: " + montopagPC + "\n" + "}]," + 
+                "    IvaProducto: " + request.IvaProducto + "," + "\n" + 
+                "    nHD: " + request.nHD + "," + "\n" + 
+                "    parciales: " + request.parciales.ToString() + "," + "\n" +
+                "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" + 
+                "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
+            exec.GeneraLogInfo("CODEVOL_TR **", "NOMBRE DEL OPERADOR QUE REALIZA LA VENTA : " + nameOperator);
 
             #region VERIFICAR LA LONGITUD QUE COINCIDAN EN LOS PRODUCTOS.
 
@@ -595,6 +707,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     flagCountCombustible = countUniversalCombu == valOldCombu ? true : false;
                     if (!flagCountCombustible)
                     {
+                        exec.GeneraLogInfo("CODEVOL_FIN 82", "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS CARBURANTES EN LA SOLICITUD VERIFICAR");
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -614,6 +727,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 flagCountProduct = countUniversalProduc == valOldProduct ? true : false;
                 if (!flagCountProduct)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 81", "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS PERIFARICOS EN LA SOLICITUD VERIFICAR");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -635,6 +749,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 flagCountMontoPagar = countUniversalCountMontoP == valOldMontoP ? true : false;
                 if (!flagCountMontoPagar)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 80", "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS MONTOPAGAR REALIZADAS EN LA SOLICITUD VERIFICAR");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -653,6 +768,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 flagCountFormaPago = countUniversalFormPago == valOldFormPago ? true : false;
                 if (!flagCountFormaPago)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 79", "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS FORMAPAGO REALIZADAS EN LA SOLICITUD VERIFICAR");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -768,6 +884,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 78", "@SHELLMX- EN LA CANTIDAD DE LOS PRODUCTO DE CARBURANTE VENGAN CON CARACTER ESPECIAL Log:: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -809,6 +926,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             catch (Exception e)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 77", "@SHELLMX- ERRORES DE CONVERSION  O FORMATO DE MONTOAPAGAR VERIFICAR DATOS Log:: " + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -876,6 +994,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
             } catch (Exception e)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 76", "@SHELLMX- ERRORES DE CONVERSION DE ID_PRODUCTO | CANTIDAD | IMPORTE_UNITARIO | IMPORTE_TOTAL VERIFICAR DATOS Log:: " + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -1063,6 +1182,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 75", "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! Log:: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -1179,6 +1299,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
             }catch(Exception e)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 74", "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR EN PERIFERICOS!! Log:: " + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -1277,6 +1398,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (getProductForSaleResponse.Status < 0)
                     {
+                        exec.GeneraLogInfo("CODEVOL_FIN 73", "@SHELLMX- LOS PRODUCTOS INTRODUCIDOS NO EXISTEN O SON INCORRECTOS VERIFICAR! :: ID PRODUCTO INTRODUCIDO : " + informListProducts.Id_producto.ToString());
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -1370,6 +1492,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             catch(Exception e)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 72", "@SHELLMX- LOS DATOS INTRODUCIDOS NO TIENEN EL FORMATO ESPECIFICO VERIFICAR E INTERTAR NUEVAMENTE! lOG::" + e.ToString());
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -1438,6 +1561,9 @@ namespace ControlVolumetricoShellWS.Implementation
             CreateDocumentsResponse createDocumentsResponse = await invokeHubbleWebAPIServices.CreateDocuments(createDocumentsRequest);
             if(createDocumentsResponse.Status < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 71", "@SHELLMX- FALLO EN PROCESO INTERNO HUBBLE NO SE ALMACENO EN BDEVERILION REINTENTAR Y VERIFICAR LOS DATOS CORRECTOS DE ENTRADA \n "+
+                    "Objeto createDocument Resquest : " + createDocumentsRequest.ToString() + "\n" +
+                    "createDocumentsResponse:{" + "\n" + "status: " + createDocumentsResponse.Status.ToString() + ", \n" + "message :" + createDocumentsResponse.Message + "\n" + "}");
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -1453,6 +1579,11 @@ namespace ControlVolumetricoShellWS.Implementation
                     possibleDocumentId = resultCreateDocuments.Key == 1 ? resultCreateDocuments.Value : null;
                 }
             }
+
+            exec.GeneraLogInfo("CODEVOL_T **", "RESPUESTA DE CREATEDOCUMENT() \n SUCCESFULL: " + "CreateDocumentsResponse: {" + "\n" +
+                 "    status: " + createDocumentsResponse.Status.ToString() + "," + "\n" +
+                 "    message: " + createDocumentsResponse.Message.ToString() + "," + "\n" +
+                 "    possibleDocumentId: " + possibleDocumentId.ToString() + "\n" + "}");
 
             #region VALIDACION SOBRE EL WEBID Y OTROS COMPONENTES PARA LA FACTURA
 
@@ -1473,6 +1604,12 @@ namespace ControlVolumetricoShellWS.Implementation
             // Se Revisa que se realizo correctamente la subida de la venta de producto menos carburante.
             if (IsCombustibleEnabler == false)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 1", "SE TERMINO LA VENTA DE PERIFERICOS DONDE NO SE LIBERA NINGUNA BOMBA : \n" + "Salida_Info_Forma_Pago: {" + "\n" +
+                    "    msj: " + "VENTA SATISFACTORIA DE PERIFERICOS OK," + "\n" + 
+                    "    Resultado: " + "true," + "\n" + 
+                    "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," + "\n" + 
+                    "    Nticket: " + possibleDocumentId.ToString() + "," + "\n" + 
+                    "    WebId: " + webIDFact + "\n" + "}");
                 return new Salida_Info_Forma_Pago
                 {
                     Msj = "SHELLHUBBLE- VENTA SATISFACTORIA DE PERIFERICOS OK.",
@@ -1502,6 +1639,19 @@ namespace ControlVolumetricoShellWS.Implementation
                 VehicleLicensePlate = null
             };
 
+            exec.GeneraLogInfo("CODEVOL_TR **", "SE CONTRUYE EL OBJETO PARA FINALIZAR UNA BOMBA O SURTIDOR : \n" + "FinalizeSupplyTransactionRequest: {" + "\n" +
+                "    ContactId: " + "NULL," + "\n" +
+                "    CustomerId: " + finalizeSupplyTransactionRequest.CustomerId.ToString() + "," + "\n" +
+                "    FuellingPointId: " + finalizeSupplyTransactionRequest.FuellingPointId.ToString() + "," + "\n" +
+                "    LineNumberInDocument: " + finalizeSupplyTransactionRequest.LineNumberInDocument.ToString() + "," + "\n" +
+                "    OdometerMeasurement: " + "NULL," + "\n" +
+                "    OperatorId : " + finalizeSupplyTransactionRequest.OperatorId.ToString() + "," + "\n" +
+                "    PossibleDocumentId: " + finalizeSupplyTransactionRequest.PossibleDocumentId.ToString() + "," + "\n" +
+                "    ProvisionalId: " + finalizeSupplyTransactionRequest.ProvisionalId.ToString() + "," + "\n" +
+                "    SupplyTransactionId: " + finalizeSupplyTransactionRequest.SupplyTransactionId.ToString() + "," + "\n" +
+                "    VehicleLicensePlate: " + "NULL," + "\n" +
+                "}");
+
             FinalizeSupplyTransactionResponse finalizeSupplyTransactionResponse = conectionSignalRDomsInform.FinalizeSupplyTransactionWS(finalizeSupplyTransactionRequest);
             string supplyTransactionIdDOMS = null;
 
@@ -1511,6 +1661,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 finalizeSupplyTransactionResponse = conectionSignalRDomsInform.FinalizeSupplyTransactionWS(finalizeSupplyTransactionRequest);
                 if(finalizeSupplyTransactionResponse.Status < 0)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN DOMS PROBLEMAS DE DUPLICIDAD O FALLOS AL SURTIDOR VERIFICARLOS! LOG::" + "\n" +
+                        "FinalizeSupplyTransactionResponse : {" + "\n" + 
+                        "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -1525,6 +1678,11 @@ namespace ControlVolumetricoShellWS.Implementation
                     supplyTransactionIdDOMS = resultsupplyTransactionIdDOMS.Value;
                 }
             }
+
+            exec.GeneraLogInfo("CODEVOL_TR **", "SE VALIDO EL RESPONSE FinalizeSupplyTransactionResponse DE MANERA: \n" + "FinalizeSupplyTransactionResponse: {" + "\n" + 
+                "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + "," + "\n" + 
+                "    message: " + finalizeSupplyTransactionResponse.Message.ToString() + "," +"\n" +
+                "    ProvisionalSupplyIdToDefinitiveSupplyIdMapping: " + supplyTransactionIdDOMS + "\n" +"}");
             #endregion
 
             #region FINALIZADO DEL DOMS Y LIBERACION DE LA BOMBA Y LA VENTA
@@ -1540,9 +1698,18 @@ namespace ControlVolumetricoShellWS.Implementation
                 SupplyTransactionIdList = SupplyTransactionIdListWS
             };
 
+            exec.GeneraLogInfo("CODEVOL_TR **", "SE CONSTRUYE EL RESQUEST DE SetDefinitiveDocumentIdForSupplyTransactionsRequest DE LA MANERA: " + "\n" +
+                "SetDefinitiveDocumentIdForSupplyTransactionsRequest: {" + "\n" + 
+                "    OperadorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + "," + "\n" +
+                "    DefinitiveDocumentId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() + "," + "\n" +
+                "    SupplyTransactionIdList: " + supplyTransactionIdDOMS + "\n" + "}");
+
             SetDefinitiveDocumentIdForSupplyTransactionsResponse setDefinitiveDocumentIdForSupplyTransactionsResponse = conectionSignalRDomsInform.SetDefinitiveDocumentIdForSupplyTransactionsWS(setDefinitiveDocumentIdForSupplyTransactionsRequest);
             if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 69", "@SHELLMX- FALLO EN LA LIBERACION DE BOMBA VERIFICAR SURTIDOR EN TPV EL RESPONSE DE: \n" +
+                    "SetDefinitiveDocumentIdForSupplyTransactionsResponse: " + "\n"+ "{" + "\n" + "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
+                    "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
                 return new Salida_Info_Forma_Pago
                 {
                     Resultado = false,
@@ -1554,6 +1721,15 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == 1)
             {
+               exec.GeneraLogInfo("CODEVOL_FIN 1", "FINALIZO LA VENTA CON EL RESPONSE DE SetDefinitiveDocumentIdForSupplyTransactionsResponse :" + "{" + "\n" + 
+                   "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + "," + "\n" + 
+                   "    message" + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}" + "\n" + 
+                   "CON EL JSON DE SALIDA QUE SE ENTREGA A PC." + "\n" + "{" + 
+                   "    Msj: " + "SHELLHUBBLE- VENTA SATISFACTORIA," + "\n" + 
+                   "    Resultado: " + "true," + "\n" + 
+                   "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," +"\n" + 
+                   "    Nticket: " + possibleDocumentId + "," + "\n" +
+                   "    WebId: " + webIDFact + "\n" + "}");
                return new Salida_Info_Forma_Pago
                {
                     Msj = "SHELLHUBBLE- VENTA SATISFACTORIA",
@@ -1564,6 +1740,11 @@ namespace ControlVolumetricoShellWS.Implementation
                };
             }else if(setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS." + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: {" +
+                    "\n" + "    OperatorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + ", \n" + "    DefinitiveDocumentId : " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() +
+                    "    SupplyTransactionIdList : " + supplyTransactionIdDOMS + "\n" + "}" + "\n" + " EL RESPONSE DE SetDefinitiveDocumentIdForSupplyTransactionsResponse: {" + "\n" + 
+                    "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
+                    "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
                 return new Salida_Info_Forma_Pago
                 {
                     Msj = "SHELLHUBBLE- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS",
@@ -1576,11 +1757,13 @@ namespace ControlVolumetricoShellWS.Implementation
         public async Task<Salida_DesbloquearCarga> DesbloquearCarga(Entrada_DesbloquearCarga request)
         {
             #region PROCESOS DE VALIDACION EN LAS ENTRADA.
-
+            LogsTPVHP exec = new LogsTPVHP();
+            exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA EL METODO DesbloquearCarga PARA EL DESBLOQUEO DE BOMBA.");
             try
             {
                 if (Convert.ToDecimal(request.Id_Transaccion) <= Convert.ToDecimal(0))
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 60", "@SHELLMX- ES ID TRANSACCION NO ES VALIDO O NO EXISTE.");
                     return new Salida_DesbloquearCarga
                     {
                         Msj = "SHELLMXHUBBLE:: ES ID TRANSACCION NO ES VALIDO O NO EXISTE.",
@@ -1589,6 +1772,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (Convert.ToDecimal(request.Pos_Carga) <= Convert.ToDecimal(0))
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 59", "@SHELLMX- EL NUMERO DE LA BOMBA NO ES VALIDO O NO EXISTE.");
                     return new Salida_DesbloquearCarga
                     {
                         Msj = "SHELLMXHUBBLE:: EL NUMERO DE LA BOMBA NO ES VALIDO O NO EXISTE.",
@@ -1598,6 +1782,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             catch(Exception e)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 58", "@SHELLMX- NO CORRESPONDE CON EL FORMATO EL ID_TRANSACION | POS_CARGA LOG: " + e.ToString());
                 return new Salida_DesbloquearCarga
                 {
                     Msj = "SHELLMXHUBBLE:: NO CORRESPONDE CON EL FORMATO EL ID_TRANSACION | POS_CARGA LOG:: " + e.ToString(),
@@ -1607,6 +1792,7 @@ namespace ControlVolumetricoShellWS.Implementation
             
             if(request.idpos == null || request.PTID == null || request.serial == null || request.pss == null || request.nHD <= -1)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 57", "@SHELLMX- NO CORRESPONDE CON EL FORMATO EL idpos | PTID | serial | pss | nHD.");
                 return new Salida_DesbloquearCarga
                 {
                     Msj = "SHELLMXHUBBLE:: NO CORRESPONDE CON EL FORMATO EL idpos | PTID | serial | pss | nHD",
@@ -1638,10 +1824,12 @@ namespace ControlVolumetricoShellWS.Implementation
             SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
             string idOperator = null;
             string codeOperator = null;
+            string nameOperator = null;
 
             if (searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 56", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. ID_TELLER : " + request.Id_teller.ToString());
                 return new Salida_DesbloquearCarga
                 {
                     Msj = "SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA",
@@ -1654,11 +1842,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     idOperator = searchOperator.Id;
                     codeOperator = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
                 }
                 if (searchOperatorResponse.OperatorList.Count == 2)
                 {
                     idOperator = searchOperator.Id;
                     codeOperator = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
                 }
             }
 
@@ -1678,12 +1868,19 @@ namespace ControlVolumetricoShellWS.Implementation
             UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDoms.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
             if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 55", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA LOG:: RESPONSE: " + "\n" + "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" + 
+                    "    status: " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" + 
+                    "    message: " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
                 return new Salida_DesbloquearCarga
                 {
                     Msj = "@ SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA LOG::256",
                     Resultado = false
                 };
             }
+            exec.GeneraLogInfo("CODEVOL_TR **","OPERADOR QUE SOLICTA EL DESBLOQUEO DE BOMBA : " + nameOperator);
+            exec.GeneraLogInfo("CODEVOL_FIN 1", "SE FINALIZO EN METODO DE DESBLOQUEAR_BOMBA SATISFACTORIAMENTE CON EL SIGUIENTE RESPONSE: " + "\n" + "Salida_DesbloquearCarga: {" + "\n" + 
+                "    msj: " + "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
+                "    resultado: " + "true" + "\n" + "}");
             return new Salida_DesbloquearCarga
             {
                 Msj = "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status,
@@ -1695,11 +1892,14 @@ namespace ControlVolumetricoShellWS.Implementation
 
         public async Task<Salida_getProductInfo> getProductInfo(Entrada_getProductInfo request)
         {
+            LogsTPVHP exec = new LogsTPVHP();
+            exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA EL METODO getProductInfo PARA OBTENER UN ARTICULO.");
             try
             {
                 if (request.Pos_Carga < 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    exec.GeneraLogInfo("CODEVOL_FIN 54", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO!");
                     return new Salida_getProductInfo
                     {
                         Resultado = false,
@@ -1709,6 +1909,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }catch(Exception e)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 53", "@SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR NUMERO! LOG:: " + e.ToString());
                 return new Salida_getProductInfo
                 {
                     Resultado = false,
@@ -1751,10 +1952,12 @@ namespace ControlVolumetricoShellWS.Implementation
             SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
             string idOperatorObtTran = null;
             string codeOperatorOntTran = null;
+            string nameOperator = null;
 
             if (searchOperatorResponse.OperatorList.Count == 0)
             {
                 //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                exec.GeneraLogInfo("CODEVOL_FIN 52", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. ID_TELLER: " + request.Id_teller.ToString());
                 return new Salida_getProductInfo
                 {
                     Resultado = false,
@@ -1767,11 +1970,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     idOperatorObtTran = searchOperator.Id;
                     codeOperatorOntTran = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
                 }
                 if (searchOperatorResponse.OperatorList.Count == 2)
                 {
                     idOperatorObtTran = searchOperator.Id;
                     codeOperatorOntTran = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
                 }
             }
 
@@ -1795,9 +2000,20 @@ namespace ControlVolumetricoShellWS.Implementation
                 salida.importe = getProductForSaleResponse.FinalAmount;
                 salida.precio_Uni = getProductForSaleResponse.FinalAmount;
                 salida.mensajePromocion = "";
+                exec.GeneraLogInfo("CODEVOL_TR **", "OPERADOR QUE REALIZO LA PETICION DE OBTENER_INFO_PRODUCT : " + nameOperator);
+                exec.GeneraLogInfo("CODEVOL_FIN 1", "SE FINALIZO EL METODO DE GETPRODUCTINFO SATISFACTORIAMENTE CON EL RESPONSE: {" + "\n" + 
+                    "    resultado: " + salida.Resultado.ToString() + "," + "\n" + 
+                    "    msj:  " + salida.Msj.ToString() + "," + "\n" + 
+                    "    producto: " + salida.producto.ToString() + "," + "\n" + 
+                    "    id_producto: "+ salida.Id_producto.ToString() + "," + "\n" +
+                    "    importe: " + salida.importe.ToString() + "," + "\n" + 
+                    "    precio_uni: " + salida.precio_Uni.ToString() + "\n" + "}");
             }
             else if (getProductForSaleResponse.Status < 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 51", "@SHELLMX- PRODUCTO NO EXISTE: RESPONSE " + "\n" + "Salida_getProductInfo: {" + "\n" + 
+                    "    status: " + getProductForSaleResponse.Status.ToString() + "," + "\n" + 
+                    "    message: " + getProductForSaleResponse.Message.ToString() + "\n" + "}");
                 salida.Resultado = false;
                 salida.Msj = "Producto no existente";
             }
@@ -2486,6 +2702,18 @@ namespace ControlVolumetricoShellWS.Implementation
             Salida_Electronic_billing_FP salida = new Salida_Electronic_billing_FP();
             textosincaracterspc textosincarspecial = new textosincaracterspc();
 
+            LogsTPVHP exec = new LogsTPVHP();
+            exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA CON EL METODO Electronic_billing PARA LA FACTURACION Y VARIOS.");
+            exec.GeneraLogInfo("CODEVOL_TR **", "EL REQUEST QUE ENTREGA PC : {" + "\n" +
+                "    idPOS: " + request.idpos.ToString() + "," + "\n" +
+                "    nHD: " + request.nHD.ToString() + "," + "\n" +
+                "    NoCliente: " + request.NoCliente.ToString() + "," + "\n" +
+                "    n" + request.Nticket.ToString() + "," + "\n" +
+                "" + request.pss.ToString() + "," + "\n" +
+                "" + request.PTID.ToString() + "," + "\n" +
+                "" + request.Serial.ToString() + "," + "\n" +
+                "" + request.TipoOperacion.ToString() + "," + "\n" +
+                "" + request.WebID.ToString() + "\n" + "}");
             var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
             TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
             bool isFacturar = false;
@@ -2505,6 +2733,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (request.EESS == null)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 50", "@SHELLMX- ERROR CON EL NUMERO DE LA ESTACION.");
                 isFacturar = false;
                 salida.Msj = "INTRODUSCA UN NUMERO DE ESTACION";
                 salida.Resultado = false;
@@ -2519,6 +2748,7 @@ namespace ControlVolumetricoShellWS.Implementation
              }*/
             if (request.Nticket == null)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 49", "@SHELLMX- ERROR CON EL NUMERO DEL TICKET.");
                 isFacturar = false;
                 salida.Msj = "INTRODUSCA UN NUMERO DE TICKET";
                 salida.Resultado = false;
@@ -2526,6 +2756,7 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             if (request.WebID == null)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 48", "@SHELLMX- ERROR CON EL NUMERO DEL WEBID.");
                 isFacturar = false;
                 salida.Msj = "INTRODUSCA UN WEBID";
                 salida.Resultado = false;
@@ -2534,6 +2765,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (request.TipoOperacion == 0)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 47", "@SHELLMX- ERROR CON EL OPERADOR VALIDO.");
                 salida.Msj = "INTRODUSCA UNA OPERACION VALIDA PORFAVOR";
                 salida.Resultado = false;
                 return salida;
@@ -2643,6 +2875,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
             if (responsegetdocument.Document == null)
             {
+                exec.GeneraLogInfo("CODEVOL_FIN 46", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO.");
                 salida.Msj = "Ticket o Numero de cliente no valido";
                 salida.Resultado = false;
                 return salida;
@@ -2955,12 +3188,14 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 45", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO CON TIPO DE OPERACION 1");
                     salida.Msj = "Numero de cliente y numero de ticket no valido";
                     salida.Resultado = false;
                     return salida;
                 }
                 if (responsegetdocument.Document == null && responsecustomer.Customer != null)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 44", "@SHELLMX- NUMERO DE TICKET NO VALIDO TIPO DE OPERACION 1");
                     salida.Msj = "Numero de ticket no valido";
                     salida.Resultado = false;
                     return salida;
@@ -3002,12 +3237,14 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 43", "@SHELLMX- NUMERO DE TICKET O CLIENTE NO VALIDO TIPO DE OPERACION 2");
                     salida.Msj = "Numero de cliente y numero de ticket no valido";
                     salida.Resultado = false;
                     return salida;
                 }
                 if (responsegetdocument.Document == null && responsecustomer.Customer != null)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 42", "@SHELLMX- NUMERO DE TICKET NO VALIDO TIPO DE OPERACION 2");
                     salida.Msj = "Numero de ticket no valido";
                     salida.Resultado = false;
                     return salida;
@@ -3025,6 +3262,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (responsegetdocument.Document != null && responsecustomer.Customer == null && numeroclientere != null)
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 41", "@SHELLMX- NUMERO DE CLIENTE NO VALIDO TIPO DE OPERACION 2");
                     isFacturar = false;
                     salida.Resultado = true;
                     salida.Msj = "Numero de cliente no valido";
@@ -3131,6 +3369,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 40", "@SHELLMX- DATOS NO VALIDOS PARA FACTURAR : " + responsefacturacion.mensaje);
                     //salida.Ticket = request.Nticket;
                     //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
                     //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
@@ -3151,6 +3390,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 39", "@SHELLMX- DATOS INCORRECTOS PARA FACTURAR : " + responsefacturacion.mensaje);
                     //salida.Ticket = request.Nticket;
                     //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
                     //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
@@ -3171,12 +3411,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 38", "@SHELLMX- NO SE ENCONTRO EL SERVICIO DE FACTURACION : " + responsefacturacion.mensaje);
                     salida.Msj = responsefacturacion.mensaje;
                     salida.Resultado = true;
                     return salida;
                 }
                 if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
                 {
+                    exec.GeneraLogInfo("CODEVOL_TR **", "FACTURACION CORRECTA");
                     salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
                     salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
                     salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
@@ -3191,6 +3433,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 37", "@SHELLMX- ERROR DE TIMBRADO DE FACTURACION : " + responsefacturacion.mensaje);
                     salida.Msj = responsefacturacion.mensaje;
                     salida.Resultado = true;
                     return salida;
@@ -3198,6 +3441,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                 {
+                    exec.GeneraLogInfo("CODEVOL_FIN 36", "@SHELLMX- NO SE ENCONTRO EL METODO DE FACTURACION : " + responsefacturacion.mensaje);
                     salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
                     salida.Resultado = true;
                     return salida;
@@ -3217,7 +3461,47 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
             }
+            exec.GeneraLogInfo("CODEVOL_TR **", "EL RESPONSE QUE SE ENTREGA DE ELECTRONIC_BILLING : RESPONSE " + "\n" + 
+                "    ticket: " + request.Nticket + "," + "\n" + 
+                "    formapago: " + pagosimpreso + "," + "\n" + 
+                "    terminal: " + responsegetdocument.Document.PosId.ToString() + "," + "\n" + 
+                "    operador: " + responsegetdocument.Document.OperatorName + "," + "\n" + 
+                "    folio: " + Folioidticket + "," + "\n" + 
+                "    total: " + (Math.Truncate(responsegetdocument.Document.TotalAmountWithTax * 100) / 100).ToString("N2") + "," + "\n" + 
+                "    importeletra: " + letraconvert + "," + "\n" + 
+                "    iva: " + salidaiva + "," + "\n" +
+                "    ivamonto: " + salidaivamonto + "," + "\n" +
+                "    productos: " + listan + "," + "\n" + 
+                "    fecha: " + fechaticket + "," + "\n" + 
+                "    webid: " + webidnwe + "," + "\n" + 
+                "    estacion: " + informationresponses.PosInformation.ShopCode + "," + "\n" + 
+                "    header1: " + textosincarspecial.transformtext(deserializeJsonheader.Header1) + "," + "\n" + 
+                "    header2: " + textosincarspecial.transformtext(deserializeJsonheader.Header2) + "," + "\n" + 
+                "    header3: " + deserializeJsonheader.Header3 + "," + "\n" + 
+                "    header4: " + textosincarspecial.transformtext(deserializeJsonheader.Header4) + "," + "\n" + 
+                "    footer1: " + textosincarspecial.transformtext(deserializeJsonfooter.Footer1) + "," + "\n" + 
+                "    footer2: " + textosincarspecial.transformtext(deserializeJsonfooter.Footer2) + "," + "\n" + 
+                "    footer3: " + textosincarspecial.transformtext(deserializeJsonfooter.Footer3) + "," + "\n" + 
+                "    footer4: " + textosincarspecial.transformtext(deserializeJsonfooter.Footer4) + "," + "\n" + 
+                "    footer5 " + deserializeJsonfooter.Footer5 + "," + "\n" + 
+                "    codigopostalcompany: " + textosincarspecial.transformtext(listaPrinting[17]) + "," + "\n" + 
+                "    codigopostaltienda: " + textosincarspecial.transformtext(listaPrinting[27]) + "," + "\n" + 
+                "    coloniacompany: " + textosincarspecial.transformtext(listaPrinting[16]) + "," + "\n" +
+                "    coloniatienda: " + textosincarspecial.transformtext(listaPrinting[29]) + "," + "\n" + 
+                "    estadocompany: " + textosincarspecial.transformtext(listaPrinting[19]) + "," + "\n" +
+                "    estadotienda: " + textosincarspecial.transformtext(listaPrinting[31]) + "," + "\n" + 
+                "    expediciontienda: " + textosincarspecial.transformtext(listaPrinting[27]) + "," + "\n" + 
+                "    municipioCompany: " + textosincarspecial.transformtext(listaPrinting[16]) + "," + "\n" + 
+                "    municipiotienda: " + textosincarspecial.transformtext(listaPrinting[26]) + "," + "\n" +
+                "    nombreCompania: " + textosincarspecial.transformtext(listaPrinting[15]) + "," + "\n" +
+                "    paisCompania: " + textosincarspecial.transformtext(listaPrinting[20]) + "," + "\n" +
+                "    paisTienda: " + textosincarspecial.transformtext(listaPrinting[30]) + "," + "\n" +
+                "    permisoCRE: " + listaPrinting[32] + "," + "\n" +
+                "    tienda: " + textosincarspecial.transformtext(listaPrinting[25]) + "," + "\n" +
+                "    regFiscal: " + "REGIMEN GENERAL DE LEY PERSONAS MORALES" + "," + "\n" +
+                "    rfcCompania: " + textosincarspecial.transformtext(listaPrinting[5]) + "\n" + "}");
 
+            exec.GeneraLogInfo("CODEVOL_FIN 1", "SE TERMINA EL METODO DE ELETRONIC_BILLING SATISFACTORIAMENTE.");
             salida.Ticket = request.Nticket;
             salida.FormaPago = pagosimpreso;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
             //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");

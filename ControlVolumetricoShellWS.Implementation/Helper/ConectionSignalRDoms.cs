@@ -179,12 +179,16 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 LogsTPVHP exec = new LogsTPVHP();
                 // Se pregunta si esta conecta
+                exec.GeneraLogInfo("CODEVOL_T **", "@SHELLMX- Estado de conexion por parte del SignalR del WS con la del HubblePOS: " + IsConnected());
                 if (!IsConnected())
                 {
                     ConnectToServer();
                 }
 
                 GetAllSupplyTransactionsOfFuellingPointRequest request = new GetAllSupplyTransactionsOfFuellingPointRequest() { OperatorId = getAllSupplyTransactionsOfFuellingPointRequest.OperatorId, FuellingPointId = getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId };
+
+                exec.GeneraLogInfo("CODEVOL_T **", "@SHELLMX- Pasa el request de GetAllSupplyTransactionsOfFuellingPoint : \n { " +
+                    "    oparador: " + request.OperatorId + ", \n" + "    numSurtidor: " + request.FuellingPointId + "\n" + "}");
 
                 GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;

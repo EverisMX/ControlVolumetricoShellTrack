@@ -71,9 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InterfaceWCF\Entrada_Electronic_billing_FP.cs" />
     <Compile Include="InterfaceWCF\Info_Pagos_Parciales.cs" />
     <Compile Include="InterfaceWCF\Salida_Electronic_billing.cs" />
     <Compile Include="InterfaceWCF\Entrada_Electronic_billing.cs" />
+    <Compile Include="InterfaceWCF\Salida_Electronic_billing_FP.cs" />
     <Compile Include="InterfaceWCF\Salida_getProductInfo.cs" />
     <Compile Include="InterfaceWCF\Entrada_getProductInfo.cs" />
     <Compile Include="InterfaceWCF\Entrada_LiberaCarga.cs" />

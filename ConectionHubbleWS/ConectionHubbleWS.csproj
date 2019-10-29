@@ -113,6 +113,8 @@
     <Compile Include="Models\Hubble\GetPOSInformationResponse.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleRequest.cs" />
     <Compile Include="Models\Hubble\GetProductForSaleResponse.cs" />
+    <Compile Include="Models\Hubble\GetProvisionalIdToDocumentNumberMappingRequest.cs" />
+    <Compile Include="Models\Hubble\GetProvisionalIdToDocumentNumberMappingResponse.cs" />
     <Compile Include="Models\Hubble\GetSeriesRequest.cs" />
     <Compile Include="Models\Hubble\GetSeriesResponse.cs" />
     <Compile Include="Models\Hubble\Operator.cs" />

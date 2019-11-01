@@ -35,6 +35,13 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 #region VALIDACIONES DE LAS ENTRADAS DE OBTENER_TRAN
                 exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA EL METODODE Obtiene_Tran PARA OBTENER LA INFORMACION DE LA BOMBA. IDSEGUIMIENTO: " + criptoObt);
+                exec.GeneraLogInfo("CODEVOL_T **", "Request que se obtiene IDSEGUIMIENTO: " + criptoObt + "\n" + "{" + "\n" +
+                    "    idpos: " + request.idpos + "," + "\n" +
+                    "    teller: " + request.Id_teller + "," + "\n" +
+                    "    nHD: " + request.nHD + "," + "\n" +
+                    "    pos_carga: " + request.Pos_Carga + "," + "\n" +
+                    "    pss: " + request.pss + "," + "\n" +
+                    "    serial: " + request.serial + "\n" + "}");
                 try
                 {
                     if (request.Pos_Carga < 0)
@@ -207,7 +214,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida_Obtiene_Tran.Precio_Uni = lockTransactionInformation.GradeUnitPrice;
                     salida_Obtiene_Tran.Producto = Convert.ToString(lockTransactionInformation.GradeId);     //lockTransactionInformation.ProductReference,
                     salida_Obtiene_Tran.idInternoPOS = lockTransactionInformation.posID;
-                    
+
                     //Id_product = lockTransactionInformation.ProductReference
                     exec.GeneraLogInfo("CODEVOL_FIN 1", "SE TERMINO EL METODO DE OBTENER_TRAN EXITOSAMENTE CON EL SIGUIENTE RESPONSE: IDSEGUIMIENTO: " + criptoObt + "\n" + "Salida_Obtiene_Tran: \n {" + "\n" +
                         "    resultado: " + salida_Obtiene_Tran.Resultado.ToString() + "," + "\n" +
@@ -224,11 +231,157 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    idInternoPOS: " + salida_Obtiene_Tran.idInternoPOS.ToString() + "\n" + "}");
                 }
             }
-            catch(Exception e)
+            catch (Exception ext)
             {
-                salida_Obtiene_Tran.Msj = "@SHELLMX - ERROR Al ENTRAR AL METODO DE ONTENER_TRAN LOG:";
-                salida_Obtiene_Tran.Resultado = false;
-                exec.GeneraLogInfo("CODEVOL_FIN 29", "@SHELLMX - ERROR Al ENTRAR AL METODO DE ONTENER_TRAN LOG:: " + e.ToString() + "  IDSEGUIMIENTO: " + criptoObt);
+                //Se manda a verificar el estado del surtidor si tiene data en entrada.
+                if (request.Id_teller != null && request.Pos_Carga != 0)
+                {
+                    if (request.Pos_Carga < 0)
+                    {
+                        //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                        exec.GeneraLogInfo("CODEVOL_FIN 67.catch()", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO Pos_Carga: " + request.Pos_Carga.ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                        return new Salida_Obtiene_Tran
+                        {
+                            Resultado = false,
+                            Msj = "SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO NumSurtidor: " + request.Pos_Carga.ToString()
+                        };
+                    }
+
+                    ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+
+                    if (conectionSignalRDoms.StatusConectionHubbleR() < 0)
+                    {
+                        exec.GeneraLogInfo("CODEVOL_FIN 64.catch()", "SHELLHUBLE- FALLO LA CONEXION CON EL DOMS VERIFICAR QUE ESTE CONECTADO! RESPONSE: " + conectionSignalRDoms.StatusConectionHubbleR().ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                        return new Salida_Obtiene_Tran
+                        {
+                            Resultado = false,
+                            Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
+                        };
+                    }
+
+                    //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
+                    // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
+                    var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+                    TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+                    InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+
+                    #region VALIDACION DEL OPERADOR ID | CODE
+                    List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
+                        {
+                            new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Id , MatchingType = SearchOperatorCriteriaMatchingType.Exact },
+                            new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Code , MatchingType = SearchOperatorCriteriaMatchingType.Exact }
+                        };
+                    SearchOperatorRequest searchOperatorRequest = new SearchOperatorRequest
+                    {
+                        Identity = bsObj.Identity,
+                        CriteriaList = SearchOperatorCriteriaOperator,
+                        CriteriaRelationshipType = SearchCriteriaRelationshipType.Or,
+                        MustIncludeDischarged = false
+                    };
+
+                    SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
+                    string idOperatorObtTran = null;
+                    string codeOperatorOntTran = null;
+                    string nameOperator = null;
+
+                    if (searchOperatorResponse.OperatorList.Count == 0)
+                    {
+                        //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                        exec.GeneraLogInfo("CODEVOL_FIN 63.catch()", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. Id_Teller : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                        return new Salida_Obtiene_Tran
+                        {
+                            Resultado = false,
+                            Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                        };
+                    }
+                    foreach (var searchOperator in searchOperatorResponse.OperatorList)
+                    {
+                        if (searchOperatorResponse.OperatorList.Count == 1)
+                        {
+                            idOperatorObtTran = searchOperator.Id;
+                            codeOperatorOntTran = searchOperator.Code;
+                            nameOperator = searchOperator.Name.ToString();
+                        }
+                        if (searchOperatorResponse.OperatorList.Count == 2)
+                        {
+                            idOperatorObtTran = searchOperator.Id;
+                            codeOperatorOntTran = searchOperator.Code;
+                            nameOperator = searchOperator.Name.ToString();
+                        }
+                    }
+
+                    #endregion
+
+                    GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest = new GetAllSupplyTransactionsOfFuellingPointRequest { OperatorId = idOperatorObtTran, FuellingPointId = request.Pos_Carga };
+                    GetAllSupplyTransactionsOfFuellingPointResponse getAllSupplyTransactionsOfFuellingPointResponse = conectionSignalRDoms.GetAllSupplyTransactionsOfFuellingPoint(getAllSupplyTransactionsOfFuellingPointRequest);
+
+                    //Se verifica el estado del surtidor.
+                    if (getAllSupplyTransactionsOfFuellingPointResponse.Status == -99)
+                    {
+                        exec.GeneraLogInfo("CODEVOL_FIN 24.catch()", "@SHELLMX - SE PRODUJO UN ERROR EN LO SIG:  IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
+                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "No se encontro informacion en el surtidor Catch." };
+                    }
+                    if (getAllSupplyTransactionsOfFuellingPointResponse.Status < 0)
+                    {
+                        exec.GeneraLogInfo("CODEVOL_FIN 23.catch()", "@SHELLMX -  IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
+                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "No se encontro informacion en el surtidor." };
+                    }
+
+                    SupplyTransaction supplyTransaction = null;
+                    foreach (SupplyTransaction supply in getAllSupplyTransactionsOfFuellingPointResponse.SupplyTransactionList)
+                    {
+                        if (supplyTransaction == null)
+                        {
+                            supplyTransaction = supply;
+                        }
+                    }
+
+                    if (supplyTransaction.LockingPOSId != null && supplyTransaction.FuellingPointId == request.Pos_Carga)
+                    {
+                        #region PROCESO DE VALIDACION DE DESBLOQUEO
+
+                        UnlockSupplyTransactionOfFuellingPointRequest unlockSupplyTransactionOfFuellingPointRequest = new UnlockSupplyTransactionOfFuellingPointRequest
+                        {
+                            FuellingPointId = request.Pos_Carga,
+                            OperatorId = idOperatorObtTran,
+                            SupplyTransactionId = supplyTransaction.Id
+                        };
+
+                        UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDoms.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
+                        if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
+                        {
+                            exec.GeneraLogInfo("CODEVOL_FIN 55.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA NO SE APLICO EL REVERSO.  IDSEGUIMIENTO: " + criptoObt + "  LOG:: RESPONSE: " + "\n" + "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" +
+                                "    status: " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
+                                "    message: " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
+                            return new Salida_Obtiene_Tran
+                            {
+                                Msj = "@ SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA DEL PROCESO REVERSO",
+                                Resultado = false
+                            };
+                        }
+                        exec.GeneraLogInfo("CODEVOL_FIN 22.catch()", "@SHELLMX- SE DESBLOQUEO LA BOMBA SATISFACTORIAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoObt + "\n" + " DesbloquearCarga: {" + "\n" +
+                            "    msj: " + "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
+                            "    resultado: " + "true" + "\n" + "}");
+
+                        return new Salida_Obtiene_Tran { Msj = "Fallo obtener la bomba, operacion de desbloqueo exitoso Bomba " + request.Pos_Carga + " obtener nuevamente ", Resultado = false };
+                        #endregion
+                    }
+                    else
+                    {
+                        exec.GeneraLogInfo("CODEVOL_FIN 21.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEO LA BOMBA FALLO. IDSEGUIMIENTO: " + criptoObt);
+
+                        return new Salida_Obtiene_Tran { Msj = "Fallo obtener la bomba y no se pudo desbloquear bomba: " + request.Pos_Carga.ToString() + " revisar logs", Resultado = false };
+                    }
+                }
+                else
+                {
+                    exec.GeneraLogInfo("CODEVOL_FIN 22.catch()", "@SHELLMX - ERROR Al ENTRAR AL METODO DE ONTENER_TRAN" + "  IDSEGUIMIENTO: " + criptoObt + " LOG:: " + ext.ToString());
+                    return new Salida_Obtiene_Tran
+                    {
+                        Msj = "ERROR Al ENTRAR AL METODO DE ONTENER_TRAN EL IDTELLER : " + request.Id_teller + " Y POS_CARGA: " + request.Pos_Carga + " NO SE PUDIERON VALIDAR Y NO SE REALIZO EL DESBLOQUEO",
+                        Resultado = false
+                    };
+                }        
             }
             /*finally  // <--  termine bien o mal liberamos el semaforo
             {

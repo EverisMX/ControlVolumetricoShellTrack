@@ -326,6 +326,11 @@ namespace ControlVolumetricoShellWS.Implementation
                         exec.GeneraLogInfo("CODEVOL_FIN 23.catch()", "@SHELLMX -  IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
                         return new Salida_Obtiene_Tran { Resultado = false, Msj = "No se encontro informacion en el surtidor." };
                     }
+                    if(getAllSupplyTransactionsOfFuellingPointResponse.SupplyTransactionList.Count() == 0)
+                    {
+                        exec.GeneraLogInfo("CODEVOL_FIN 22.catch()", "@SHELLMX - NULL NO HAY INFORMACION EN SURTIDOR. IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
+                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "El surtidor no tiene ninguna recarga asociada <vacia>" };
+                    }
 
                     SupplyTransaction supplyTransaction = null;
                     foreach (SupplyTransaction supply in getAllSupplyTransactionsOfFuellingPointResponse.SupplyTransactionList)

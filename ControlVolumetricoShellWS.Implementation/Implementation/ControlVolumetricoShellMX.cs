@@ -23,6 +23,29 @@ namespace ControlVolumetricoShellWS.Implementation
         private static System.Threading.SemaphoreSlim SemaphoreSlimGetProductInfo { get; } = new System.Threading.SemaphoreSlim(1);
         private static System.Threading.SemaphoreSlim SemaphoreSlimElectronic_billing_FP { get; } = new System.Threading.SemaphoreSlim(1);*/
 
+
+        void Log(string codLog, string log)
+        {
+            LogsTPVHP _exec = new LogsTPVHP();
+            try
+            {
+                _exec.GeneraLogInfo(codLog, log);
+            }
+            catch (Exception e)
+            {
+                try
+                {
+                    _exec.GeneraLogInfo("CODEVOL_TR LOGERR", "@SHELLMX ERROR DE ESCRITURA LOG: " + e.ToString());
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+                throw;
+            }
+        }
+
         public async Task<Salida_Obtiene_Tran> Obtiene_Tran(Entrada_Obtiene_Tran request)
         {
             Salida_Obtiene_Tran salida_Obtiene_Tran = new Salida_Obtiene_Tran();
@@ -34,8 +57,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 //await SemaphoreSlimObtener_tran.WaitAsync();
 
                 #region VALIDACIONES DE LAS ENTRADAS DE OBTENER_TRAN
-                exec.GeneraLogInfo("CODEVOL_INI INFO", "@SHELLMX- SE INICIA EL METODO DE OBTIENE_TRAN PARA OBTENER LA INFORMACION DE LA BOMBA: " + request.Pos_Carga.ToString() + "  IDSEGUIMIENTO: " + criptoObt);
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "@SHELLMX- REQUEST QUE SE OBTIENE. IDSEGUIMIENTO: " + criptoObt + "\n" + "Obtiene_Tran:" + "\n" + "{" + "\n" +
+                Log("CODEVOL_INI INFO", "@SHELLMX- SE INICIA EL METODO DE OBTIENE_TRAN PARA OBTENER LA INFORMACION DE LA BOMBA: " + request.Pos_Carga.ToString() + "  IDSEGUIMIENTO: " + criptoObt);
+                Log("CODEVOL_TR INFO", "@SHELLMX- REQUEST QUE SE OBTIENE. IDSEGUIMIENTO: " + criptoObt + "\n" + "Obtiene_Tran:" + "\n" + "{" + "\n" +
                     "    idpos: " + request.idpos + "," + "\n" +
                     "    teller: " + request.Id_teller + "," + "\n" +
                     "    nHD: " + request.nHD + "," + "\n" +
@@ -47,7 +70,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (request.Pos_Carga < 0)
                     {
                         //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 67", "@SHELLMX- DEBE DE INSERTAR UN NUMERO DE SURTIDOR QUE ESTA LIGADO. IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN ERROR 67", "@SHELLMX- DEBE DE INSERTAR UN NUMERO DE SURTIDOR QUE ESTA LIGADO. IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -58,7 +81,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 catch (Exception e)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 66", "@SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR <NUMERO> IDSEGUIMIENTO: + " + criptoObt + "  LOG: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 66", "@SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR <NUMERO> IDSEGUIMIENTO: + " + criptoObt + "  LOG: " + e.ToString());
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
@@ -69,7 +92,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (request.nHD < 0 || request.idpos == null)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 65", "@SHELLMX- DEBE DE INSERTAR VALORES VALIDOS CON EL FORMATO nHD | idpos VERIFICAR. IDSEGUIMIENTO: " + criptoObt);
+                    Log("CODEVOL_FIN ERROR 65", "@SHELLMX- DEBE DE INSERTAR VALORES VALIDOS CON EL FORMATO nHD | idpos VERIFICAR. IDSEGUIMIENTO: " + criptoObt);
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
@@ -83,7 +106,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (conectionSignalRDoms.StatusConectionHubbleR() < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 64", "@SHELLMX- FALLO LA CONEXION CON EL DOMS VERIFICAR QUE ESTE CONECTADO. RESPONSE: " + conectionSignalRDoms.StatusConectionHubbleR().ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                    Log("CODEVOL_FIN ERROR 64", "@SHELLMX- FALLO LA CONEXION CON EL DOMS VERIFICAR QUE ESTE CONECTADO. RESPONSE: " + conectionSignalRDoms.StatusConectionHubbleR().ToString() + " IDSEGUIMIENTO: " + criptoObt);
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
@@ -120,7 +143,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (searchOperatorResponse.OperatorList.Count == 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 63", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. Id_Teller : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                    Log("CODEVOL_FIN WARNING 63", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. Id_Teller : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoObt);
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
@@ -143,7 +166,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     if(lockTransactionInformation.Status <= -1)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR" , "@SHELLMX- SE TERMINO EL METODO DE OBTENER LA BOMBA CON STATUS FALLIDO Y ENTREGANDO UN MENSAJE AL OPERADOR. IDSEGUIMIENTO : " + criptoObt);
+                        Log("CODEVOL_FIN ERROR" , "@SHELLMX- SE TERMINO EL METODO DE OBTENER LA BOMBA CON STATUS FALLIDO Y ENTREGANDO UN MENSAJE AL OPERADOR. IDSEGUIMIENTO : " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -152,7 +175,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (lockTransactionInformation.Status == 0)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING", "@SHELLMX- SE TERMINO EL METODO DE OBTENER LA BOMBA CON STATUS FALLIDO Y ENTREGANDO UN MENSAJE AL OPERADOR. IDSEGUIMIENTO : " + criptoObt);
+                        Log("CODEVOL_FIN WARNING", "@SHELLMX- SE TERMINO EL METODO DE OBTENER LA BOMBA CON STATUS FALLIDO Y ENTREGANDO UN MENSAJE AL OPERADOR. IDSEGUIMIENTO : " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -161,7 +184,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (lockTransactionInformation.CorrespondingVolume == 0 && lockTransactionInformation.DiscountedAmount == 0 && lockTransactionInformation.DiscountPercentage == 0 && lockTransactionInformation.FinalAmount == 0 && lockTransactionInformation.ProductName == null && lockTransactionInformation.ProductReference == null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING", "@SHELLMX- Transaccion Bloqueada por otra Terminal: LockSupplyTransactionOfFuellingPoint IDSEGUIMIENTO: " + criptoObt + " \n IDTRANSACTION: \n {" + "\n" +
+                        Log("CODEVOL_FIN WARNING", "@SHELLMX- Transaccion Bloqueada por otra Terminal: LockSupplyTransactionOfFuellingPoint IDSEGUIMIENTO: " + criptoObt + " \n IDTRANSACTION: \n {" + "\n" +
                             "    CorrespondingVolume: " + lockTransactionInformation.CorrespondingVolume.ToString() + "," + "\n" +
                             "    DiscountedAmount: " + lockTransactionInformation.DiscountedAmount.ToString() + "," + "\n" +
                             "    Status: " + lockTransactionInformation.Status.ToString() + "," + "\n" +
@@ -176,7 +199,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     else
                     {
-                        exec.GeneraLogInfo("CODEVOL_TR INFO", "@SHELLMX- OPERADOR QUE PIDE EL BLOQUEO DE LA BOMBA " + request.Pos_Carga.ToString() + " -->  " + nameOperator + "  IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_TR INFO", "@SHELLMX- OPERADOR QUE PIDE EL BLOQUEO DE LA BOMBA " + request.Pos_Carga.ToString() + " -->  " + nameOperator + "  IDSEGUIMIENTO: " + criptoObt);
 
                         GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                         GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
@@ -195,7 +218,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         salida_Obtiene_Tran.idInternoPOS = lockTransactionInformation.posID;
 
                         //Id_product = lockTransactionInformation.ProductReference
-                        exec.GeneraLogInfo("CODEVOL_FIN INFO", "@SHELLMX- SE TERMINO EL METODO DE OBTENER_TRAN EXITOSAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoObt + "\n" + "Salida_Obtiene_Tran: \n {" + "\n" +
+                        Log("CODEVOL_FIN INFO", "@SHELLMX- SE TERMINO EL METODO DE OBTENER_TRAN EXITOSAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoObt + "\n" + "Salida_Obtiene_Tran: \n {" + "\n" +
                             "    resultado: " + salida_Obtiene_Tran.Resultado.ToString() + "," + "\n" +
                             "    id_Interno: " + salida_Obtiene_Tran.ID_Interno.ToString() + "," + "\n" +
                             "    msj: " + salida_Obtiene_Tran.Msj.ToString() + "," + "\n" +
@@ -213,12 +236,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 catch(Exception ext0)
                 {
                     //Se Pinta el error.
-                    exec.GeneraLogInfo("CODEVOL_ WARNING", "ENTRO AL CATCH DEL OBTENER_TRAN: Message: " + ext0.Message + " Stacttrace: " + ext0.StackTrace);
+                    Log("CODEVOL_ WARNING", "ENTRO AL CATCH DEL OBTENER_TRAN: Message: " + ext0.Message + " Stacttrace: " + ext0.StackTrace);
                     //Se verifica el status de la bomba si se bloquee o no. 
                     GetAllSupplyTransactionsOfFuellingPointResponse getAllSupplyTransactionsOfFuellingPointResponse = conectionSignalRDoms.GetAllSupplyTransactionsOfFuellingPoint(getAllSupplyTransactionsOfFuellingPointRequest, criptoObt);
                     if(getAllSupplyTransactionsOfFuellingPointResponse.Status <= -1)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR", "@SHELLMX- SE PRODUJO UN ERROR AL OBTENER EL SUMINISTRO DE LA BOMBA. IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN ERROR", "@SHELLMX- SE PRODUJO UN ERROR AL OBTENER EL SUMINISTRO DE LA BOMBA. IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -227,7 +250,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if(getAllSupplyTransactionsOfFuellingPointResponse.Status == 0)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING", "@SHELLMX- SE PRODUJO UNA ADVERTENCIA AL OBTENER EL SUMINISTRO DE LA BOMBA. IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN WARNING", "@SHELLMX- SE PRODUJO UNA ADVERTENCIA AL OBTENER EL SUMINISTRO DE LA BOMBA. IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -242,7 +265,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if(lockingPOSIdAux == null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING ", "@SHELLMX- SE PRODUJO UN ERROR CON EL MAPEO DEL RESQUEST AL DATA DE LA BOMBA DEL DOMS, NO SE HA BLOQUEADO LA BOMBA, SE PUEDE PEDIR NUEVAMENTE. IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN WARNING ", "@SHELLMX- SE PRODUJO UN ERROR CON EL MAPEO DEL RESQUEST AL DATA DE LA BOMBA DEL DOMS, NO SE HA BLOQUEADO LA BOMBA, SE PUEDE PEDIR NUEVAMENTE. IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -253,14 +276,14 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             catch (Exception ext)
             {
-                exec.GeneraLogInfo("CODEVOL_ WARNING", "ENTRO AL CATCH MAS INTERNO (FASE DE RECUPERACION) AL OBTENER_TRAN. IDSEGUIMIENTO:" + criptoObt + "  Message: " + ext.Message + " Stacttrace: " + ext.StackTrace);
+                Log("CODEVOL_ WARNING", "ENTRO AL CATCH MAS INTERNO (FASE DE RECUPERACION) AL OBTENER_TRAN. IDSEGUIMIENTO:" + criptoObt + "  Message: " + ext.Message + " Stacttrace: " + ext.StackTrace);
                 //Se manda a verificar el estado del surtidor si tiene data en entrada.
                 if (request.Id_teller != null && request.Pos_Carga != 0)
                 {
                     if (request.Pos_Carga < 0)
                     {
                         //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 67.catch()", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO Pos_Carga: " + request.Pos_Carga.ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN WARNING 67.catch()", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO Pos_Carga: " + request.Pos_Carga.ToString() + " IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -272,7 +295,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (conectionSignalRDoms.StatusConectionHubbleR() < 0)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 64.catch()", "@SHELLMX- FALLO LA CONEXION CON EL DOMS VERIFICAR QUE ESTE CONECTADO! RESPONSE: " + conectionSignalRDoms.StatusConectionHubbleR().ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN ERROR 64.catch()", "@SHELLMX- FALLO LA CONEXION CON EL DOMS VERIFICAR QUE ESTE CONECTADO! RESPONSE: " + conectionSignalRDoms.StatusConectionHubbleR().ToString() + " IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -308,7 +331,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (searchOperatorResponse.OperatorList.Count == 0)
                     {
                         //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 63.catch()", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. Id_Teller : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN WARNING 63.catch()", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. Id_Teller : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
@@ -330,12 +353,12 @@ namespace ControlVolumetricoShellWS.Implementation
                     //Se verifica el estado del surtidor.
                     if (getAllSupplyTransactionsOfFuellingPointResponse.Status <= -1)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 24.catch()", "@SHELLMX- SE PRODUJO UN ERROR EN EL PROCESO DE OBTENER EL SURTIDOR. IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
+                        Log("CODEVOL_FIN ERROR 24.catch()", "@SHELLMX- SE PRODUJO UN ERROR EN EL PROCESO DE OBTENER EL SURTIDOR. IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
                         return new Salida_Obtiene_Tran { Resultado = false, Msj = getAllSupplyTransactionsOfFuellingPointResponse.Message };
                     }
                     if (getAllSupplyTransactionsOfFuellingPointResponse.Status == 0)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 23.catch()", "@SHELLMX- SE PRODUJO UN ERROR EN EL PROCESO DE OBTENER EL SURTIDOR. IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
+                        Log("CODEVOL_FIN WARNING 23.catch()", "@SHELLMX- SE PRODUJO UN ERROR EN EL PROCESO DE OBTENER EL SURTIDOR. IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
                         return new Salida_Obtiene_Tran { Resultado = false, Msj = getAllSupplyTransactionsOfFuellingPointResponse.Message };
                     }
 
@@ -363,7 +386,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDoms.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
                         if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
                         {
-                            exec.GeneraLogInfo("CODEVOL_FIN ERROR 55.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA NO SE APLICO EL REVERSO.  IDSEGUIMIENTO: " + criptoObt + "  LOG:: RESPONSE: " + "\n" + "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" +
+                            Log("CODEVOL_FIN ERROR 55.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA NO SE APLICO EL REVERSO.  IDSEGUIMIENTO: " + criptoObt + "  LOG:: RESPONSE: " + "\n" + "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" +
                                 "    status: " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
                                 "    message: " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
                             return new Salida_Obtiene_Tran
@@ -372,7 +395,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 Resultado = false
                             };
                         }
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 22.catch()", "@SHELLMX- FALLO EN OBTENER INFO EN LA BOMBA, SE DESBLOQUEO LA BOMBA SATISFACTORIAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoObt + "\n" + " DesbloquearCarga: {" + "\n" +
+                        Log("CODEVOL_FIN WARNING 22.catch()", "@SHELLMX- FALLO EN OBTENER INFO EN LA BOMBA, SE DESBLOQUEO LA BOMBA SATISFACTORIAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoObt + "\n" + " DesbloquearCarga: {" + "\n" +
                             "    msj: " + "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
                             "    resultado: " + "true" + "\n" + "}");
 
@@ -382,7 +405,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if(supplyTransaction.FuellingPointId == request.Pos_Carga)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 19" , "@SHELLMX- LA TERMINAR CON LA SERIE :" + request.serial.ToString() + " Y OPERADOR : " + nameOperator + " INTENTA TOMAR UNA CARGA QUE ESTA BLOQUEADA POR OTRO OPERADOR IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN WARNING 19" , "@SHELLMX- LA TERMINAR CON LA SERIE :" + request.serial.ToString() + " Y OPERADOR : " + nameOperator + " INTENTA TOMAR UNA CARGA QUE ESTA BLOQUEADA POR OTRO OPERADOR IDSEGUIMIENTO: " + criptoObt);
                         return new Salida_Obtiene_Tran
                         {
                             Msj = "LA BOMBA : " + request.Pos_Carga.ToString() + " ESTA BLOQUEADA POR OTRO OPERADOR.",
@@ -391,14 +414,14 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     else
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 21.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEO LA BOMBA FALLO. IDSEGUIMIENTO: " + criptoObt);
+                        Log("CODEVOL_FIN ERROR 21.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEO LA BOMBA FALLO. IDSEGUIMIENTO: " + criptoObt);
 
                         return new Salida_Obtiene_Tran { Msj = "FALLO OBTENER INFO DE LA BOMBA, Y NO SE PUDO DESBLOQUEAR LA BOMBA: " + request.Pos_Carga.ToString() + " REVISAR LOGS.", Resultado = false };
                     }
                 }
                 else
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 20.catch()", "@SHELLMX - ERROR Al ENTRAR AL METODO DE ONTENER_TRAN" + "  IDSEGUIMIENTO: " + criptoObt + " LOG: " + ext.ToString());
+                    Log("CODEVOL_FIN ERROR 20.catch()", "@SHELLMX - ERROR Al ENTRAR AL METODO DE ONTENER_TRAN" + "  IDSEGUIMIENTO: " + criptoObt + " LOG: " + ext.ToString());
                     return new Salida_Obtiene_Tran
                     {
                         Msj = "ERROR INTERNO AL OBTENER LA BOMBA Y NO SE REALIZO EL DESBLOQUEO.",
@@ -422,7 +445,7 @@ namespace ControlVolumetricoShellWS.Implementation
         public async Task<Salida_Info_Forma_Pago> Info_Forma_Pago(Entrada_Info_Forma_Pagos request)
         {
             Salida_Info_Forma_Pago salida_Info_Forma_Pago = new Salida_Info_Forma_Pago();
-            LogsTPVHP exec = new LogsTPVHP();
+           
             var criptoInfoFor = DateTime.Now.ToString("yyyyMM") + "_INFOPAY_" + DateTime.Now.ToString("h-mm-ss-ffff");
             //var idSupplyValidatorPreview;
             try
@@ -430,11 +453,11 @@ namespace ControlVolumetricoShellWS.Implementation
                 // si está ocupado se espera.
                 //await SemaphoreSlimInfo_Forma_Pago.WaitAsync();
 
-                exec.GeneraLogInfo("CODEVOL_INI INFO", "@SHELLMX- SE INICIA LA VENTA DE CARBURANTE/PERIFERICOS EN EL METODO INFO_FORMA_PAGO  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                Log("CODEVOL_INI INFO", "@SHELLMX- SE INICIA LA VENTA DE CARBURANTE/PERIFERICOS EN EL METODO INFO_FORMA_PAGO  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                 if (request.Id_Transaccion == null)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 99", "@SHELLMX- NUMERO DE TRANSACCION VACIO INTRODUCIR EL SURTIDOR ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN WARNING 99", "@SHELLMX- NUMERO DE TRANSACCION VACIO INTRODUCIR EL SURTIDOR ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -446,7 +469,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (Convert.ToInt32(request.Id_Transaccion) <= -1)  // Se coloca 0 por la parte del Efectivo.
                     {
                         //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                        exec.GeneraLogInfo("CODEVOL_FIN  WARNING 98", "@SHELLMX- INTRODUCIR UN NUMERO DE SURTIDOR VALIDO ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN  WARNING 98", "@SHELLMX- INTRODUCIR UN NUMERO DE SURTIDOR VALIDO ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -457,7 +480,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 catch (Exception e)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 97", "@SHELLMX- NO ES UN VALOR VALIDO ID_TRANSACTION VERIFICAR ---> ID_TRANSACTION: " +  request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + " LOG: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 97", "@SHELLMX- NO ES UN VALOR VALIDO ID_TRANSACTION VERIFICAR ---> ID_TRANSACTION: " +  request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + " LOG: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -471,7 +494,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (request.idpos == null || request.nHD <= 0 || request.PorpagarEntrada <= -1)
                     {
                         //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 96", "@SHELLMX- DATOS VALIDOS EN IDPOS | nHD | PorpagarEntrada VALIDAR. ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN WARNING 96", "@SHELLMX- DATOS VALIDOS EN IDPOS | nHD | PorpagarEntrada VALIDAR. ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -482,7 +505,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 catch (Exception e)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 95", "@SHELLMX- DATOS CON FORMATO INCORRECTO EN IDPOS | nHD | PorpagarEntrada VALIDAR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor +" Log: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 95", "@SHELLMX- DATOS CON FORMATO INCORRECTO EN IDPOS | nHD | PorpagarEntrada VALIDAR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor +" Log: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -494,7 +517,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (request.Id_teller == null)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 94", "@SHELLMX-  OPERADOR ESTA VACIO EN LA ENTRADA VALIDAR. ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN WARNING 94", "@SHELLMX-  OPERADOR ESTA VACIO EN LA ENTRADA VALIDAR. ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -531,7 +554,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (searchOperatorResponse.OperatorList.Count == 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 93", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN WARNING 93", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -569,7 +592,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDomsInform.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
                     if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 92", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG: " + "\n" +
+                        Log("CODEVOL_FIN ERROR 92", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG: " + "\n" +
                             "UnlockSupplyTransactionOfFuellingPointResponse: \n {" + "\n" +
                             "     " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
                             "     " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
@@ -579,7 +602,7 @@ namespace ControlVolumetricoShellWS.Implementation
                             Msj = "NO SE PUDO DESBLOQUEAR LA BOMBA VERIFICAR LOGS Y STATUS EN TPV."
                         };
                     }
-                    exec.GeneraLogInfo("CODEVOL_FIN INFO 91 PC", "@SHELLMX- TARJETA NO APROBADA, SE INICIA EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status + " --->ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN INFO 91 PC", "@SHELLMX- TARJETA NO APROBADA, SE INICIA EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status + " --->ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = true,
@@ -592,7 +615,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (request.Info_Forma_Pago == null || request.Info_Forma_Pago.Count == 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 90", "@SHELLMX- INFORM DE LA VENTA VACIO CARGAR LOS DATOS DE VENTA ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN WARNING 90", "@SHELLMX- INFORM DE LA VENTA VACIO CARGAR LOS DATOS DE VENTA ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -610,7 +633,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
                     {
                         //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 89", "@SHELLMX- Fallo la conexion con el DOMS Verificar que este conectado. " + "StatusConectionHubbleR : " + conectionSignalRDomsInform.StatusConectionHubbleR().ToString() + " --->ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN ERROR 89", "@SHELLMX- Fallo la conexion con el DOMS Verificar que este conectado. " + "StatusConectionHubbleR : " + conectionSignalRDomsInform.StatusConectionHubbleR().ToString() + " --->ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -629,7 +652,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor , request.Id_Transaccion);
                     if (validateFuellingPointO[0] <= -1)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR", "@SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN ERROR", "@SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -638,7 +661,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if(validateFuellingPointO[0] == 0 && validateFuellingPointO[1] == 0)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING", "@SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN WARNING", "@SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -648,7 +671,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 87", "@SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO ID_TRANSACCION_DOMS ---> " + validateFuellingPointO[0] + "  ID_TRANSACCION_BOMBA ---> " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN WARNING 87", "@SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO ID_TRANSACCION_DOMS ---> " + validateFuellingPointO[0] + "  ID_TRANSACCION_BOMBA ---> " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -660,7 +683,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     {
                         if (validateFuellingPointO[1] != request.idInternoPOS)
                         {
-                            exec.GeneraLogInfo("CODEVOL_FIN WARNING 86", "@SHELLMX- EL ID DE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO  IDINTERNOPOS_DOMS: '" + validateFuellingPointO[1] + "' CON IDINTERNOPOS_REQUEST:" + request.idInternoPOS + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                            Log("CODEVOL_FIN WARNING 86", "@SHELLMX- EL ID DE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO  IDINTERNOPOS_DOMS: '" + validateFuellingPointO[1] + "' CON IDINTERNOPOS_REQUEST:" + request.idInternoPOS + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                             return new Salida_Info_Forma_Pago
                             {
                                 Resultado = false,
@@ -670,7 +693,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     catch (Exception e)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 85", "@SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO IDINTERNOPOS_DOMS: '" + validateFuellingPointO[1] + "'  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + criptoInfoFor + "\n LOG: " + e.ToString());
+                        Log("CODEVOL_FIN ERROR 85", "@SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO IDINTERNOPOS_DOMS: '" + validateFuellingPointO[1] + "'  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + criptoInfoFor + "\n LOG: " + e.ToString());
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -698,7 +721,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (request.parciales)
                 {
                     //SHELLMX- Se manda una excepccion de que no esta lleno el valor del Inform.
-                    exec.GeneraLogInfo("CODEVOL_FIN INFO 84 PC", "@SHELLMX- INFORM VAliDACION DE PRIMERA ENTRADA VARIABLE PARCIALES = " + request.parciales.ToString() + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN INFO 84 PC", "@SHELLMX- INFORM VAliDACION DE PRIMERA ENTRADA VARIABLE PARCIALES = " + request.parciales.ToString() + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = true,
@@ -884,7 +907,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 83", "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_PagoList ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n Log:: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 83", "@SHELLMX- ERRORES EN LA ENTREGA DE Info_Forma_PagoList ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n Log:: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -893,7 +916,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     throw e;
                 }
 
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "SOLICITUD PARA CONSUMIR EL METODO ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor + "\n Info_Forma_Pago: " + "\n" + "{" + "\n" +
+                Log("CODEVOL_TR INFO", "SOLICITUD PARA CONSUMIR EL METODO ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor + "\n Info_Forma_Pago: " + "\n" + "{" + "\n" +
                     "    Id_Transaccion : " + request.Id_Transaccion.ToString() + "," + "\n" +
                     "    Id_Teller : " + request.Id_teller.ToString() + "," + "\n" +
                     "    Id_Interno_POS : " + request.idInternoPOS.ToString() + "," + "\n" +
@@ -916,7 +939,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     "    parciales: " + request.parciales.ToString() + "," + "\n" +
                     "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
                     "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "NOMBRE DEL OPERADOR QUE REALIZA LA VENTA --> " + nameOperator + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
+                Log("CODEVOL_TR INFO", "NOMBRE DEL OPERADOR QUE REALIZA LA VENTA --> " + nameOperator + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
 
                 #region VERIFICAR LA LONGITUD QUE COINCIDAN EN LOS PRODUCTOS.
 
@@ -932,7 +955,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         flagCountCombustible = countUniversalCombu == valOldCombu ? true : false;
                         if (!flagCountCombustible)
                         {
-                            exec.GeneraLogInfo("CODEVOL_FIN WARNING 82", "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS CARBURANTES EN LA SOLICITUD VERIFICAR ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                            Log("CODEVOL_FIN WARNING 82", "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS CARBURANTES EN LA SOLICITUD VERIFICAR ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                             return new Salida_Info_Forma_Pago
                             {
                                 Resultado = false,
@@ -952,7 +975,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     flagCountProduct = countUniversalProduc == valOldProduct ? true : false;
                     if (!flagCountProduct)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 81", "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS PERIFARICOS EN LA SOLICITUD VERIFICAR ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN WARNING 81", "@SHELLMX- NO COINCIDE LA CANTIDAD DE PRODUCTOS PERIFARICOS EN LA SOLICITUD VERIFICAR ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -974,7 +997,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     flagCountMontoPagar = countUniversalCountMontoP == valOldMontoP ? true : false;
                     if (!flagCountMontoPagar)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 80", "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS MONTOPAGAR REALIZADAS EN LA SOLICITUD VERIFICAR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN WARNING 80", "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS MONTOPAGAR REALIZADAS EN LA SOLICITUD VERIFICAR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -993,7 +1016,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     flagCountFormaPago = countUniversalFormPago == valOldFormPago ? true : false;
                     if (!flagCountFormaPago)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 79", "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS FORMAPAGO REALIZADAS EN LA SOLICITUD VERIFICAR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN WARNING 79", "@SHELLMX- NO COINCIDE LA CANTIDAD DE LAS FORMAPAGO REALIZADAS EN LA SOLICITUD VERIFICAR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -1109,7 +1132,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     catch (Exception e)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 78", "@SHELLMX- EN LA CANTIDAD DE LOS PRODUCTO DE CARBURANTE VENGAN CON CARACTER ESPECIAL Log:: " + e.ToString() + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + " LOG: " + e.ToString());
+                        Log("CODEVOL_FIN ERROR 78", "@SHELLMX- EN LA CANTIDAD DE LOS PRODUCTO DE CARBURANTE VENGAN CON CARACTER ESPECIAL Log:: " + e.ToString() + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + " LOG: " + e.ToString());
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -1151,7 +1174,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 77", "@SHELLMX- ERRORES DE CONVERSION  O FORMATO DE MONTOAPAGAR VERIFICAR DATOS Log:: " + e.ToString() + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + " LOG: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 77", "@SHELLMX- ERRORES DE CONVERSION  O FORMATO DE MONTOAPAGAR VERIFICAR DATOS Log:: " + e.ToString() + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + " LOG: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -1220,7 +1243,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 76", "@SHELLMX- ERRORES DE CONVERSION DE ID_PRODUCTO | CANTIDAD | IMPORTE_UNITARIO | IMPORTE_TOTAL VERIFICAR DATOS Log: " + e.ToString() + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
+                    Log("CODEVOL_FIN ERROR 76", "@SHELLMX- ERRORES DE CONVERSION DE ID_PRODUCTO | CANTIDAD | IMPORTE_UNITARIO | IMPORTE_TOTAL VERIFICAR DATOS Log: " + e.ToString() + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -1408,7 +1431,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     catch (Exception e)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN ERROR 75", "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! Log:: " + e.ToString() + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN ERROR 75", "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR!! Log:: " + e.ToString() + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
@@ -1527,7 +1550,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 74", "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR EN PERIFERICOS  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO:" + criptoInfoFor + "\n Log: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 74", "@SHELLMX- ERRORES DE CONVERSION EN MONTOPAGO O FOMAPAGO NO TIENE EL IDCATALOGO ADECUADO VERIFICAR EN PERIFERICOS  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO:" + criptoInfoFor + "\n Log: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -1626,7 +1649,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                         if (getProductForSaleResponse.Status < 0)
                         {
-                            exec.GeneraLogInfo("CODEVOL_FIN WARNING 73", "@SHELLMX- LOS PRODUCTOS INTRODUCIDOS NO EXISTEN O SON INCORRECTOS VERIFICAR ID PRODUCTO INTRODUCIDO : " + informListProducts.Id_producto.ToString() + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
+                            Log("CODEVOL_FIN WARNING 73", "@SHELLMX- LOS PRODUCTOS INTRODUCIDOS NO EXISTEN O SON INCORRECTOS VERIFICAR ID PRODUCTO INTRODUCIDO : " + informListProducts.Id_producto.ToString() + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
                             return new Salida_Info_Forma_Pago
                             {
                                 Resultado = false,
@@ -1720,7 +1743,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 72", "@SHELLMX- LOS DATOS INTRODUCIDOS NO TIENEN EL FORMATO ESPECIFICO VERIFICAR E INTERTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 72", "@SHELLMX- LOS DATOS INTRODUCIDOS NO TIENEN EL FORMATO ESPECIFICO VERIFICAR E INTERTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG: " + e.ToString());
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
@@ -1792,7 +1815,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 //GetProvisionalIdToDocumentNumberMappingResponse getProvisionalIdToDocumentNumberMappingResponse = await invokeHubbleWebAPIServices.GetProvisionalIdToDocumentNumberMapping(getProvisionalIdToDocumentNumberMappingRequest);
                 /*if(getProvisionalIdToDocumentNumberMappingResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 25", "@SHELLMX- FALLO EN PROCESO DE ASIGNACION DE NTICKET EN EL MAPPINGTICKET REVISAR. IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG: \n " +
+                    Log("CODEVOL_FIN ERROR 25", "@SHELLMX- FALLO EN PROCESO DE ASIGNACION DE NTICKET EN EL MAPPINGTICKET REVISAR. IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG: \n " +
                         "getProvisionalIdToDocumentNumberMappingResponse : \n {" + "\n" + "    status: " + getProvisionalIdToDocumentNumberMappingResponse.Status.ToString() + ", \n" + "    message :" + getProvisionalIdToDocumentNumberMappingResponse.Message + "\n" + "}");
                     return new Salida_Info_Forma_Pago
                     {
@@ -1810,7 +1833,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         item2 = resultProvisionalIdToDocumentNumberMapping.Value.Item2;
                     }
                 }*/
-                /*exec.GeneraLogInfo("CODEVOL_TR INFO", "SE HA INVOCADO EL WEBAPI DE PROVICIONALID DEL MAPPING. IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "GetProvisionalIdToDocumentNumberMapping: \n" + "{" + "\n" +
+                /*Log("CODEVOL_TR INFO", "SE HA INVOCADO EL WEBAPI DE PROVICIONALID DEL MAPPING. IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "GetProvisionalIdToDocumentNumberMapping: \n" + "{" + "\n" +
                     "    item1: " + item1 + "," + "\n" +
                     "    item2: " + item2 + "," + "\n" + "}");
                 foreach(CreateDocumentDAO createDocument in createDocumentDAOs)
@@ -1822,7 +1845,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 CreateDocumentsResponse createDocumentsResponse = await invokeHubbleWebAPIServices.CreateDocuments(createDocumentsRequest);
                 if (createDocumentsResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 71", "@SHELLMX- FALLO EN PROCESO INTERNO HUBBLE NO SE ALMACENO EN BDEVERILION REINTENTAR Y VERIFICAR LOS DATOS CORRECTOS DE ENTRADA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO:" + criptoInfoFor + "\n " +
+                    Log("CODEVOL_FIN ERROR 71", "@SHELLMX- FALLO EN PROCESO INTERNO HUBBLE NO SE ALMACENO EN BDEVERILION REINTENTAR Y VERIFICAR LOS DATOS CORRECTOS DE ENTRADA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO:" + criptoInfoFor + "\n " +
                         "createDocumentsResponse: \n {" + "\n" + "    status: " + createDocumentsResponse.Status.ToString() + ", \n" + "    message :" + createDocumentsResponse.Message + "\n" + "}");
                     return new Salida_Info_Forma_Pago
                     {
@@ -1840,7 +1863,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                 }
 
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "RESPUESTA DE CREATEDOCUMENT() SUCCESFULL  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n " + "CreateDocumentsResponse: \n {" + "\n" +
+                Log("CODEVOL_TR INFO", "RESPUESTA DE CREATEDOCUMENT() SUCCESFULL  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n " + "CreateDocumentsResponse: \n {" + "\n" +
                      "    status: " + createDocumentsResponse.Status.ToString() + "," + "\n" +
                      "    message: " + createDocumentsResponse.Message.ToString() + "," + "\n" +
                      "    possibleDocumentId: " + possibleDocumentId.ToString() + "\n" + "}");
@@ -1864,7 +1887,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 // Se Revisa que se realizo correctamente la subida de la venta de producto menos carburante.
                 if (IsCombustibleEnabler == false)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN INFO", "SE TERMINO LA VENTA DE PERIFERICOS DONDE NO SE LIBERA NINGUNA BOMBA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "Salida_Info_Forma_Pago: \n {" + "\n" +
+                    Log("CODEVOL_FIN INFO", "SE TERMINO LA VENTA DE PERIFERICOS DONDE NO SE LIBERA NINGUNA BOMBA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "Salida_Info_Forma_Pago: \n {" + "\n" +
                         "    msj: " + "VENTA SATISFACTORIA DE PERIFERICOS OK," + "\n" +
                         "    Resultado: " + "true," + "\n" +
                         "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," + "\n" +
@@ -1899,7 +1922,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     VehicleLicensePlate = null
                 };
 
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "SE CONTRUYE EL OBJETO PARA FINALIZAR UNA BOMBA O SURTIDOR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "FinalizeSupplyTransactionRequest: \n {" + "\n" +
+                Log("CODEVOL_TR INFO", "SE CONTRUYE EL OBJETO PARA FINALIZAR UNA BOMBA O SURTIDOR  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "FinalizeSupplyTransactionRequest: \n {" + "\n" +
                     "    ContactId: " + "NULL," + "\n" +
                     "    CustomerId: " + finalizeSupplyTransactionRequest.CustomerId.ToString() + "," + "\n" +
                     "    FuellingPointId: " + finalizeSupplyTransactionRequest.FuellingPointId.ToString() + "," + "\n" +
@@ -1917,7 +1940,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (finalizeSupplyTransactionResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS, SE GENERO EXITOSAMENTE EL NUMERO DE TICKET --> " + possibleDocumentId.ToString() + " SE DEBE DE LIBERAR EL SURTUDOR DESDE EL TPV O EL DEMOPOS  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS, SE GENERO EXITOSAMENTE EL NUMERO DE TICKET --> " + possibleDocumentId.ToString() + " SE DEBE DE LIBERAR EL SURTUDOR DESDE EL TPV O EL DEMOPOS  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
                                        "FinalizeSupplyTransactionResponse: \n {" + "\n" +
                                        "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
                     return new Salida_Info_Forma_Pago
@@ -1934,7 +1957,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                 }
 
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "SE VALIDO EL RESPONSE FinalizeSupplyTransactionResponse DE MANERA  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + " \n" + "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                Log("CODEVOL_TR INFO", "SE VALIDO EL RESPONSE FinalizeSupplyTransactionResponse DE MANERA  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + " \n" + "FinalizeSupplyTransactionResponse: \n {" + "\n" +
                     "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + "," + "\n" +
                     "    message: " + finalizeSupplyTransactionResponse.Message.ToString() + "," + "\n" +
                     "    ProvisionalSupplyIdToDefinitiveSupplyIdMapping: " + supplyTransactionIdDOMS + "\n" + "}");
@@ -1953,7 +1976,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     SupplyTransactionIdList = SupplyTransactionIdListWS
                 };
 
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "SE CONSTRUYE EL RESQUEST DE SetDefinitiveDocumentIdForSupplyTransactionsRequest DE LA MANERA   ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" +
+                Log("CODEVOL_TR INFO", "SE CONSTRUYE EL RESQUEST DE SetDefinitiveDocumentIdForSupplyTransactionsRequest DE LA MANERA   ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" +
                     "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" + "\n" +
                     "    OperadorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + "," + "\n" +
                     "    DefinitiveDocumentId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() + "," + "\n" +
@@ -1962,7 +1985,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 SetDefinitiveDocumentIdForSupplyTransactionsResponse setDefinitiveDocumentIdForSupplyTransactionsResponse = conectionSignalRDomsInform.SetDefinitiveDocumentIdForSupplyTransactionsWS(setDefinitiveDocumentIdForSupplyTransactionsRequest);
                 if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 69", "@SHELLMX- FALLO EN LA LIBERACION DE BOMBA, SE GENERO EXITOSAMENTE EL NUMERO DE TICKET --> " + possibleDocumentId.ToString() + " SE DEBE DE LIBERAR EL SURTUDOR DESDE EL TPV O EL DEMOPOS  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" +
+                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- FALLO EN LA LIBERACION DE BOMBA, SE GENERO EXITOSAMENTE EL NUMERO DE TICKET --> " + possibleDocumentId.ToString() + " SE DEBE DE LIBERAR EL SURTUDOR DESDE EL TPV O EL DEMOPOS  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" +
                         "SetDefinitiveDocumentIdForSupplyTransactionsResponse: " + "\n" + "{" + "\n" + "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
                         "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
                     return new Salida_Info_Forma_Pago
@@ -1976,7 +1999,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS, SE ALMANCENO LA VENTA PERO NO SE LIBERO  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" +
+                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS, SE ALMANCENO LA VENTA PERO NO SE LIBERO  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" +
                         "\n" + "    OperatorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + ", \n" + "    DefinitiveDocumentId : " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() +
                         "    SupplyTransactionIdList : " + supplyTransactionIdDOMS + "\n" + "}" + "\n" + " EL RESPONSE DE SetDefinitiveDocumentIdForSupplyTransactionsResponse: {" + "\n" +
                         "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
@@ -1987,7 +2010,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 else //if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == 1)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN 1", "FINALIZO LA VENTA CON EL RESPONSE  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n SetDefinitiveDocumentIdForSupplyTransactionsResponse : \n" + "{" + "\n" +
+                    Log("CODEVOL_FIN 1", "FINALIZO LA VENTA CON EL RESPONSE  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n SetDefinitiveDocumentIdForSupplyTransactionsResponse : \n" + "{" + "\n" +
                         "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + "," + "\n" +
                         "    message" + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}" + "\n" +
                         "CON EL JSON DE SALIDA QUE SE ENTREGA A PC." + "\n" + "{" +
@@ -2008,7 +2031,7 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 salida_Info_Forma_Pago.Msj = "OCURRIO UN ERROR INTERNO DEL SERVICIO DE VENTA VERIFICAR LOGS.";
                 salida_Info_Forma_Pago.Resultado = false;
-                exec.GeneraLogInfo("CODEVOL_FIN ERROR 26", "OCURRIO UN ERROR AL ENTRAR AL METODO INFO_FORMA_PAGO 'INTENTAR NUEVAMENTE DE REALIZAR LA VENTA'. IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + e.ToString());
+                Log("CODEVOL_FIN ERROR 26", "OCURRIO UN ERROR AL ENTRAR AL METODO INFO_FORMA_PAGO 'INTENTAR NUEVAMENTE DE REALIZAR LA VENTA'. IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + e.ToString());
             }
             /*finally  // <--  termine bien o mal liberamos el semaforo
             {
@@ -2033,12 +2056,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 // si está ocupado se espera.
                 //await SemaphoreSlimDesbloquearCarga.WaitAsync();
                 #region PROCESOS DE VALIDACION EN LAS ENTRADA.
-                exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA EL METODO DesbloquearCarga PARA EL DESBLOQUEO DE BOMBA. IDSEGUIMIENTO: " + criptoDesC);
+                Log("CODEVOL_INI 0", "SE INICIA EL METODO DesbloquearCarga PARA EL DESBLOQUEO DE BOMBA. IDSEGUIMIENTO: " + criptoDesC);
                 try
                 {
                     if (Convert.ToDecimal(request.Id_Transaccion) <= Convert.ToDecimal(0))
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 60", "@SHELLMX- ES ID TRANSACCION NO ES VALIDO O NO EXISTE. IDSEGUIMIENTO: " + criptoDesC);
+                        Log("CODEVOL_FIN WARNING 60", "@SHELLMX- ES ID TRANSACCION NO ES VALIDO O NO EXISTE. IDSEGUIMIENTO: " + criptoDesC);
                         return new Salida_DesbloquearCarga
                         {
                             Msj = "EL ID DE LA BOMBA NO ES VALIDO O NO EXISTE.",
@@ -2047,7 +2070,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (Convert.ToDecimal(request.Pos_Carga) <= Convert.ToDecimal(0))
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 59", "@SHELLMX- EL NUMERO DE LA BOMBA NO ES VALIDO O NO EXISTE. IDSEGUIMIENTO: " + criptoDesC);
+                        Log("CODEVOL_FIN WARNING 59", "@SHELLMX- EL NUMERO DE LA BOMBA NO ES VALIDO O NO EXISTE. IDSEGUIMIENTO: " + criptoDesC);
                         return new Salida_DesbloquearCarga
                         {
                             Msj = "EL NUMERO DE LA BOMBA NO ES VALIDO O NO EXISTE.",
@@ -2057,7 +2080,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 catch (Exception e)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 58", "@SHELLMX- NO CORRESPONDE CON EL FORMATO EL ID_TRANSACION | POS_CARGA. IDSEGUIMIENTO:" + criptoDesC + " LOG: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 58", "@SHELLMX- NO CORRESPONDE CON EL FORMATO EL ID_TRANSACION | POS_CARGA. IDSEGUIMIENTO:" + criptoDesC + " LOG: " + e.ToString());
                     return new Salida_DesbloquearCarga
                     {
                         Msj = "ERROR EN LOS DATOS DE ENTRADA VALIDAR LOGS.",
@@ -2067,7 +2090,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (request.idpos == null || request.PTID == null || request.serial == null || request.pss == null || request.nHD <= -1)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 57", "@SHELLMX- NO CORRESPONDE CON EL FORMATO EL idpos | PTID | serial | pss | nHD. IDSEGUIMIENTO: " + criptoDesC);
+                    Log("CODEVOL_FIN WARNING 57", "@SHELLMX- NO CORRESPONDE CON EL FORMATO EL idpos | PTID | serial | pss | nHD. IDSEGUIMIENTO: " + criptoDesC);
                     return new Salida_DesbloquearCarga
                     {
                         Msj = "ERROR EN LOS DATOS DE ENTRADA VALIDAR LOGS.",
@@ -2104,7 +2127,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (searchOperatorResponse.OperatorList.Count == 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 56", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. ID_TELLER : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoDesC);
+                    Log("CODEVOL_FIN WARNING 56", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. ID_TELLER : " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoDesC);
                     return new Salida_DesbloquearCarga
                     {
                         Msj = "OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA.",
@@ -2143,7 +2166,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 UnlockSupplyTransactionOfFuellingPointResponse unlockSupplyTransactionOfFuellingPointResponse = conectionSignalRDoms.UnlockSupplyTransactionOfFuellingPointWS(unlockSupplyTransactionOfFuellingPointRequest);
                 if (unlockSupplyTransactionOfFuellingPointResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 55", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA.  IDSEGUIMIENTO: "+ criptoDesC + "LOG:: RESPONSE: " + "\n" + "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" +
+                    Log("CODEVOL_FIN ERROR 55", "@SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA.  IDSEGUIMIENTO: "+ criptoDesC + "LOG:: RESPONSE: " + "\n" + "UnlockSupplyTransactionOfFuellingPointResponse: {" + "\n" +
                         "    status: " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
                         "    message: " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
                     return new Salida_DesbloquearCarga
@@ -2152,8 +2175,8 @@ namespace ControlVolumetricoShellWS.Implementation
                         Resultado = false
                     };
                 }
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "OPERADOR QUE SOLICTA EL DESBLOQUEO DE BOMBA : " + nameOperator + " IDSEGUIMIENTO: " + criptoDesC);
-                exec.GeneraLogInfo("CODEVOL_FIN 1", "SE FINALIZO EN METODO DE DESBLOQUEAR_BOMBA SATISFACTORIAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoDesC + "\n" + " Salida_DesbloquearCarga: {" + "\n" +
+                Log("CODEVOL_TR INFO", "OPERADOR QUE SOLICTA EL DESBLOQUEO DE BOMBA : " + nameOperator + " IDSEGUIMIENTO: " + criptoDesC);
+                Log("CODEVOL_FIN 1", "SE FINALIZO EN METODO DE DESBLOQUEAR_BOMBA SATISFACTORIAMENTE CON EL SIGUIENTE RESPONSE. IDSEGUIMIENTO: " + criptoDesC + "\n" + " Salida_DesbloquearCarga: {" + "\n" +
                     "    msj: " + "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
                     "    resultado: " + "true" + "\n" + "}");
 
@@ -2166,7 +2189,7 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 salida_DesbloquearCarga.Msj = "ERROR INTERNO AL DESBLOQUEAR LA BOMBA VERIFICAR LOGS.";
                 salida_DesbloquearCarga.Resultado = false;
-                exec.GeneraLogInfo("CODEVOL_FIN ERROR 28", "@SHELLMX- HUBO UN PROBLEMA AL ENTRAR AL METODO DE DESBLOQUEARBOMBA IDSEGUIMIENTO: " + criptoDesC + " LOG:: " + e.ToString());
+                Log("CODEVOL_FIN ERROR 28", "@SHELLMX- HUBO UN PROBLEMA AL ENTRAR AL METODO DE DESBLOQUEARBOMBA IDSEGUIMIENTO: " + criptoDesC + " LOG:: " + e.ToString());
             }
             /*finally  // <--  termine bien o mal liberamos el semaforo
             {
@@ -2191,13 +2214,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 // si está ocupado se espera.
                 //await SemaphoreSlimGetProductInfo.WaitAsync();
 
-                exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA EL METODO getProductInfo PARA OBTENER UN ARTICULO. IDSEGUIMIENTO: " + criptoGetProd);
+                Log("CODEVOL_INI 0", "SE INICIA EL METODO getProductInfo PARA OBTENER UN ARTICULO. IDSEGUIMIENTO: " + criptoGetProd);
                 try
                 {
                     if (request.Pos_Carga < 0)
                     {
                         //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 54", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO! IDSEGUIMIENTO: " + criptoGetProd);
+                        Log("CODEVOL_FIN WARNING 54", "@SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO! IDSEGUIMIENTO: " + criptoGetProd);
                         return new Salida_getProductInfo
                         {
                             Resultado = false,
@@ -2208,7 +2231,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 catch (Exception e)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN ERROR 53", "@SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR NUMERO! IDSEGUIMIENTO: " + criptoGetProd + " LOG:: " + e.ToString());
+                    Log("CODEVOL_FIN ERROR 53", "@SHELLMX- DEBE DE INTRODUCIR EL FORMATO CORRECTO DE SURTIDOR NUMERO! IDSEGUIMIENTO: " + criptoGetProd + " LOG:: " + e.ToString());
                     return new Salida_getProductInfo
                     {
                         Resultado = false,
@@ -2256,7 +2279,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 if (searchOperatorResponse.OperatorList.Count == 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 52", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. ID_TELLER: " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoGetProd);
+                    Log("CODEVOL_FIN WARNING 52", "@SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA. ID_TELLER: " + request.Id_teller.ToString() + " IDSEGUIMIENTO: " + criptoGetProd);
                     return new Salida_getProductInfo
                     {
                         Resultado = false,
@@ -2298,8 +2321,8 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida.importe = getProductForSaleResponse.FinalAmount;
                     salida.precio_Uni = getProductForSaleResponse.FinalAmount;
                     salida.mensajePromocion = "";
-                    exec.GeneraLogInfo("CODEVOL_TR INFO", "OPERADOR QUE REALIZO LA PETICION DE OBTENER_INFO_PRODUCT : " + nameOperator + " IDSEGUIMIENTO: " + criptoGetProd);
-                    exec.GeneraLogInfo("CODEVOL_FIN 1", "SE FINALIZO EL METODO DE GETPRODUCTINFO SATISFACTORIAMENTE CON EL RESPONSE IDSEGUIMIENTO: " + criptoGetProd + "\n {" + "\n" +
+                    Log("CODEVOL_TR INFO", "OPERADOR QUE REALIZO LA PETICION DE OBTENER_INFO_PRODUCT : " + nameOperator + " IDSEGUIMIENTO: " + criptoGetProd);
+                    Log("CODEVOL_FIN 1", "SE FINALIZO EL METODO DE GETPRODUCTINFO SATISFACTORIAMENTE CON EL RESPONSE IDSEGUIMIENTO: " + criptoGetProd + "\n {" + "\n" +
                         "    resultado: " + salida.Resultado.ToString() + "," + "\n" +
                         "    msj:  " + salida.Msj.ToString() + "," + "\n" +
                         "    producto: " + salida.producto.ToString() + "," + "\n" +
@@ -2309,7 +2332,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 else if (getProductForSaleResponse.Status < 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 51", "@SHELLMX- PRODUCTO NO EXISTE: RESPONSE. IDSEGUIMIENTO: " + criptoGetProd + "\n" + "Salida_getProductInfo: \n {" + "\n" +
+                    Log("CODEVOL_FIN WARNING 51", "@SHELLMX- PRODUCTO NO EXISTE: RESPONSE. IDSEGUIMIENTO: " + criptoGetProd + "\n" + "Salida_getProductInfo: \n {" + "\n" +
                         "    status: " + getProductForSaleResponse.Status.ToString() + "," + "\n" +
                         "    message: " + getProductForSaleResponse.Message.ToString() + "\n" + "}");
                     salida.Resultado = false;
@@ -2320,7 +2343,7 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 salida.Msj = "ERROR INTERNO AL OBTENER INFO DEL PRODUCTO, VERIFICAR LOGS.";
                 salida.Resultado = false;
-                exec.GeneraLogInfo("CODEVOL_FIN ERROR 27", "@SHELLMX- HUBO UN ERROR AL ENTRAR AL METODO DE OBTENER_PRODUCTO. IDSEGUIMIENTO: " + criptoGetProd + "LOG:: " + e.ToString());
+                Log("CODEVOL_FIN ERROR 27", "@SHELLMX- HUBO UN ERROR AL ENTRAR AL METODO DE OBTENER_PRODUCTO. IDSEGUIMIENTO: " + criptoGetProd + "LOG:: " + e.ToString());
             }
             /*finally  // <--  termine bien o mal liberamos el semaforo
             {
@@ -3023,8 +3046,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 //await SemaphoreSlimElectronic_billing_FP.WaitAsync();
 
                 #region globales
-                exec.GeneraLogInfo("CODEVOL_INI 0", "SE INICIA CON EL METODO Electronic_billing PARA LA FACTURACION Y VARIOS. IDSEGUIMIENTO: " + criptoElecB);
-                exec.GeneraLogInfo("CODEVOL_TR INFO", "EL REQUEST QUE ENTREGA PC " + criptoElecB  + "\n Electronic_Billing: \n {" + "\n" +
+                Log("CODEVOL_INI 0", "SE INICIA CON EL METODO Electronic_billing PARA LA FACTURACION Y VARIOS. IDSEGUIMIENTO: " + criptoElecB);
+                Log("CODEVOL_TR INFO", "EL REQUEST QUE ENTREGA PC " + criptoElecB  + "\n Electronic_Billing: \n {" + "\n" +
                     "    idPOS: " + request.idpos.ToString() + "," + "\n" +
                     "    nHD: " + request.nHD.ToString() + "," + "\n" +
                     "    noCliente: " + request.NoCliente.ToString() + "," + "\n" +
@@ -3053,7 +3076,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (request.EESS == null)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 50", "@SHELLMX- ERROR CON EL NUMERO DE LA ESTACION. IDSEGUIMIENTO: " + criptoElecB);
+                    Log("CODEVOL_FIN WARNING 50", "@SHELLMX- ERROR CON EL NUMERO DE LA ESTACION. IDSEGUIMIENTO: " + criptoElecB);
                     isFacturar = false;
                     salida.Msj = "INTRODUSCA UN NUMERO DE ESTACION VALIDO.";
                     salida.Resultado = false;
@@ -3068,7 +3091,7 @@ namespace ControlVolumetricoShellWS.Implementation
                  }*/
                 if (request.Nticket == null)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 49", "@SHELLMX- ERROR CON EL NUMERO DEL TICKET. IDSEGUIMIENTO: " + criptoElecB);
+                    Log("CODEVOL_FIN WARNING 49", "@SHELLMX- ERROR CON EL NUMERO DEL TICKET. IDSEGUIMIENTO: " + criptoElecB);
                     isFacturar = false;
                     salida.Msj = "INTRODUSCA UN NUMERO DE TICKET CORRECTO.";
                     salida.Resultado = false;
@@ -3076,7 +3099,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
                 if (request.WebID == null)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 48", "@SHELLMX- ERROR CON EL NUMERO DEL WEBID. IDSEGUIMIENTO: " + criptoElecB);
+                    Log("CODEVOL_FIN WARNING 48", "@SHELLMX- ERROR CON EL NUMERO DEL WEBID. IDSEGUIMIENTO: " + criptoElecB);
                     isFacturar = false;
                     salida.Msj = "INTRODUSCA UN WEBID CORRECTO.";
                     salida.Resultado = false;
@@ -3085,7 +3108,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (request.TipoOperacion == 0)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 47", "@SHELLMX- ERROR CON EL TIPO DE OPERACION VALIDAR. IDSEGUIMIENTO: " + criptoElecB);
+                    Log("CODEVOL_FIN WARNING 47", "@SHELLMX- ERROR CON EL TIPO DE OPERACION VALIDAR. IDSEGUIMIENTO: " + criptoElecB);
                     salida.Msj = "INTRODUSCA UN TIPO DE OPERACION VALIDO.";
                     salida.Resultado = false;
                     return salida;
@@ -3195,7 +3218,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (responsegetdocument.Document == null)
                 {
-                    exec.GeneraLogInfo("CODEVOL_FIN WARNING 46", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO. IDSEGUIMIENTO: " + criptoElecB);
+                    Log("CODEVOL_FIN WARNING 46", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO. IDSEGUIMIENTO: " + criptoElecB);
                     salida.Msj = "TICKET O NUMERO DE CLIENTE NO VALIDO O NO EXISTE.";
                     salida.Resultado = false;
                     return salida;
@@ -3508,14 +3531,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 45", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO CON TIPO DE OPERACION 1. IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN WARNING 45", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO CON TIPO DE OPERACION 1. IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = "NUMERO DE CLIENTE O TICKET NO VALIDO.";
                         salida.Resultado = false;
                         return salida;
                     }
                     if (responsegetdocument.Document == null && responsecustomer.Customer != null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN WARNING 44", "@SHELLMX- NUMERO DE TICKET NO VALIDO TIPO DE OPERACION 1. IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN WARNING 44", "@SHELLMX- NUMERO DE TICKET NO VALIDO TIPO DE OPERACION 1. IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = "NUMERO DE TICKET NO VALIDO.";
                         salida.Resultado = false;
                         return salida;
@@ -3551,14 +3574,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 43", "@SHELLMX- NUMERO DE TICKET O CLIENTE NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 43", "@SHELLMX- NUMERO DE TICKET O CLIENTE NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = "NUMERO DE CLIENTE Y TICKET NO VALIDO.";
                         salida.Resultado = false;
                         return salida;
                     }
                     if (responsegetdocument.Document == null && responsecustomer.Customer != null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 42", "@SHELLMX- NUMERO DE TICKET NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 42", "@SHELLMX- NUMERO DE TICKET NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = "NUMERO DE TICKET NO VALIDO.";
                         salida.Resultado = false;
                         return salida;
@@ -3576,7 +3599,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer == null && numeroclientere != null)
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 41", "@SHELLMX- NUMERO DE CLIENTE NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 41", "@SHELLMX- NUMERO DE CLIENTE NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
                         isFacturar = false;
                         salida.Resultado = true;
                         salida.Msj = "NUMERO DE CLIENTE NO VALIDO.";
@@ -3677,7 +3700,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 40", "@SHELLMX- DATOS NO VALIDOS PARA FACTURAR : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 40", "@SHELLMX- DATOS NO VALIDOS PARA FACTURAR : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         //salida.Ticket = request.Nticket;
                         //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
                         //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
@@ -3698,7 +3721,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 39", "@SHELLMX- DATOS INCORRECTOS PARA FACTURAR : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 39", "@SHELLMX- DATOS INCORRECTOS PARA FACTURAR : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         //salida.Ticket = request.Nticket;
                         //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
                         //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
@@ -3719,14 +3742,14 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 38", "@SHELLMX- NO SE ENCONTRO EL SERVICIO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 38", "@SHELLMX- NO SE ENCONTRO EL SERVICIO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = responsefacturacion.mensaje;
                         salida.Resultado = true;
                         return salida;
                     }
                     if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
                     {
-                        exec.GeneraLogInfo("CODEVOL_TR **", "FACTURACION CORRECTA. " + "IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_TR **", "FACTURACION CORRECTA. " + "IDSEGUIMIENTO: " + criptoElecB);
                         salida.SelloDigitaSAT = responsefacturacion.SelloDigitaSAT;
                         salida.SelloDigitaCFDI = responsefacturacion.SelloDigitaCFDI;
                         salida.CadenaOrigTimbre = responsefacturacion.CadenaOrigTimbre;
@@ -3741,7 +3764,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (responsefacturacion.mensaje == "ERROR DE TIMBRADO AL FACTURAR")
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 37", "@SHELLMX- ERROR DE TIMBRADO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 37", "@SHELLMX- ERROR DE TIMBRADO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = responsefacturacion.mensaje;
                         salida.Resultado = true;
                         return salida;
@@ -3749,7 +3772,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                     if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                     {
-                        exec.GeneraLogInfo("CODEVOL_FIN 36", "@SHELLMX- NO SE ENCONTRO EL METODO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
+                        Log("CODEVOL_FIN 36", "@SHELLMX- NO SE ENCONTRO EL METODO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
                         salida.Resultado = true;
                         return salida;
@@ -3769,7 +3792,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
                 }
-                exec.GeneraLogInfo("CODEVOL_TR **", "EL RESPONSE QUE SE ENTREGA DE ELECTRONIC_BILLING IDSEGUIMIENTO: " +criptoElecB + "\n RESPONSE " + "\n" + "{" + "\n" +
+                Log("CODEVOL_TR **", "EL RESPONSE QUE SE ENTREGA DE ELECTRONIC_BILLING IDSEGUIMIENTO: " +criptoElecB + "\n RESPONSE " + "\n" + "{" + "\n" +
                     "    ticket: " + request.Nticket + "," + "\n" +
                     "    terminal: " + responsegetdocument.Document.PosId.ToString() + "," + "\n" +
                     "    operador: " + responsegetdocument.Document.OperatorName + "," + "\n" +
@@ -3807,7 +3830,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     "    regFiscal: " + "REGIMEN GENERAL DE LEY PERSONAS MORALES" + "," + "\n" +
                     "    rfcCompania: " + textosincarspecial.transformtext(listaPrinting[5]) + "\n" + "}");
 
-                exec.GeneraLogInfo("CODEVOL_FIN 1", "SE TERMINA EL METODO DE ELETRONIC_BILLING SATISFACTORIAMENTE. IDSEGUIMIENTO: " + criptoElecB);
+                Log("CODEVOL_FIN 1", "SE TERMINA EL METODO DE ELETRONIC_BILLING SATISFACTORIAMENTE. IDSEGUIMIENTO: " + criptoElecB);
                 salida.Ticket = request.Nticket;
                 salida.FormaPago = pagosimpreso;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
                                                 //salida.Subtotal = (Math.Truncate(responsegetdocument.Document.TaxableAmount * 100) / 100).ToString("N2");
@@ -3854,7 +3877,7 @@ namespace ControlVolumetricoShellWS.Implementation
             {
                 salida.Msj = "HUBO UN ERRRO INTERNO AL OBTENER EL TICKET FACTURA.";
                 salida.Resultado = false;
-                exec.GeneraLogInfo("CODEVOL_FIN 26", "@SHELLMX- HUBO UN ERRRO AL ENTRAR AL METODO DE ELECTRONIC_BILLING IDSEGUIMIENTO: "+ criptoElecB + "LOG:: " + e.ToString());
+                Log("CODEVOL_FIN 26", "@SHELLMX- HUBO UN ERRRO AL ENTRAR AL METODO DE ELECTRONIC_BILLING IDSEGUIMIENTO: "+ criptoElecB + "LOG:: " + e.ToString());
             }
             /*finally  // <--  termine bien o mal liberamos el semaforo
             {

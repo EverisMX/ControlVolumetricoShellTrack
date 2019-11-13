@@ -1938,25 +1938,89 @@ namespace ControlVolumetricoShellWS.Implementation
                 FinalizeSupplyTransactionResponse finalizeSupplyTransactionResponse = conectionSignalRDomsInform.FinalizeSupplyTransactionWS(finalizeSupplyTransactionRequest);
                 string supplyTransactionIdDOMS = null;
 
-                if (finalizeSupplyTransactionResponse.Status < 0)
+                if (finalizeSupplyTransactionResponse.Status == -1)
                 {
-                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS, SE GENERO EXITOSAMENTE EL NUMERO DE TICKET --> " + possibleDocumentId.ToString() + " SE DEBE DE LIBERAR EL SURTUDOR DESDE EL TPV O EL DEMOPOS  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS ERROR DE VALIDACION CHECAR LIBERACION DE BOMBA Y SU REGISTRO DEL TICKET CON EL ID_TRANSACTION.  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
                                        "FinalizeSupplyTransactionResponse: \n {" + "\n" +
                                        "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV."
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -1"
                     };
                 }
-                else
+                if (finalizeSupplyTransactionResponse.Status == -2)
                 {
-                    foreach (KeyValuePair<string, string> resultsupplyTransactionIdDOMS in finalizeSupplyTransactionResponse.ProvisionalSupplyIdToDefinitiveSupplyIdMapping)
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS <<PSS NO CONECTADO AL HUBLEPOS CHECAR CONEXION Y GUARDADO DEL TICKET CON EL ID_TRANSACTION>>  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
                     {
-                        supplyTransactionIdDOMS = resultsupplyTransactionIdDOMS.Value;
-                    }
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -2"
+                    };
+                }
+                if (finalizeSupplyTransactionResponse.Status == -3)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS <<EL SURTIDOR NO EXISTIO VERIFICAR SI SE ALMACENO EN CETEL CON EL ID_TRANSACTION.>>  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -3"
+                    };
+                }
+                if (finalizeSupplyTransactionResponse.Status == -4)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS <<TRANSACCION SOLICITADA NO EXISTE VERIFICAR SI SE ALMACENO EN CETEL CON EL ID_TRANSACTION.>>  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -4"
+                    };
+                }
+                if (finalizeSupplyTransactionResponse.Status == -5)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS <<TRANSACCION EN UN ESTADO INVALIDO PARA REALIZAR ESTA ACCION VERIFICAR SI SE ALMACENO EN CETEL CON EL ID_TRANSACTION.>>  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -5"
+                    };
+                }
+                if (finalizeSupplyTransactionResponse.Status == -6)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS <<LA OPERACION HA SIDO RECHAZADA POR EL CONTROLADOR, VERIFICAR SI SE ALMACENO EN CETEL CON EL ID_TRANSACTION.>>  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -6"
+                    };
+                }
+                if (finalizeSupplyTransactionResponse.Status == -7)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO LA CONEXION DE CERRAR LA BOMBA EN EL DOMS <<ERROR GENERAL CHECAR EL ESTADO Y GUARDADO DEL TICKET CON EL ID_TRANSACTION.>>  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                                          "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                                          "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + ", \n" + "    mesagge: " + finalizeSupplyTransactionResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -7"
+                    };
                 }
 
+                foreach (KeyValuePair<string, string> resultsupplyTransactionIdDOMS in finalizeSupplyTransactionResponse.ProvisionalSupplyIdToDefinitiveSupplyIdMapping)
+                {
+                    supplyTransactionIdDOMS = resultsupplyTransactionIdDOMS.Value;
+                }
+                
                 Log("CODEVOL_TR INFO", "SE VALIDO EL RESPONSE FinalizeSupplyTransactionResponse DE MANERA  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + " \n" + "FinalizeSupplyTransactionResponse: \n {" + "\n" +
                     "    status: " + finalizeSupplyTransactionResponse.Status.ToString() + "," + "\n" +
                     "    message: " + finalizeSupplyTransactionResponse.Message.ToString() + "," + "\n" +
@@ -1983,49 +2047,63 @@ namespace ControlVolumetricoShellWS.Implementation
                     "    SupplyTransactionIdList: " + supplyTransactionIdDOMS + "\n" + "}");
 
                 SetDefinitiveDocumentIdForSupplyTransactionsResponse setDefinitiveDocumentIdForSupplyTransactionsResponse = conectionSignalRDomsInform.SetDefinitiveDocumentIdForSupplyTransactionsWS(setDefinitiveDocumentIdForSupplyTransactionsRequest);
-                if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
+                if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == -1)
                 {
-                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- FALLO EN LA LIBERACION DE BOMBA, SE GENERO EXITOSAMENTE EL NUMERO DE TICKET --> " + possibleDocumentId.ToString() + " SE DEBE DE LIBERAR EL SURTUDOR DESDE EL TPV O EL DEMOPOS  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" +
-                        "SetDefinitiveDocumentIdForSupplyTransactionsResponse: " + "\n" + "{" + "\n" + "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
-                        "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
-                    return new Salida_Info_Forma_Pago
-                    {
-                        Resultado = false,
-                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV."
-                    };
-                }
-
-                #endregion
-
-                if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status < 0)
-                {
-                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS, SE ALMANCENO LA VENTA PERO NO SE LIBERO  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" +
+                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS, SE ALMANCENO LA VENTA PERO NO SE LIBERO  <<ERROR DE VALIDACION VERIFICAR SI SE ALMACENO EN PLATAFORMA>>   ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" +
                         "\n" + "    OperatorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + ", \n" + "    DefinitiveDocumentId : " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() +
                         "    SupplyTransactionIdList : " + supplyTransactionIdDOMS + "\n" + "}" + "\n" + " EL RESPONSE DE SetDefinitiveDocumentIdForSupplyTransactionsResponse: {" + "\n" +
                         "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
                         "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
-
-                    salida_Info_Forma_Pago.Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV.";
-                    salida_Info_Forma_Pago.Resultado = false;
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -1F"
+                    };
                 }
-                else //if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == 1)
+                if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == -2)
                 {
-                    Log("CODEVOL_FIN 1", "FINALIZO LA VENTA CON EL RESPONSE  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n SetDefinitiveDocumentIdForSupplyTransactionsResponse : \n" + "{" + "\n" +
-                        "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + "," + "\n" +
-                        "    message" + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}" + "\n" +
-                        "CON EL JSON DE SALIDA QUE SE ENTREGA A PC." + "\n" + "{" +
-                        "    Msj: " + "SHELLHUBBLE- VENTA SATISFACTORIA," + "\n" +
-                        "    Resultado: " + "true," + "\n" +
-                        "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," + "\n" +
-                        "    Nticket: " + possibleDocumentId + "," + "\n" +
-                        "    WebId: " + webIDFact + "\n" + "}");
-
-                    salida_Info_Forma_Pago.Msj = "SHELLHUBBLE- VENTA SATISFACTORIA";
-                    salida_Info_Forma_Pago.Resultado = true;
-                    salida_Info_Forma_Pago.EESS = getPOSInformationResponse.PosInformation.ShopCode;
-                    salida_Info_Forma_Pago.Nticket = possibleDocumentId;
-                    salida_Info_Forma_Pago.WebId = webIDFact;
+                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS, SE ALMANCENO LA VENTA PERO NO SE LIBERO  <<AL MENOS UNO DE LOS INDETIFICADORES DE SUMINISTRO NO CORRESPONDE A NINGUNO EXISTENTE VERIFICAR SI SE ALMACENO EN PLATAFORMA>>   ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" +
+                        "\n" + "    OperatorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + ", \n" + "    DefinitiveDocumentId : " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() +
+                        "    SupplyTransactionIdList : " + supplyTransactionIdDOMS + "\n" + "}" + "\n" + " EL RESPONSE DE SetDefinitiveDocumentIdForSupplyTransactionsResponse: {" + "\n" +
+                        "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
+                        "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -2F"
+                    };
                 }
+                if (setDefinitiveDocumentIdForSupplyTransactionsResponse.Status == -3)
+                {
+                    Log("CODEVOL_FIN ERROR 69", "@SHELLMX- ERROR REVISAR FALLA DE CIERRE DEL DOMS Y VENTA VERIFICAR BOS, SE ALMANCENO LA VENTA PERO NO SE LIBERO  <<SE GENERO UN ERRROR GENERICO. VERIFICAR SI SE ALMACENO EN PLATAFORMA>>   ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "SetDefinitiveDocumentIdForSupplyTransactionsRequest: \n {" +
+                        "\n" + "    OperatorId: " + setDefinitiveDocumentIdForSupplyTransactionsRequest.OperatorId.ToString() + ", \n" + "    DefinitiveDocumentId : " + setDefinitiveDocumentIdForSupplyTransactionsRequest.DefinitiveDocumentId.ToString() +
+                        "    SupplyTransactionIdList : " + supplyTransactionIdDOMS + "\n" + "}" + "\n" + " EL RESPONSE DE SetDefinitiveDocumentIdForSupplyTransactionsResponse: {" + "\n" +
+                        "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + ", \n" +
+                        "    message: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR EN LIBERAR LA BOMBA DE LA VENTA, LIBERAR LA BOMBA DESDE EL TPV -3F"
+                    };
+                }
+                #endregion
+
+                Log("CODEVOL_FIN INFO", "FINALIZO LA VENTA CON EL RESPONSE  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n SetDefinitiveDocumentIdForSupplyTransactionsResponse : \n" + "{" + "\n" +
+                    "    status: " + setDefinitiveDocumentIdForSupplyTransactionsResponse.Status.ToString() + "," + "\n" +
+                    "    message" + setDefinitiveDocumentIdForSupplyTransactionsResponse.Message.ToString() + "\n" + "}" + "\n" +
+                    "CON EL JSON DE SALIDA QUE SE ENTREGA A PC." + "\n" + "{" +
+                    "    Msj: " + "SHELLHUBBLE- VENTA SATISFACTORIA," + "\n" +
+                    "    Resultado: " + "true," + "\n" +
+                    "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," + "\n" +
+                    "    Nticket: " + possibleDocumentId + "," + "\n" +
+                    "    WebId: " + webIDFact + "\n" + "}");
+
+                salida_Info_Forma_Pago.Msj = "SHELLHUBBLE- VENTA SATISFACTORIA";
+                salida_Info_Forma_Pago.Resultado = true;
+                salida_Info_Forma_Pago.EESS = getPOSInformationResponse.PosInformation.ShopCode;
+                salida_Info_Forma_Pago.Nticket = possibleDocumentId;
+                salida_Info_Forma_Pago.WebId = webIDFact;
+                
             }
             catch (Exception e)
             {

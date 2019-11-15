@@ -104,7 +104,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
                 //SHELLMX- Si no entrega ninguna informacion.
-                if (supplyTransactionOfFuellingPoint.Status <= -4 || supplyTransactionOfFuellingPoint.Status == -1)
+                /*if (supplyTransactionOfFuellingPoint.Status <= -4 || supplyTransactionOfFuellingPoint.Status == -1)
                 {
                     exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + supplyTransactionOfFuellingPoint.Message);
                     return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "LA BOMBA : " + request.FuellingPointId + " INSERTADA NO EXISTE O NO HAY CARGA. VERIFICAR LOGS", Status = supplyTransactionOfFuellingPoint.Status };
@@ -137,6 +137,17 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + " TRANSACCION BLOQUEADA POR OTRO OPERADOR.");
                     return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "TRANSACCION BLOQUEADA POR OTRO OPERADOR.", Status = -1 };
+                }*/
+
+                if (supplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    supplyTransactionOfFuellingPoint = null;
+                    supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                    if (supplyTransactionOfFuellingPoint.Status < 0)
+                    {
+                        return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "No se encontro ninguna recarga en el surtidor", Status = supplyTransactionOfFuellingPoint.Status };
+                    }
                 }
 
                 return supplyTransactionOfFuellingPoint;
@@ -173,7 +184,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
                 //SHELLMX- Si no entrega ninguna informacion.
-                if (supplyTransactionOfFuellingPoint.Status <= -4 || supplyTransactionOfFuellingPoint.Status == -1)
+                /*if (supplyTransactionOfFuellingPoint.Status <= -4 || supplyTransactionOfFuellingPoint.Status == -1)
                 {
                     exec.GeneraLogInfo("CODEVOL_TR ERROR" , "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + supplyTransactionOfFuellingPoint.Message);
                     return new LockSupplyTransactionOfFuellingPointResponse { Message = "LA BOMBA : " + request.FuellingPointId + " INSERTADA NO EXISTE O NO HAY CARGA. VERIFICAR LOGS", Status = supplyTransactionOfFuellingPoint.Status };
@@ -206,6 +217,16 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + " TRANSACCION BLOQUEADA POR OTRO OPERADOR.");
                     return new LockSupplyTransactionOfFuellingPointResponse { Message = "TRANSACCION BLOQUEADA POR OTRO OPERADOR.", Status = -1 };
+                }*/
+                if (supplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    supplyTransactionOfFuellingPoint = null;
+                    supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                    if (supplyTransactionOfFuellingPoint.Status < 0)
+                    {
+                        return new LockSupplyTransactionOfFuellingPointResponse { Message = "SHELLMX- No hay Transacciones en el surtidor: supplyTransactionOfFuellingPoint IN IDTRANSACTION @115 @" + supplyTransactionOfFuellingPoint.Message, Status = supplyTransactionOfFuellingPoint.Status };
+                    }
                 }
 
                 // SHELLMX- Se manda a traer la informacion sobre el Cliente Contado para este proceso.
@@ -260,7 +281,7 @@ namespace ControlVolumetricoShellWS.Implementation
             catch (Exception e)
             {
                 exec.GeneraLogInfo("CODEVOL_TR ERROR" , "@SHELLMX- ERROR INTERNO EN LA CONFIGURACION AL OBTENER LA INFORMACION DEL SURTIDOR IDSEGUIMIENTO: " + idSeguimiento + " CON EL LOG: " + e.ToString());
-                return new LockSupplyTransactionOfFuellingPointResponse { Message = "SE OBTIVO UN ERROR INTERNO AL OBTENER LA BOMBA REVISAR TPV.", Status = -5 };
+                //return new LockSupplyTransactionOfFuellingPointResponse { Message = "SE OBTIVO UN ERROR INTERNO AL OBTENER LA BOMBA REVISAR TPV.", Status = -5 };
                 throw e;
                 //OnConnectionFailed?.Invoke(e.Message);
             }
@@ -283,7 +304,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                if(supplyTransactionOfFuellingPoint.Status < 0)
+                /*if(supplyTransactionOfFuellingPoint.Status < 0)
                 {
                     return new int[] { supplyTransactionOfFuellingPoint.Status, supplyTransactionOfFuellingPoint.Status };
                 }
@@ -292,6 +313,16 @@ namespace ControlVolumetricoShellWS.Implementation
                 if(countAuxSupply == 0)
                 {
                     return new int[] { 0, 0 };
+                }*/
+                if (supplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    supplyTransactionOfFuellingPoint = null;
+                    supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                    if (supplyTransactionOfFuellingPoint.Status < 0)
+                    {
+                        return new int[] { supplyTransactionOfFuellingPoint.Status, supplyTransactionOfFuellingPoint.Status };
+                    }
                 }
 
                 int validateFuellingPoint = 0;

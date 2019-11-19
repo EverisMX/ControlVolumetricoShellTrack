@@ -23,7 +23,6 @@ namespace ControlVolumetricoShellWS.Implementation
         private static System.Threading.SemaphoreSlim SemaphoreSlimGetProductInfo { get; } = new System.Threading.SemaphoreSlim(1);
         private static System.Threading.SemaphoreSlim SemaphoreSlimElectronic_billing_FP { get; } = new System.Threading.SemaphoreSlim(1);*/
 
-
         void Log(string codLog, string log)
         {
             LogsTPVHP _exec = new LogsTPVHP();
@@ -454,6 +453,89 @@ namespace ControlVolumetricoShellWS.Implementation
                 //await SemaphoreSlimInfo_Forma_Pago.WaitAsync();
 
                 Log("CODEVOL_INI INFO", "@SHELLMX- SE INICIA LA VENTA DE CARBURANTE/PERIFERICOS EN EL METODO INFO_FORMA_PAGO  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
+                string varRequest = String.Empty;
+                foreach (Entrada_Info_Forma_Pago_List entrada_Info_Forma_Pago_List in request.Info_Forma_Pago)
+                {
+                    varRequest += varRequest != "" ? "/" : varRequest;
+                    varRequest += entrada_Info_Forma_Pago_List.Cantidad + "," + 
+                                  entrada_Info_Forma_Pago_List.Id_product + "," + 
+                                  entrada_Info_Forma_Pago_List.Importe_Unitario + "," + 
+                                  entrada_Info_Forma_Pago_List.Importetotal + "," + 
+                                  //entrada_Info_Forma_Pago_List.Producto + "," + 
+                                  entrada_Info_Forma_Pago_List.nNum_autorizacions + "," + 
+                                  entrada_Info_Forma_Pago_List.montoPagadoParcial + "," + 
+                                  entrada_Info_Forma_Pago_List.Ultimos_Digitoss;
+                }
+                string[] tupleProducts = varRequest.Split('/');
+                string[] tupleRequestCom = tupleProducts[0].Split(',');
+                string[] tupleRequestPer = tupleProducts.Length == 2 ? tupleProducts[1].Split(',') : null;
+
+                if(tupleProducts.Length == 2)
+                {
+                    Log("CODEVOL_TR INFO", "SOLICITUD PARA CONSUMIR EL METODO ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor + "\n Info_Forma_Pago: " + "\n" + "{" + "\n" +
+                        "    Id_Transaccion : " + request.Id_Transaccion.ToString() + "," + "\n" +
+                        "    Id_Teller : " + request.Id_teller.ToString() + "," + "\n" +
+                        "    Id_Interno_POS : " + request.idInternoPOS.ToString() + "," + "\n" +
+                        "    IdPOS: " + request.idpos.ToString() + "," + "\n" +
+                        "    Entrada_Info_Forma_Pago_List_Combustible: " + "\n" +
+                        "      [" + "\n" +
+                        "        {" + "\n" +
+                        "          id_Producto: " + tupleRequestCom[1] + "," + "\n" +
+                        "          cantidad: " + tupleRequestCom[0] + "," + "\n" +
+                        "          importeUnitario: " + tupleRequestCom[2] + "," + "\n" +
+                        "          importeTotal: " + tupleRequestCom[3] + "," + "\n" +
+                        "          formasPago: " + tupleRequestCom[4] + "," + "\n" +
+                        "          montoaPagoParcial: " + tupleRequestCom[5] + "\n" +
+                        "          numAuthCards: " + tupleRequestCom[6] + "\n" +
+                        "          ultimosDigitosCards: " + tupleRequestCom[4] + "\n" +
+                        "        }" + "\n" +
+                        "      ]," + "\n" +
+                        "    Entrada_Info_Forma_Pago_List_Perifericos: " + "\n" +
+                        "      [" + "\n" +
+                        "        {" + "\n" +
+                        "          id_Producto: " + tupleRequestCom[1] + "," + "\n" +
+                        "          cantidad: " + tupleRequestCom[0] + "," + "\n" +
+                        "          importeUnitario: " + tupleRequestCom[2] + "," + "\n" +
+                        "          importeTotal: " + tupleRequestCom[3] + "," + "\n" +
+                        "          formasPago: " + tupleRequestCom[4] + "," + "\n" +
+                        "          montoaPagoParcial: " + tupleRequestCom[5] + "\n" +
+                        "          numAuthCards: " + tupleRequestCom[6] + "\n" +
+                        "          ultimosDigitosCards: " + tupleRequestCom[4] + "\n" +
+                        "        }" + "\n" +
+                        "      ]," + "\n" +
+                        "    IvaProducto: " + request.IvaProducto + "," + "\n" +
+                        "    nHD: " + request.nHD + "," + "\n" +
+                        "    parciales: " + request.parciales.ToString() + "," + "\n" +
+                        "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
+                        "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
+                }
+                else
+                {
+                    Log("CODEVOL_TR INFO", "SOLICITUD PARA CONSUMIR EL METODO ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor + "\n Info_Forma_Pago: " + "\n" + "{" + "\n" +
+                        "    Id_Transaccion : " + request.Id_Transaccion.ToString() + "," + "\n" +
+                        "    Id_Teller : " + request.Id_teller.ToString() + "," + "\n" +
+                        "    Id_Interno_POS : " + request.idInternoPOS.ToString() + "," + "\n" +
+                        "    IdPOS: " + request.idpos.ToString() + "," + "\n" +
+                        "    Entrada_Info_Forma_Pago_List_Combustible: " + "\n" +
+                        "      [" + "\n" +
+                        "        {" + "\n" +
+                        "          id_Producto: " + tupleRequestCom[1] + "," + "\n" +
+                        "          cantidad: " + tupleRequestCom[0] + "," + "\n" +
+                        "          importeUnitario: " + tupleRequestCom[2] + "," + "\n" +
+                        "          importeTotal: " + tupleRequestCom[3] + "," + "\n" +
+                        "          formasPago: " + tupleRequestCom[4] + "," + "\n" +
+                        "          montoaPagoParcial: " + tupleRequestCom[5] + "\n" +
+                        "          numAuthCards: " + tupleRequestCom[6] + "\n" +
+                        "          ultimosDigitosCards: " + tupleRequestCom[4] + "\n" +
+                        "        }" + "\n" +
+                        "      ]," + "\n" +
+                        "    IvaProducto: " + request.IvaProducto + "," + "\n" +
+                        "    nHD: " + request.nHD + "," + "\n" +
+                        "    parciales: " + request.parciales.ToString() + "," + "\n" +
+                        "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
+                        "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
+                }
+
                 if (request.Id_Transaccion == null)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
@@ -649,14 +731,32 @@ namespace ControlVolumetricoShellWS.Implementation
                         FuellingPointId = request.Pos_Carga
                     };
 
-                    int[] validateFuellingPointO = conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor , request.Id_Transaccion);
-                    if (validateFuellingPointO[0] <= -1)
+                    int[] validateFuellingPointO = await conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor , request.Id_Transaccion);
+                    if (validateFuellingPointO[0] == -99 && validateFuellingPointO[0] == -99) // TEORICAMENTE JAMAS DEBE DE ENTRAR EN ESTA CONDICION..
                     {
-                        Log("CODEVOL_FIN ERROR", "@SHELLMX- EL ID_TRANSACTION NO EXISTE EN EL SURTIDOR INTENTAR NUEVAMENTE ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                        Log("CODEVOL_FIN ERROR", "@SHELLMX- SE PRODUJO UN ERROR DE CASTEO POR PARTE DEL IDINTERNOPOS, NO SE PUDO FINALIZAR LA VENTA. ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
                             Msj = "EL ID NO EXISTE EN EL SURTIDOR, VERIFICAR LOGS EN TPV.",
+                        };
+                    }
+                    if (validateFuellingPointO[0] == -98 && validateFuellingPointO[0] == -98) //SURGUE EL INTENTO DE BLOQUEO FALLIDO.
+                    {
+                        Log("CODEVOL_FIN ERROR", "@SHELLMX- SE TERMINO FALLIDO LA TRANSACCION DE LA VENTA ERROR DEL IDINTERNOPOS POR PARTE DEL PSSCONTROLLER, NO SE GENERO LA VENTA.  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Resultado = false,
+                            Msj = "NO EXISTE UN BLOQUEO EN LA BOMBA " + request.Pos_Carga.ToString() +" , NO SE TERMINO DE HACER LA VENTA, VERIFICAR TPV.",
+                        };
+                    }
+                    if (validateFuellingPointO[0] <= -1 && validateFuellingPointO[0] <= -1)
+                    {
+                        Log("CODEVOL_FIN ERROR", "@SHELLMX- SE PRODUJO UN ERROR EN EL PSSCONTROLLER DONDE LA BOMBA " + request.Pos_Carga.ToString() + " NO ENTREGO INFORMACION Y FINALIZA LA VENTA.  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "IDSEGUIMIENTO: " + criptoInfoFor);
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Resultado = false,
+                            Msj = "NO EXISTE UN BLOQUEO EN LA BOMBA " + request.Pos_Carga.ToString() + " , NO SE TERMINO DE HACER LA VENTA, VERIFICAR TPV.",
                         };
                     }
                     if(validateFuellingPointO[0] == 0 && validateFuellingPointO[1] == 0)
@@ -665,56 +765,12 @@ namespace ControlVolumetricoShellWS.Implementation
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
-                            Msj = "LA BOMBA " + request.Pos_Carga.ToString() + " SE ENCUENTRA BLOQUEADO POR OTRO OPERADOR, VERIFICARLO TPV",
+                            Msj = "LA BOMBA " + request.Pos_Carga.ToString() + " SE ENCUENTRA BLOQUEADO POR OTRO OPERADOR, NO SE FINALIZO VENTA.",
                         };
                     }
-
-                    if (validateFuellingPointO[0] != Convert.ToInt32(request.Id_Transaccion))
-                    {
-                        Log("CODEVOL_FIN WARNING 87", "@SHELLMX- EL ID_TRANSACTION NO CORRESPONDE CON EL ID DEL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO ID_TRANSACCION_DOMS ---> " + validateFuellingPointO[0] + "  ID_TRANSACCION_BOMBA ---> " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
-                        return new Salida_Info_Forma_Pago
-                        {
-                            Resultado = false,
-                            Msj = "EL ID NO CORRESPONDE CON EL SURTIDOR EN TURNO INTENTAR NUEVAMENTE CON EL CORRECTO VERIFICAR LOGS.",
-                        };
-                    }
-
-                    try
-                    {
-                        if (validateFuellingPointO[1] != request.idInternoPOS)
-                        {
-                            Log("CODEVOL_FIN WARNING 86", "@SHELLMX- EL ID DE BLOQUEO DEL SURTIDOR NO CORRESPONDE CON EL IDINTERNO_POSID INTENTAR NUEVAMENTE CON EL CORRECTO  IDINTERNOPOS_DOMS: '" + validateFuellingPointO[1] + "' CON IDINTERNOPOS_REQUEST:" + request.idInternoPOS + "  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor);
-                            return new Salida_Info_Forma_Pago
-                            {
-                                Resultado = false,
-                                Msj = "EL ID NO CORRESPONDE CON EL SURTIDOR EN TURNO INTENTAR OTRA VEZ CON EL CORRECTO, VERIFICAR LOGS.",
-                            };
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log("CODEVOL_FIN ERROR 85", "@SHELLMX- EL IDINTERNO_POSID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO IDINTERNOPOS_DOMS: '" + validateFuellingPointO[1] + "'  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + criptoInfoFor + "\n LOG: " + e.ToString());
-                        return new Salida_Info_Forma_Pago
-                        {
-                            Resultado = false,
-                            Msj = "EL ID NO ES UN NUMERICO INTENTAR NUEVAMENTE CON EL CORRECTO REVISAR LOGS.",
-                        };
-                        throw e;
-                    }
-
                     #endregion
                 }
 
-                #endregion
-
-                #region VALIDADOR DEL ID_TRANSACTION POR ARRASTRAR AL INICIO.
-                /*int id_SupplyValidated = 0;
-                GetAllSupplyTransactionsOfFuellingPointResponse getAllSupplyTransactionsOfFuellingPointResponseValidated = conectionSignalRDomsInform.GetAllSupplyTransactionsOfFuellingPoint(new GetAllSupplyTransactionsOfFuellingPointRequest { FuellingPointId = request.Pos_Carga, OperatorId = idOperator });
-                if(getAllSupplyTransactionsOfFuellingPointResponseValidated.Status == 1)
-                {
-                    foreach(SupplyTransaction supplyTransaction in getAllSupplyTransactionsOfFuellingPointResponseValidated.SupplyTransactionList)
-                    id_SupplyValidated =
-                }*/
                 #endregion
 
                 #region VALIDACION SOBRE EL PARCIAL DE LA ENTRADA.
@@ -788,16 +844,6 @@ namespace ControlVolumetricoShellWS.Implementation
                 // Variable para controlar el estus de la venta de perifericos.
                 bool IsCombustibleEnabler = false;
 
-                //Variables para el logs sobre el arreglo de productos de PC.
-                string id_productoPC = null;
-                string cantidadPC = null;
-                string importeUnPC = null;
-                string importeTPC = null;
-                string formasPagPC = null;
-                string montopagPC = null;
-                string numAutCard = null;
-                string cardNumCode = null;
-
                 #region PROCESO DE SEPARACION DE LOS PRODUCTOS Y ALMACENAR LOS EN UNA LISTA
                 try
                 {
@@ -843,16 +889,6 @@ namespace ControlVolumetricoShellWS.Implementation
                             ProcessAmountOfSaleCombu.Add(monto_PagadoCombu);
                             //Combustible.Add(iva);
                             CombustibleGlobal.Add(Combustible);
-
-                            //Proceso para almacenaje para los logs
-                            id_productoPC = varPrincipal.Id_product;
-                            cantidadPC = varPrincipal.Cantidad;
-                            importeUnPC = varPrincipal.Importe_Unitario;
-                            importeTPC = varPrincipal.Importetotal;
-                            formasPagPC = varPrincipal.formapagos;
-                            montopagPC = varPrincipal.montoPagadoParcial;
-                            numAutCard = varPrincipal.nNum_autorizacions;
-                            cardNumCode = varPrincipal.Ultimos_Digitoss;
                         }
                         else
                         {
@@ -892,16 +928,6 @@ namespace ControlVolumetricoShellWS.Implementation
                             ProcessAmountOfSalePeri.Add(monto_PagadoPeri);
                             //Products.Add(iva);
                             ProductsGlobal.Add(Products);
-
-                            //Proceso para almacenaje para los logs
-                            id_productoPC = varPrincipal.Id_product;
-                            cantidadPC = varPrincipal.Cantidad;
-                            importeUnPC = varPrincipal.Importe_Unitario;
-                            importeTPC = varPrincipal.Importetotal;
-                            formasPagPC = varPrincipal.formapagos;
-                            montopagPC = varPrincipal.montoPagadoParcial;
-                            numAutCard = varPrincipal.nNum_autorizacions;
-                            cardNumCode = varPrincipal.Ultimos_Digitoss;
                         }
                     }
                 }
@@ -916,29 +942,6 @@ namespace ControlVolumetricoShellWS.Implementation
                     throw e;
                 }
 
-                Log("CODEVOL_TR INFO", "SOLICITUD PARA CONSUMIR EL METODO ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor + "\n Info_Forma_Pago: " + "\n" + "{" + "\n" +
-                    "    Id_Transaccion : " + request.Id_Transaccion.ToString() + "," + "\n" +
-                    "    Id_Teller : " + request.Id_teller.ToString() + "," + "\n" +
-                    "    Id_Interno_POS : " + request.idInternoPOS.ToString() + "," + "\n" +
-                    "    IdPOS: " + request.idpos.ToString() + "," + "\n" +
-                    "    Entrada_Info_Forma_Pago_List: " + "\n" + 
-                    "      [" + "\n" + 
-                    "        {" + "\n" +
-                    "          id_Producto: " + id_productoPC + "," + "\n" +
-                    "          cantidad: " + cantidadPC + "," + "\n" +
-                    "          importeUnitario: " + importeUnPC + "," + "\n" +
-                    "          importeTotal: " + importeTPC + "," + "\n" +
-                    "          formasPago: " + formasPagPC + "," + "\n" +
-                    "          montoaPagoParcial: " + montopagPC + "\n" + 
-                    "          numAuthCards: " + numAutCard + "\n" + 
-                    "          ultimosDigitosCards: " + cardNumCode + "\n" +
-                    "        }" + "\n" + 
-                    "      ]," + "\n" +
-                    "    IvaProducto: " + request.IvaProducto + "," + "\n" +
-                    "    nHD: " + request.nHD + "," + "\n" +
-                    "    parciales: " + request.parciales.ToString() + "," + "\n" +
-                    "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
-                    "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 Log("CODEVOL_TR INFO", "NOMBRE DEL OPERADOR QUE REALIZA LA VENTA --> " + nameOperator + " ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor);
 
                 #region VERIFICAR LA LONGITUD QUE COINCIDAN EN LOS PRODUCTOS.

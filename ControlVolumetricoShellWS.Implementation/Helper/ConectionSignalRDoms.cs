@@ -287,7 +287,116 @@ namespace ControlVolumetricoShellWS.Implementation
             }
         }
 
-        public int[] ValidateSupplyTransactionOfFuellingPoint(string identity, GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento, string istransaccion)
+        #region VALIDADOR NO THREADING PARA EL BLOQUEO DE BOMBA EN MODO VENTA.
+        public async Task<LockSupplyTransactionOfFuellingPointResponse> LockSupplyTransactionOfFuellingPointToSale(string identity, GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento)
+        {
+            LogsTPVHP exec = new LogsTPVHP();
+            try
+            {
+                if (!IsConnected())
+                {
+                    ConnectToServer();
+                }
+
+                GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
+                supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", getAllSupplyTransactionsOfFuellingPointRequest).Result;
+
+                //SHELLMX- Si no entrega ninguna informacion.
+                if (supplyTransactionOfFuellingPoint.Status <= -4 || supplyTransactionOfFuellingPoint.Status == -1)
+                {
+                    exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + supplyTransactionOfFuellingPoint.Message);
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "LA BOMBA : " + getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId + " INSERTADA NO EXISTE O NO HAY CARGA. VERIFICAR LOGS", Status = supplyTransactionOfFuellingPoint.Status };
+                }
+                if (supplyTransactionOfFuellingPoint.Status == -3)
+                {
+                    exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + supplyTransactionOfFuellingPoint.Message);
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "LA BOMBA: " + getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId + " NO EXISTE.", Status = supplyTransactionOfFuellingPoint.Status };
+                }
+                if (supplyTransactionOfFuellingPoint.Status == -2)
+                {
+                    exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + supplyTransactionOfFuellingPoint.Message);
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "VERIFICAR LA COMUNICACION DEL DOMS CON EL TPV. VERIFICAR LOGS", Status = supplyTransactionOfFuellingPoint.Status };
+                }
+
+                int countAuxSupplyTransactionsOfFuellingPoint = 0;
+                foreach (SupplyTransaction supplyTransaction in supplyTransactionOfFuellingPoint.SupplyTransactionList) { countAuxSupplyTransactionsOfFuellingPoint++; }
+                if (countAuxSupplyTransactionsOfFuellingPoint == 0)
+                {
+                    exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + " NO SE ENCONTRO NINGUNA RECARGA EN EL SURTIDOR.");
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "LA BOMBA : " + getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId + " NO TIENE NINGUNA RACARGA ESTA <VACIA>.", Status = 0 };
+                }
+
+                int? lockSupply = null;
+                foreach (SupplyTransaction supplyTransaction in supplyTransactionOfFuellingPoint.SupplyTransactionList)
+                {
+                    lockSupply = supplyTransaction.LockingPOSId;
+                }
+                if (lockSupply != null)
+                {
+                    exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + " TRANSACCION BLOQUEADA POR OTRA TERMINAL, VERIFICAR.");
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "TRANSACCION BLOQUEADA POR OTRA TERMINAL, VERIFICAR.", Status = -1 };
+                }
+
+                // SHELLMX- Se manda a traer la informacion sobre el Cliente Contado para este proceso.
+                InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetPOSConfigurationRequest getPOSConfigurationRequest = new GetPOSConfigurationRequest { Identity = identity };
+                GetPOSConfigurationResponse getPOSConfigurationResponse = await invokeHubbleWebAPIServices.GetPOSConfiguration(getPOSConfigurationRequest);
+
+                // SHELLMX- Al momento de traer la informacion sobre la transaccion que hay en parte sobre un surtidor, bloquea en el TVP que Action lo este usando, Se contruye el objeto
+                //          a llenar de lock para traer la demas informacion sobre la transaccion del Surtidor seleccinado.
+
+                LockSupplyTransactionOfFuellingPointRequest lockRequest = new LockSupplyTransactionOfFuellingPointRequest()
+                {
+                    CustomerId = getPOSConfigurationResponse.UnknownCustomerId,
+                    FuellingPointId = getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId,
+                    OperatorId = getAllSupplyTransactionsOfFuellingPointRequest.OperatorId
+                };
+
+                int grade = 0;
+                decimal gradeUnitPrice = 0.0M;
+                foreach (var supply in supplyTransactionOfFuellingPoint.SupplyTransactionList)
+                {
+                    lockRequest.SupplyTransactionId = supply.Id;
+                    gradeUnitPrice = supply.GradeUnitPrice;
+                    grade = supply.GradeId;
+                }
+
+                LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPoint = hubProxy.Invoke<LockSupplyTransactionOfFuellingPointResponse>("LockSupplyTransactionOfFuellingPoint", lockRequest).Result;
+
+                if (lockSupplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + lockSupplyTransactionOfFuellingPoint.Message);
+                    return new LockSupplyTransactionOfFuellingPointResponse { Message = "NO EXISTE UN ID PARA EL SURTIDOR DE LA RECARGA, VERIFICAR SI HAY UNA RECARGA ASOCIADA.", Status = supplyTransactionOfFuellingPoint.Status };
+                }
+
+                lockSupplyTransactionOfFuellingPoint.Id = lockRequest.SupplyTransactionId;
+                lockSupplyTransactionOfFuellingPoint.GradeUnitPrice = gradeUnitPrice;
+                lockSupplyTransactionOfFuellingPoint.GradeId = grade;
+
+                // SHELLMX- Se invoca al cliente de SignalR para el consumo del PSS, que se necesita para las transaccion que se tiene en el surtidor seleccinado.
+                //        donde se entrega un objeto de la transaccion que esta habilitado en un surtudor. 
+
+                GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint1;
+                supplyTransactionOfFuellingPoint1 = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", getAllSupplyTransactionsOfFuellingPointRequest).Result;
+
+                foreach (var supply1 in supplyTransactionOfFuellingPoint1.SupplyTransactionList)
+                {
+                    lockSupplyTransactionOfFuellingPoint.posID = Convert.ToInt32(supply1.LockingPOSId);
+                }
+
+                return lockSupplyTransactionOfFuellingPoint;
+            }
+            catch (Exception e)
+            {
+                exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- ERROR INTERNO EN LA CONFIGURACION AL OBTENER LA INFORMACION DEL SURTIDOR IDSEGUIMIENTO: " + idSeguimiento + " CON EL LOG: " + e.ToString());
+                return new LockSupplyTransactionOfFuellingPointResponse { Message = "SE OBTIVO UN ERROR INTERNO AL OBTENER LA BOMBA REVISAR TPV.", Status = -5 };
+                throw e;
+                //OnConnectionFailed?.Invoke(e.Message);
+            }
+        }
+        #endregion
+
+        public async Task<int[]> ValidateSupplyTransactionOfFuellingPoint(string identity, GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento, string istransaccion)
         {
             LogsTPVHP exec = new LogsTPVHP();
             try
@@ -304,52 +413,60 @@ namespace ControlVolumetricoShellWS.Implementation
                 GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
                 supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
 
-                /*if(supplyTransactionOfFuellingPoint.Status < 0)
+                if (supplyTransactionOfFuellingPoint.Status < 0)
                 {
                     return new int[] { supplyTransactionOfFuellingPoint.Status, supplyTransactionOfFuellingPoint.Status };
                 }
                 int countAuxSupply = 0;
-                foreach(SupplyTransaction supplyTransaction in supplyTransactionOfFuellingPoint.SupplyTransactionList) { countAuxSupply++; }
-                if(countAuxSupply == 0)
+                foreach (SupplyTransaction supplyTransaction in supplyTransactionOfFuellingPoint.SupplyTransactionList) { countAuxSupply++; }
+                if (countAuxSupply == 0)
                 {
                     return new int[] { 0, 0 };
-                }*/
-                if (supplyTransactionOfFuellingPoint.Status < 0)
-                {
-                    supplyTransactionOfFuellingPoint = null;
-                    supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
-
-                    if (supplyTransactionOfFuellingPoint.Status < 0)
-                    {
-                        return new int[] { supplyTransactionOfFuellingPoint.Status, supplyTransactionOfFuellingPoint.Status };
-                    }
                 }
 
                 int validateFuellingPoint = 0;
-                int validateLockFuelling = 0;
+                string validateLockFuelling = null;
                 foreach (var supplyValidate in supplyTransactionOfFuellingPoint.SupplyTransactionList)
                 {
                     validateFuellingPoint = supplyValidate.Id;
-                    validateLockFuelling = Convert.ToInt32(supplyValidate.LockingPOSId);
-                    exec.GeneraLogInfo("CODEVOL_TR INFO", "LO QUE RESPONDE EL DOMS SOBRE EL SURTIDOR SELECCIONADO  --->ID_TRANSACCION_BOMBA: " + istransaccion + "  IDSEGUIMIENTO: " + idSeguimiento + "\n" + "GetAllSupplyTransactionsOfFuellingPointResponse: \n {" + "\n" + 
-                        "    Id: " + supplyValidate.Id.ToString() + "," + "\n" + 
+                    validateLockFuelling = supplyValidate.LockingPOSId.ToString();
+                    exec.GeneraLogInfo("CODEVOL_TR INFO", "LO QUE RESPONDE EL DOMS SOBRE EL SURTIDOR SELECCIONADO  --->ID_TRANSACCION_BOMBA: " + istransaccion + "  IDSEGUIMIENTO: " + idSeguimiento + "\n" + "GetAllSupplyTransactionsOfFuellingPointResponse: \n {" + "\n" +
+                        "    Id: " + supplyValidate.Id.ToString() + "," + "\n" +
                         "    GradeUnitPrice: " + supplyValidate.GradeUnitPrice.ToString() + "," + "\n" +
-                        "    LockingPOSID: " + supplyValidate.LockingPOSId.ToString() + "," + "\n" + 
-                        "    GradeId: " + supplyValidate.GradeId.ToString() + "," + "\n" + 
-                        "    GradeReference: " + supplyValidate.GradeReference.ToString() + "," + "\n" + 
+                        "    LockingPOSID: " + supplyValidate.LockingPOSId.ToString() + "," + "\n" +
+                        "    GradeId: " + supplyValidate.GradeId.ToString() + "," + "\n" +
+                        "    GradeReference: " + supplyValidate.GradeReference.ToString() + "," + "\n" +
                         "    Money: " + supplyValidate.Money.ToString() + "," + "\n" +
-                        "    ServiceModeType: " + supplyValidate.ServiceModeType.ToString() + "," + "\n" + 
+                        "    ServiceModeType: " + supplyValidate.ServiceModeType.ToString() + "," + "\n" +
                         "    DateStart: " + supplyValidate.StartDateTime.ToString() + "," + "\n" +
-                        "    Type: " + supplyValidate.Type.ToString() + "," + "\n" + 
+                        "    Type: " + supplyValidate.Type.ToString() + "," + "\n" +
                         "    Volume: " + supplyValidate.Volume.ToString() + "\n" + "}");
                 }
 
-                return new int[] { validateFuellingPoint, validateLockFuelling };
+                // SHLMX- Se hace la validacion, sobre si la bomba esta desbloqueada.
+                if (validateLockFuelling == String.Empty)
+                {
+                    LockSupplyTransactionOfFuellingPointResponse lockSupplyTransactionOfFuellingPointResponse = await LockSupplyTransactionOfFuellingPointToSale(identity, getAllSupplyTransactionsOfFuellingPointRequest, idSeguimiento);
+                    if (lockSupplyTransactionOfFuellingPointResponse.Status < 0)
+                    {
+                        exec.GeneraLogInfo("CODEVOL_WARNING", "@SHELLMX- EL PSSCONTROLLER ENTREGO VACIO EL IDINTERNOPOS, SE TRATO DE BLOQUEAR NUEVAMENTE LA BOMBA PARA SEGUIR LA TRANSACCION <SURGUIO UN ERROR SE TERMINA LA VENTA SIN SER REGISTRADA>.  IDSEGUIMIENTO: " + idSeguimiento);
+                        return new int[] { -98, -98 };
+                    }
+                    else
+                    {
+                        exec.GeneraLogInfo("CODEVOL_WARNING", "@SHELLMX- INTENTO DE BLOQUEAR LA BOMBA " + request.FuellingPointId.ToString() + " <EXITOSAMENTE> EN LA VENTA, SE SIGUE LA TRANSACCION CORRECTAMENTE.  IDSEGUIMIENTO: " + idSeguimiento);
+                        return new int[] { lockSupplyTransactionOfFuellingPointResponse.Id, 1 };
+                    }
+                }
+                else
+                {
+                    return new int[] { validateFuellingPoint, int.Parse(validateLockFuelling.ToString()) }; //Se retorna el primer y unico surtidor..
+                }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- ERROR AL MOMENTO DE HACER MATCH CON EL ID_TRANSACCION DE ENTRADA CON EL QUE ESTA REGISTADO EN EL SUTIDOR  --->ID_TRANSACCION_BOMBA: " + istransaccion +  " IDSEGUIMIENTO: " + idSeguimiento);
-                return new int[] { -1 , -1 };
+                exec.GeneraLogInfo("CODEVOL_TR ERROR", "@SHELLMX- ERROR EN LA PARTE DEL IDINTERNOPOS POR PARTE DEL PSSCONTROLLER EN PARTE DEL CASTEO DONDE SE PRESENTA EL SIGUIENTE LOG  --->ID_TRANSACCION_BOMBA: " + istransaccion + " IDSEGUIMIENTO: " + idSeguimiento + "   " + e.ToString());
+                return new int[] { -99, -99 };
                 throw e;
             }
         }

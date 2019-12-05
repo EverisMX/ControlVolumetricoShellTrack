@@ -11,6 +11,7 @@ using Conection.HubbleWS;
 using Conection.HubbleWS.Models.Facturacion;
 using NodaTime;
 using MX_LogsHPTPV;
+using Conection.HubbleWS.Models.Hubble;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -462,7 +463,8 @@ namespace ControlVolumetricoShellWS.Implementation
                                   entrada_Info_Forma_Pago_List.Importe_Unitario + "," + 
                                   entrada_Info_Forma_Pago_List.Importetotal + "," + 
                                   //entrada_Info_Forma_Pago_List.Producto + "," + 
-                                  entrada_Info_Forma_Pago_List.nNum_autorizacions + "," + 
+                                  entrada_Info_Forma_Pago_List.nNum_autorizacions + "," +
+                                  entrada_Info_Forma_Pago_List.formapagos + "," +
                                   entrada_Info_Forma_Pago_List.montoPagadoParcial + "," + 
                                   entrada_Info_Forma_Pago_List.Ultimos_Digitoss;
                 }
@@ -730,6 +732,72 @@ namespace ControlVolumetricoShellWS.Implementation
                         OperatorId = idOperator,
                         FuellingPointId = request.Pos_Carga
                     };
+
+                    #region JARREOS 
+                    //----------------------------jarreos----------------------------------               
+
+                    try
+                    {
+                        string jarreo = tupleRequestCom[5];
+                        if (jarreo == "96")
+                        {
+                            GetAllSupplyTransactionsOfFuellingPointResponse info_Bomba = conectionSignalRDomsInform.GetAllSupplyTransactionsOfFuellingPoint(getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor, true);
+
+                            string gradeReference = "";
+                            foreach (var supplyValidate in info_Bomba.SupplyTransactionList)
+                            {
+                                gradeReference = supplyValidate.GradeReference;
+                            }
+
+                            //ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+
+                            FinalizeSupplyTransactionForFuelTestRequest FinalizeSupplyTransactionForFuelTestrequest = new FinalizeSupplyTransactionForFuelTestRequest
+                            {
+                                SupplyTransactionId = Convert.ToInt32(request.Id_Transaccion),
+                                FuellingPointId = request.Pos_Carga,
+                                OperatorId = idOperator,
+                                ReturnTankId = gradeReference,
+                                Deviation = 3,
+                                Observations = "",
+
+
+                            };
+
+                            FinalizeSupplyTransactionForFuelTestResponse FinalizeSupplyTransactionForFuelTestresponse = conectionSignalRDomsInform.FinalizeSupplyTransactionForFuelTestWS(FinalizeSupplyTransactionForFuelTestrequest);
+
+
+                            if (FinalizeSupplyTransactionForFuelTestresponse.Status == 1)
+                            {
+                                return new Salida_Info_Forma_Pago
+                                {
+                                    Msj = FinalizeSupplyTransactionForFuelTestresponse.Message.ToString() + ", Status: " + FinalizeSupplyTransactionForFuelTestresponse.Status.ToString(),
+                                    Resultado = true
+                                };
+                            }
+
+                            else
+                            {
+                                return new Salida_Info_Forma_Pago
+                                {
+                                    Msj = FinalizeSupplyTransactionForFuelTestresponse.Message.ToString() + ", Status: " + FinalizeSupplyTransactionForFuelTestresponse.Status.ToString(),
+                                    Resultado=false
+                                };
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Msj = "Ocurrió una excepción, " + ex.Message.ToString(),
+                            Resultado=false
+
+                        };
+                    }
+
+                   
+                    //------------------------termina jarreos-----------------------------
+                    #endregion
 
                     int[] validateFuellingPointO = await conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor , request.Id_Transaccion);
                     if (validateFuellingPointO[0] == -99 && validateFuellingPointO[0] == -99) // TEORICAMENTE JAMAS DEBE DE ENTRAR EN ESTA CONDICION..

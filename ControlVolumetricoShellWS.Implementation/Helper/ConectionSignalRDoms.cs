@@ -5,6 +5,7 @@ using Microsoft.AspNet.SignalR.Client;
 using Conection.HubbleWS;
 using System.Threading.Tasks;
 using MX_LogsHPTPV;
+using Conection.HubbleWS.Models.Hubble;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -83,7 +84,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
         }
 
-        public GetAllSupplyTransactionsOfFuellingPointResponse GetAllSupplyTransactionsOfFuellingPoint(GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento)
+        public GetAllSupplyTransactionsOfFuellingPointResponse GetAllSupplyTransactionsOfFuellingPoint(GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento , bool isjarreo = false)
         {
             LogsTPVHP exec = new LogsTPVHP();
             try
@@ -128,15 +129,18 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "LA BOMBA : " + request.FuellingPointId + " NO TIENE NINGUNA RACARGA ESTA <VACIA>.", Status = 0 };
                 }
 
-                int? lockSupply = null;
-                foreach (SupplyTransaction supplyTransaction in supplyTransactionOfFuellingPoint.SupplyTransactionList)
+                if(!isjarreo)
                 {
-                    lockSupply = supplyTransaction.LockingPOSId;
-                }
-                if (lockSupply != null)
-                {
-                    exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + " TRANSACCION BLOQUEADA POR OTRA TERMINAL, VERIFICAR.");
-                    return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "TRANSACCION BLOQUEADA POR OTRA TERMINAL, VERIFICAR.", Status = -1 };
+                    int? lockSupply = null;
+                    foreach (SupplyTransaction supplyTransaction in supplyTransactionOfFuellingPoint.SupplyTransactionList)
+                    {
+                        lockSupply = supplyTransaction.LockingPOSId;
+                    }
+                    if (lockSupply != null)
+                    {
+                        exec.GeneraLogInfo("CODEVOL_TR WARNING", "@SHELLMX- OCURRIO UN ERROR AL OBTENER EL SUMINISTRO. IDSEGUIMIENTO: " + idSeguimiento + "  LOG: " + " TRANSACCION BLOQUEADA POR OTRA TERMINAL, VERIFICAR.");
+                        return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "TRANSACCION BLOQUEADA POR OTRA TERMINAL, VERIFICAR.", Status = -1 };
+                    }
                 }
 
                 return supplyTransactionOfFuellingPoint;
@@ -465,5 +469,9 @@ namespace ControlVolumetricoShellWS.Implementation
             return hubProxy.Invoke<UnlockSupplyTransactionOfFuellingPointResponse>("UnlockSupplyTransactionOfFuellingPoint", request).Result;
         }
 
+        public FinalizeSupplyTransactionForFuelTestResponse FinalizeSupplyTransactionForFuelTestWS(FinalizeSupplyTransactionForFuelTestRequest request)
+        {
+            return hubProxy.Invoke<FinalizeSupplyTransactionForFuelTestResponse>("FinalizeSupplyTransactionForFuelTest", request).Result;
+        }
     }
 }

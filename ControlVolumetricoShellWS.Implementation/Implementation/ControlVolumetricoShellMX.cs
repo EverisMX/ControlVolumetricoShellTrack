@@ -40,9 +40,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 catch (Exception)
                 {
 
-                    throw;
+                    //throw;
                 }
-                throw;
+                //throw;
             }
         }
 
@@ -147,7 +147,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
-                        Msj = "OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA."
+                        Msj = "OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                     };
                 }
                 foreach (var searchOperator in searchOperatorResponse.OperatorList)
@@ -296,20 +296,12 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Obtiene_Tran
                     {
                         Resultado = false,
-                        Msj = "@ SHELLMX - Transaccion Bloqueada por otra Terminal: LockSupplyTransactionOfFuellingPoint IN IDTRANSACTION @145",
+                        Msj = "TRANSACCION BLOQUEADA POR OTRA TERMINAL,VERIFICAR",
                     };
                 }
                 else
                 {
-                    Log("CODEVOL_TR **", "EL REQUEST QUE PROPORCIONA PC PARA LA INFO DEL SUTIDOR. IDSEGUIMIENTO: " + criptoObt + "\n" + "{" +
-                        "    idPos: " + request.idpos.ToString() + "," + "\n" +
-                        "    Id_Teller: " + request.Id_teller.ToString() + "," + "\n" +
-                        "    nHD: " + request.nHD.ToString() + "," + "\n" +
-                        "    Pos_Carga: " + request.Pos_Carga.ToString() + "," + "\n" +
-                        "    Pss: " + request.pss.ToString() + "," + "\n" +
-                        "    PTID: " + request.PTID.ToString() + "," + "\n" +
-                        "    Serial: " + request.serial.ToString() + "\n" + "}");
-                    Log("CODEVOL_TR **", "OPERADOR QUE PIDE EL BLOQUEO DE LA BOMBA Y INFO : " + nameOperator + "  IDSEGUIMIENTO: " + criptoObt);
+                    Log("CODEVOL_TR INFO", "OPERADOR QUE PIDE EL BLOQUEO DE LA BOMBA Y INFO : " + nameOperator + "  IDSEGUIMIENTO: " + criptoObt);
 
                     GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                     GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
@@ -328,7 +320,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     salida_Obtiene_Tran.idInternoPOS = lockTransactionInformation.posID;
 
                     //Id_product = lockTransactionInformation.ProductReference
-                    Log("CODEVOL_FIN 1", "SE TERMINO EL METODO DE OBTENER_TRAN EXITOSAMENTE CON EL SIGUIENTE RESPONSE: IDSEGUIMIENTO: " + criptoObt + "\n" + "Salida_Obtiene_Tran: \n {" + "\n" +
+                    Log("CODEVOL_FIN INFO", "SE TERMINO EL METODO DE OBTENER_TRAN EXITOSAMENTE CON EL SIGUIENTE RESPONSE: IDSEGUIMIENTO: " + criptoObt + "\n" + "Salida_Obtiene_Tran: \n {" + "\n" +
                         "    resultado: " + salida_Obtiene_Tran.Resultado.ToString() + "," + "\n" +
                         "    id_Interno: " + salida_Obtiene_Tran.ID_Interno.ToString() + "," + "\n" +
                         "    msj: " + salida_Obtiene_Tran.Msj.ToString() + "," + "\n" +
@@ -507,7 +499,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
-                            Msj = "SHELLMX- DEBE DE INSERTAR UN SURTIDOR QUE ESTA LIGADO NumSurtidor: " + request.Pos_Carga.ToString()
+                            Msj = "DEBE DE INSERTAR UN SURTIDOR VALIDO BOMBA: " + request.Pos_Carga.ToString()
                         };
                     }
 
@@ -519,7 +511,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
-                            Msj = "SHELLHUBLE- Fallo la conexion con el DOMS Verificar que este conectado!",
+                            Msj = "FALLO LA CONEXCIÓN CON EL DOMS VERIFICAR SU ESTADO EN TPV",
                         };
                     }
 
@@ -555,7 +547,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         return new Salida_Obtiene_Tran
                         {
                             Resultado = false,
-                            Msj = "SHELLMX- OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
+                            Msj = "OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                         };
                     }
                     foreach (var searchOperator in searchOperatorResponse.OperatorList)
@@ -574,17 +566,17 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (getAllSupplyTransactionsOfFuellingPointResponse.Status == -99)
                     {
                         Log("CODEVOL_FIN 24.catch()", "@SHELLMX - SE PRODUJO UN ERROR EN LO SIG:  IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
-                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "No se encontro informacion en el surtidor Catch." };
+                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "NO HAY TRANSACCIONES EN EL SURTIDOR VERIFICAR QUE TENGA UNA RECARGA CH" };
                     }
                     if (getAllSupplyTransactionsOfFuellingPointResponse.Status < 0)
                     {
                         Log("CODEVOL_FIN 23.catch()", "@SHELLMX -  IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
-                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "No se encontro informacion en el surtidor." };
+                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "NO HAY TRANSACCIONES EN EL SURTIDOR VERIFICAR QUE TENGA UNA RECARGA CH" };
                     }
                     if (getAllSupplyTransactionsOfFuellingPointResponse.SupplyTransactionList.Count() == 0)
                     {
                         Log("CODEVOL_FIN 22.catch()", "@SHELLMX - NULL NO HAY INFORMACION EN SURTIDOR. IDSEGUIMIENTO: " + criptoObt + " : " + getAllSupplyTransactionsOfFuellingPointResponse.Message);
-                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "El surtidor no tiene ninguna recarga asociada <vacia>" };
+                        return new Salida_Obtiene_Tran { Resultado = false, Msj = "NO HAY TRANSACCIONES EN EL SURTIDOR VERIFICAR QUE TENGA UNA RECARGA CH" };
                     }
 
                     SupplyTransaction supplyTransaction = null;
@@ -615,7 +607,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 "    message: " + unlockSupplyTransactionOfFuellingPointResponse.Message.ToString() + "\n" + "}");
                             return new Salida_Obtiene_Tran
                             {
-                                Msj = "@ SHELLMX- NO SE PUDO DESBLOQUEAR LA BOMBA DEL PROCESO REVERSO",
+                                Msj = "FALLO OBTENER INFO LA BOMBA, Y NO SE PUDO DESBLOQUEAR LA BOMBA",
                                 Resultado = false
                             };
                         }
@@ -623,14 +615,14 @@ namespace ControlVolumetricoShellWS.Implementation
                             "    msj: " + "@ SHELLMX- SE HA INICIADO EL DESBLOQUEO DE LA BOMBA : " + request.Pos_Carga.ToString() + " CON STATUS : " + unlockSupplyTransactionOfFuellingPointResponse.Status.ToString() + "," + "\n" +
                             "    resultado: " + "true" + "\n" + "}");
 
-                        return new Salida_Obtiene_Tran { Msj = "Fallo obtener la bomba, operacion de desbloqueo exitoso Bomba " + request.Pos_Carga + " obtener nuevamente ", Resultado = false };
+                        return new Salida_Obtiene_Tran { Msj = "FALLO OBTENER INFO LA BOMBA, DESBLOQUEO BOMBA EXITOSO BOMBA: " + request.Pos_Carga + " OBTENER NUEVAMENTE LA BOMBA ", Resultado = false };
                         #endregion
                     }
                     else
                     {
                         Log("CODEVOL_FIN 21.catch()", "@SHELLMX- NO SE PUDO DESBLOQUEO LA BOMBA FALLO. IDSEGUIMIENTO: " + criptoObt);
 
-                        return new Salida_Obtiene_Tran { Msj = "Fallo obtener la bomba y no se pudo desbloquear bomba: " + request.Pos_Carga.ToString() + " revisar logs", Resultado = false };
+                        return new Salida_Obtiene_Tran { Msj = "FALLO OBTENER INFO LA BOMBA: " + request.Pos_Carga.ToString() + "  Y NO SE PUDO DESBLOQUEAR", Resultado = false };
                     }
                 }
                 else
@@ -638,7 +630,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Log("CODEVOL_FIN 22.catch()", "@SHELLMX - ERROR Al ENTRAR AL METODO DE ONTENER_TRAN" + "  IDSEGUIMIENTO: " + criptoObt + " LOG:: " + ext.ToString());
                     return new Salida_Obtiene_Tran
                     {
-                        Msj = "ERROR Al ENTRAR AL METODO DE ONTENER_TRAN EL IDTELLER : " + request.Id_teller + " Y POS_CARGA: " + request.Pos_Carga + " NO SE PUDIERON VALIDAR Y NO SE REALIZO EL DESBLOQUEO",
+                        Msj = "ERROR INTERNO AL OBTENER LA BOMBA Y NO SE REALIZO EL DESBLOQUEO",
                         Resultado = false
                     };
                 }
@@ -708,14 +700,14 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    Entrada_Info_Forma_Pago_List_Perifericos: " + "\n" +
                         "      [" + "\n" +
                         "        {" + "\n" +
-                        "          id_Producto: " + tupleRequestCom[1] + "," + "\n" +
-                        "          cantidad: " + tupleRequestCom[0] + "," + "\n" +
-                        "          importeUnitario: " + tupleRequestCom[2] + "," + "\n" +
-                        "          importeTotal: " + tupleRequestCom[3] + "," + "\n" +
-                        "          formasPago: " + tupleRequestCom[4] + "," + "\n" +
-                        "          montoaPagoParcial: " + tupleRequestCom[5] + "\n" +
-                        "          numAuthCards: " + tupleRequestCom[6] + "\n" +
-                        "          ultimosDigitosCards: " + tupleRequestCom[4] + "\n" +
+                        "          id_Producto: " + tupleRequestPer[1] + "," + "\n" +
+                        "          cantidad: " + tupleRequestPer[0] + "," + "\n" +
+                        "          importeUnitario: " + tupleRequestPer[2] + "," + "\n" +
+                        "          importeTotal: " + tupleRequestPer[3] + "," + "\n" +
+                        "          formasPago: " + tupleRequestPer[4] + "," + "\n" +
+                        "          montoaPagoParcial: " + tupleRequestPer[5] + "\n" +
+                        "          numAuthCards: " + tupleRequestPer[6] + "\n" +
+                        "          ultimosDigitosCards: " + tupleRequestPer[4] + "\n" +
                         "        }" + "\n" +
                         "      ]," + "\n" +
                         "    IvaProducto: " + request.IvaProducto + "," + "\n" +
@@ -854,7 +846,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = false,
-                        Msj = "OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA."
+                        Msj = "OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA"
                     };
                 }
                 foreach (var searchOperator in searchOperatorResponse.OperatorList)
@@ -933,7 +925,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         return new Salida_Info_Forma_Pago
                         {
                             Resultado = false,
-                            Msj = "FALLO LA CONEXIÓN CON EL DOMS VERIFICAR STATUS EN TPV.",
+                            Msj = "FALLO LA CONEXION CON EL DOMS VERIFICAR STATUS EN TPV.",
                         };
                     }
 
@@ -996,7 +988,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     return new Salida_Info_Forma_Pago
                     {
                         Resultado = true,
-                        Msj = "INFORMACIÓN VAliDACIÓN DE PRIMERA ENTRADA PARCIAL : " + request.parciales.ToString()
+                        Msj = "INFORMACIÓN VALIDACION DE PRIMERA ENTRADA PARCIAL : " + request.parciales.ToString()
                     };
                 }
                 #endregion
@@ -2405,7 +2397,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 // si está ocupado se espera.
                 //await SemaphoreSlimDesbloquearCarga.WaitAsync();
                 #region PROCESOS DE VALIDACION EN LAS ENTRADA.
-                Log("CODEVOL_INI 0", "SE INICIA EL METODO DesbloquearCarga PARA EL DESBLOQUEO DE BOMBA. IDSEGUIMIENTO: " + criptoDesC);
+                Log("CODEVOL_INI INFO", "@SHELLMX- SE INICIA EL METODO DESBLOQUEARCARGA PARA EL DESBLOQUEO DE BOMBA. IDSEGUIMIENTO: " + criptoDesC);
+                Log("CODEVOL_TR INFO", "@SHELLMX- EL REQUEST QUE ENTRA PARA EL DESBLOQUEO:" + "\n" +
+                    "{" + "\n" + "    id_Teller: " + request.Id_teller + "," + "\n" + 
+                    "    id_Transaction: " + request.Id_Transaccion.ToString() + "," + "\n" + 
+                    "    pos_Carga: " + request.Pos_Carga.ToString() + "," + "\n" + 
+                    "    nHD: " + request.nHD.ToString() + "," + "\n" + 
+                    "    pTID: " + request.PTID.ToString() + "," + "\n" + 
+                    "    serial" + request.serial + "\n" + "}") ;
                 try
                 {
                     if (Convert.ToDecimal(request.Id_Transaccion) <= Convert.ToDecimal(0))
@@ -2563,7 +2562,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 // si está ocupado se espera.
                 //await SemaphoreSlimGetProductInfo.WaitAsync();
 
-                Log("CODEVOL_INI 0", "SE INICIA EL METODO getProductInfo PARA OBTENER UN ARTICULO. IDSEGUIMIENTO: " + criptoGetProd);
+                Log("CODEVOL_INI 0", "SE INICIA EL METODO GETPRODUCTINFO PARA OBTENER UN ARTICULO. IDSEGUIMIENTO: " + criptoGetProd);
+                Log("CODEVOL_TR INFO", "@SHELLMX- EL REQUEST QUE ENTRA PARA OBTENER EL PRODUCTO:" + "\n" +
+                    "{" + "\n" + "    id_Teller: " + request.Id_teller + "," + "\n" +
+                    "    id_Product: " + request.IdProduct.ToString() + "," + "\n" +
+                    "    pos_Carga: " + request.Pos_Carga.ToString() + "," + "\n" +
+                    "    nHD: " + request.nHD.ToString() + "," + "\n" +
+                    "    pTID: " + request.PTID.ToString() + "," + "\n" +
+                    "    serial" + request.serial + "\n" + "}");
                 try
                 {
                     if (request.Pos_Carga < 0)
@@ -3395,7 +3401,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 //await SemaphoreSlimElectronic_billing_FP.WaitAsync();
 
                 #region globales
-                Log("CODEVOL_INI 0", "SE INICIA CON EL METODO Electronic_billing PARA LA FACTURACION Y VARIOS. IDSEGUIMIENTO: " + criptoElecB);
+                Log("CODEVOL_INI INFO", "SE INICIA CON EL METODO Electronic_billing PARA LA FACTURACION Y VARIOS. IDSEGUIMIENTO: " + criptoElecB);
                 Log("CODEVOL_TR INFO", "EL REQUEST QUE ENTREGA PC " + criptoElecB  + "\n Electronic_Billing: \n {" + "\n" +
                     "    idPOS: " + request.idpos.ToString() + "," + "\n" +
                     "    nHD: " + request.nHD.ToString() + "," + "\n" +

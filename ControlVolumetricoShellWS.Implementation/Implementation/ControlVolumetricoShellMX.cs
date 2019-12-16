@@ -3209,6 +3209,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
                 TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
                 bool isFacturar = false;
+                bool isFacturar_publicogenral = false;
                 #endregion
 
                 string numeroclientere = "";
@@ -3694,17 +3695,21 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer == null)
                     {
+                        //---se agrego para facturar nombre publico en genral---
+
+                        //---termina facturacion a nombre de publico en genral---
                         isFacturar = false;
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                        isFacturar_publicogenral = true;
+                        
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                     {
                         salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
                         salida.RFC = rfccliente;
                         isFacturar = false;
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                        isFacturar_publicogenral = true;
+                        //salida.Resultado = true;
+                        //salida.Msj = "OPERACION REALIZADA CON EXITO";
                     }
 
 
@@ -3940,6 +3945,63 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
 
+                }
+
+                if (isFacturar_publicogenral)
+                {
+
+                    GetCompanyRequest GetCompanyreques = new GetCompanyRequest
+                    {
+                        Identity = bsObj.Identity
+                    };
+                    
+                    GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
+                    
+                    #region facturacion
+                    GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
+                    {
+                        EmpresaPortal = "01",
+                        Company = responseCompany.Company.Id,
+                        ListTicket = new List<ListTicketDAO>
+                    {
+                        new ListTicketDAO
+                        {
+                            EESS =request.EESS,
+                            NTicket=request.Nticket,
+                            RFC="XAXX010101000",
+                            WebID=request.WebID
+                        }
+                    }
+                    };
+                    
+                    facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+                    
+                    if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
+                    {
+                        Log("factura publico genral= \n\n",
+                        "\n SelloDigitaSAT= " + responsefacturacion.SelloDigitaSAT +
+                        "\n SelloDigitaCFDI= " + responsefacturacion.SelloDigitaCFDI +
+                        "\n CadenaOrigTimbre= " + responsefacturacion.CadenaOrigTimbre +
+                        "\n FolioFiscal= " + responsefacturacion.FolioFiscal +
+                        "\n FolioFiscal= " + responsefacturacion.RFCProveedorCert +
+                        "\n NumCertificado= " + responsefacturacion.NumCertificado +
+                        "\n DateCertificacion= " + responsefacturacion.DateCertificacion);
+
+                        Log("status facturado publico general", "factura emitida con exito");
+
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                    }
+                    else
+                    {
+                        Log("status facturado publico general", "factura no emitida con exito, Respuesta de facturacion: "+ responsefacturacion.mensaje);
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                    }
+                   
+                 
+                    #endregion
+                    
                 }
                 Log("CODEVOL_TR **", "EL RESPONSE QUE SE ENTREGA DE ELECTRONIC_BILLING IDSEGUIMIENTO: " +criptoElecB + "\n RESPONSE " + "\n" + "{" + "\n" +
                     "    ticket: " + request.Nticket + "," + "\n" +

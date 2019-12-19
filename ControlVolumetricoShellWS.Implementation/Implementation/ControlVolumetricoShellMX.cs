@@ -11,6 +11,7 @@ using Conection.HubbleWS;
 using Conection.HubbleWS.Models.Facturacion;
 using NodaTime;
 using MX_LogsHPTPV;
+using Conection.HubbleWS.Models.Hubble;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -670,6 +671,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                   entrada_Info_Forma_Pago_List.Importetotal + "," +
                                   //entrada_Info_Forma_Pago_List.Producto + "," + 
                                   entrada_Info_Forma_Pago_List.nNum_autorizacions + "," +
+                                  entrada_Info_Forma_Pago_List.formapagos + "," +
                                   entrada_Info_Forma_Pago_List.montoPagadoParcial + "," +
                                   entrada_Info_Forma_Pago_List.Ultimos_Digitoss;
                 }
@@ -936,6 +938,82 @@ namespace ControlVolumetricoShellWS.Implementation
                         OperatorId = idOperator,
                         FuellingPointId = request.Pos_Carga
                     };
+
+                    #region JARREOS 
+                    //----------------------------jarreos----------------------------------               
+
+                    try
+                    {
+                        string jarreo = tupleRequestCom[5];
+                        if (jarreo == "96")
+                        {
+                            GetAllSupplyTransactionsOfFuellingPointResponse info_Bomba = conectionSignalRDomsInform.GetAllSupplyTransactionsOfFuellingPoint(getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor, true);
+
+                            string gradeReference = "";
+                            foreach (var supplyValidate in info_Bomba.SupplyTransactionList)
+                            {
+                                gradeReference = supplyValidate.GradeReference;
+                            }
+
+                            //ConectionSignalRDoms conectionSignalRDoms = new ConectionSignalRDoms();
+
+                            FinalizeSupplyTransactionForFuelTestRequest FinalizeSupplyTransactionForFuelTestrequest = new FinalizeSupplyTransactionForFuelTestRequest
+                            {
+                                SupplyTransactionId = Convert.ToInt32(request.Id_Transaccion),
+                                FuellingPointId = request.Pos_Carga,
+                                OperatorId = idOperator,
+                                ReturnTankId = gradeReference,
+                                Deviation = 3,
+                                Observations = "",
+
+
+                            };
+                            Log("CODE JARREO: ", " Request= SupplyTransactionId: " + FinalizeSupplyTransactionForFuelTestrequest.SupplyTransactionId
+                                + " , FuellingPointId: " + FinalizeSupplyTransactionForFuelTestrequest.FuellingPointId
+                                + " , OperatorId: " + FinalizeSupplyTransactionForFuelTestrequest.OperatorId
+                                + " , ReturnTankId: " + FinalizeSupplyTransactionForFuelTestrequest.ReturnTankId
+                                + " , Deviation: " + FinalizeSupplyTransactionForFuelTestrequest.Deviation
+                                + " , Observations: " + FinalizeSupplyTransactionForFuelTestrequest.Observations
+                                );
+                            FinalizeSupplyTransactionForFuelTestResponse FinalizeSupplyTransactionForFuelTestresponse = conectionSignalRDomsInform.FinalizeSupplyTransactionForFuelTestWS(FinalizeSupplyTransactionForFuelTestrequest);
+
+
+                            if (FinalizeSupplyTransactionForFuelTestresponse.Status == 1)
+                            {
+                                Log("CODE JARREO: ", FinalizeSupplyTransactionForFuelTestresponse.Message.ToString() + ", Status: " + FinalizeSupplyTransactionForFuelTestresponse.Status.ToString());
+
+                                return new Salida_Info_Forma_Pago
+                                {
+                                    Msj = "JARREO REALIZADO CON EXITO",
+                                    Resultado = true
+                                };
+                            }
+
+                            else
+                            {
+                                Log("CODE JARREO: ", FinalizeSupplyTransactionForFuelTestresponse.Message.ToString() + ", Status: " + FinalizeSupplyTransactionForFuelTestresponse.Status.ToString());
+                                return new Salida_Info_Forma_Pago
+                                {
+                                    Msj = "JARREO NO REALIZADO DE MANERA EXITOSA",
+                                    Resultado = false
+                                };
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("CODE JARREO: ", "Ocurrió una excepción, " + ex.Message.ToString());
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Msj = "OCURRIO UNA EXEPCION AL REALIZAR EL JARREO",
+                            Resultado = false
+
+                        };
+                    }
+
+
+                    //------------------------termina jarreos-----------------------------
+                    #endregion
 
                     int[] validateFuellingPointO = await conectionSignalRDomsInform.ValidateSupplyTransactionOfFuellingPoint(bsObj.Identity, getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor, request.Id_Transaccion);
                     if (validateFuellingPointO[0] == -99 && validateFuellingPointO[0] == -99) // TEORICAMENTE JAMAS DEBE DE ENTRAR EN ESTA CONDICION..
@@ -3416,7 +3494,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
                 bool isFacturar = false;
                 #endregion
-
+                bool isFacturar_publicogenral = false;
+                bool isFacturar_publicogenralEnero = false;
                 string numeroclientere = "";
                 if (request.NoCliente == null || request.NoCliente.Trim() == "" || request.NoCliente == String.Empty)
                 {
@@ -3900,17 +3979,22 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer == null)
                     {
+                        //---se agrego para facturar nombre publico en genral---
+
+                        //---termina facturacion a nombre de publico en genral---
                         isFacturar = false;
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                        isFacturar_publicogenralEnero = true;
+                        //isFacturar_publicogenral = true;
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                     {
                         salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
                         salida.RFC = rfccliente;
                         isFacturar = false;
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                        isFacturar_publicogenralEnero = true;
+                        //isFacturar_publicogenral = true;
+                        //salida.Resultado = true;
+                        //salida.Msj = "OPERACION REALIZADA CON EXITO";
                     }
 
 
@@ -4147,6 +4231,117 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
                 }
+                #region facturacion publico genral
+                 string Primero_Enero()
+                {
+
+                    try
+                    {
+                        string Param_Enero = System.IO.File.ReadAllText(@"C:\HubblePOS\Logs\Facturacion.txt");
+                        string varEnero = Param_Enero;
+
+
+                        if (varEnero.Trim() == "" || varEnero == String.Empty)
+                        {
+                            return "SI";
+                        }
+                        else
+                        {
+                            if (varEnero != "NO")
+                            {
+                                return "SI";
+                            }
+                            else
+                            {
+                                return varEnero;
+                            }
+                        }
+
+                    }
+                    catch (Exception)
+                    {
+
+                        return "SI";
+                    }
+                }
+
+
+                if (isFacturar_publicogenralEnero)
+                {
+                    string res_Enero = Primero_Enero();
+                    if (res_Enero=="SI")
+                    {
+                        isFacturar_publicogenral = true;
+                        Log("status facturado publico general", " Se esta facturando a nombre de publico en general");
+
+                    }
+                    else
+                    {
+                        isFacturar_publicogenral = false;
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                        Log("status facturado publico general", "Cambie el parametro a "+"SI"+" para facturar a publico en genral");
+
+                    }
+
+                }
+                if (isFacturar_publicogenral)
+                {
+
+                    GetCompanyRequest GetCompanyreques = new GetCompanyRequest
+                    {
+                        Identity = bsObj.Identity
+                    };
+
+                    GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
+
+                    #region facturacion
+                    GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
+                    {
+                        EmpresaPortal = "01",
+                        Company = responseCompany.Company.Id,
+                        ListTicket = new List<ListTicketDAO>
+                    {
+                        new ListTicketDAO
+                        {
+                            EESS =request.EESS,
+                            NTicket=request.Nticket,
+                            RFC="XAXX010101000",
+                            WebID=request.WebID
+                        }
+                    }
+                    };
+
+                    facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
+
+                    if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
+                    {
+                        Log("factura publico genral= \n\n",
+                        "\n SelloDigitaSAT= " + responsefacturacion.SelloDigitaSAT +
+                        "\n SelloDigitaCFDI= " + responsefacturacion.SelloDigitaCFDI +
+                        "\n CadenaOrigTimbre= " + responsefacturacion.CadenaOrigTimbre +
+                        "\n FolioFiscal= " + responsefacturacion.FolioFiscal +
+                        "\n FolioFiscal= " + responsefacturacion.RFCProveedorCert +
+                        "\n NumCertificado= " + responsefacturacion.NumCertificado +
+                        "\n DateCertificacion= " + responsefacturacion.DateCertificacion);
+
+                        Log("status facturado publico general", "factura emitida con exito");
+
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                    }
+                    else
+                    {
+                        Log("status facturado publico general", "factura no emitida con exito, Respuesta de facturacion: " + responsefacturacion.mensaje);
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                    }
+
+
+                    #endregion
+
+                }
+                #endregion
                 Log("CODEVOL_TR **", "EL RESPONSE QUE SE ENTREGA DE ELECTRONIC_BILLING IDSEGUIMIENTO: " +criptoElecB + "\n RESPONSE " + "\n" + "{" + "\n" +
                     "    ticket: " + request.Nticket + "," + "\n" +
                     "    terminal: " + responsegetdocument.Document.PosId.ToString() + "," + "\n" +

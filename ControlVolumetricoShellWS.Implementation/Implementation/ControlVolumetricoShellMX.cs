@@ -3963,6 +3963,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (request.TipoOperacion == 1)
                 {
+                    Log("CODE_FACTURACION: ","ENTRO EN TIPO DE OPERACION = 1");
                     if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                     {
                         Log("CODEVOL_FIN WARNING 45", "@SHELLMX- TICKET O NUMERO DE CLIENTE NO VALIDO CON TIPO DE OPERACION 1. IDSEGUIMIENTO: " + criptoElecB);
@@ -3983,15 +3984,19 @@ namespace ControlVolumetricoShellWS.Implementation
 
                         //---termina facturacion a nombre de publico en genral---
                         isFacturar = false;
-                        isFacturar_publicogenralEnero = true;
+                        //isFacturar_publicogenralEnero = true;
                         //isFacturar_publicogenral = true;
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                     {
                         salida.RazonSocial = textosincarspecial.transformtext(razoonsocial);
                         salida.RFC = rfccliente;
                         isFacturar = false;
-                        isFacturar_publicogenralEnero = true;
+                        salida.Resultado = true;
+                        salida.Msj = "OPERACION REALIZADA CON EXITO";
+                        // isFacturar_publicogenralEnero = true;
                         //isFacturar_publicogenral = true;
                         //salida.Resultado = true;
                         //salida.Msj = "OPERACION REALIZADA CON EXITO";
@@ -4011,6 +4016,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 if (request.TipoOperacion == 2)
                 {
+                    Log("CODE_FACTURACION: ", "ENTRO EN TIPO DE OPERACION = 2");
                     if (responsegetdocument.Document == null && responsecustomer.Customer == null)
                     {
                         Log("CODEVOL_FIN 43", "@SHELLMX- NUMERO DE TICKET O CLIENTE NO VALIDO TIPO DE OPERACION 2. IDSEGUIMIENTO: " + criptoElecB);
@@ -4032,6 +4038,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (responsegetdocument.Document != null && numeroclientere == null)
                     {
                         isFacturar = false;
+                        isFacturar_publicogenralEnero = true;
                         salida.Resultado = true;
                         salida.Msj = "NUMERO DE CLIENTE NO VALIDO.";
 
@@ -4321,7 +4328,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "\n SelloDigitaCFDI= " + responsefacturacion.SelloDigitaCFDI +
                         "\n CadenaOrigTimbre= " + responsefacturacion.CadenaOrigTimbre +
                         "\n FolioFiscal= " + responsefacturacion.FolioFiscal +
-                        "\n FolioFiscal= " + responsefacturacion.RFCProveedorCert +
+                        "\n RFCProveedorCert= " + responsefacturacion.RFCProveedorCert +
                         "\n NumCertificado= " + responsefacturacion.NumCertificado +
                         "\n DateCertificacion= " + responsefacturacion.DateCertificacion);
 

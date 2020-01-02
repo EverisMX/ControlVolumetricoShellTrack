@@ -947,7 +947,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         string jarreo = tupleRequestCom[5];
                         if (jarreo == "96")
                         {
-                            GetAllSupplyTransactionsOfFuellingPointResponse info_Bomba = conectionSignalRDomsInform.GetAllSupplyTransactionsOfFuellingPoint(getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor, true);
+                            GetAllSupplyTransactionsOfFuellingPointResponse info_Bomba = conectionSignalRDomsInform.GetAllSupplyTransactionsOfFuellingPointJarreo(getAllSupplyTransactionsOfFuellingPoint, criptoInfoFor, true);
 
                             string gradeReference = "";
                             foreach (var supplyValidate in info_Bomba.SupplyTransactionList)

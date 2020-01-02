@@ -84,7 +84,7 @@ namespace ControlVolumetricoShellWS.Implementation
 
         }
 
-        public GetAllSupplyTransactionsOfFuellingPointResponse GetAllSupplyTransactionsOfFuellingPoint(GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento, bool isjarreo = false)
+        public GetAllSupplyTransactionsOfFuellingPointResponse GetAllSupplyTransactionsOfFuellingPoint(GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento)
         {
             LogsTPVHP exec = new LogsTPVHP();
             try
@@ -150,6 +150,45 @@ namespace ControlVolumetricoShellWS.Implementation
                         return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "NO HAY TRANSACCIONES EN EL SURTIDOR VERIFICAR QUE TENGA UNA RECARGA", Status = supplyTransactionOfFuellingPoint.Status };
                     }
                 }
+                return supplyTransactionOfFuellingPoint;
+            }
+            catch(Exception e)
+            {
+                exec.GeneraLogInfo("CODEVOL_FIN ERROR" , "@SHELLMX- SE OBTUBO UN ERROR INTERNO AL OBTENER LA INFOMACION DEL SURTIDOR CON EL SIGUIENTE ERROR LOG: " + e.ToString());
+                return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "SE OBTUVO UN ERROR INTERNO EN LOS SUMINISTROS AL OBTNER LA BOMBA", Status = -5 };
+            }
+        }
+
+        public GetAllSupplyTransactionsOfFuellingPointResponse GetAllSupplyTransactionsOfFuellingPointJarreo(GetAllSupplyTransactionsOfFuellingPointRequest getAllSupplyTransactionsOfFuellingPointRequest, string idSeguimiento, bool isjarreo = false)
+        {
+            LogsTPVHP exec = new LogsTPVHP();
+            try
+            {
+                // Se pregunta si esta conecta
+                if (!IsConnected())
+                {
+                    ConnectToServer();
+                }
+
+                //string lockSupplyTransaction = "";
+                GetAllSupplyTransactionsOfFuellingPointRequest request = new GetAllSupplyTransactionsOfFuellingPointRequest() { OperatorId = getAllSupplyTransactionsOfFuellingPointRequest.OperatorId, FuellingPointId = getAllSupplyTransactionsOfFuellingPointRequest.FuellingPointId };
+
+                // SHELLMX- Se invoca al cliente de SignalR para el consumo del PSS, que se necesita para las transaccion que se tiene en el surtidor seleccinado.
+                //        donde se entrega un objeto de la transaccion que esta habilitado en un surtudor. 
+
+                GetAllSupplyTransactionsOfFuellingPointResponse supplyTransactionOfFuellingPoint;
+                supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                if (supplyTransactionOfFuellingPoint.Status < 0)
+                {
+                    supplyTransactionOfFuellingPoint = null;
+                    supplyTransactionOfFuellingPoint = hubProxy.Invoke<GetAllSupplyTransactionsOfFuellingPointResponse>("GetAllSupplyTransactionsOfFuellingPoint", request).Result;
+
+                    if (supplyTransactionOfFuellingPoint.Status < 0)
+                    {
+                        return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "NO HAY TRANSACCIONES EN EL SURTIDOR VERIFICAR QUE TENGA UNA RECARGA", Status = supplyTransactionOfFuellingPoint.Status };
+                    }
+                }
 
                 if (!isjarreo)
                 {
@@ -167,9 +206,9 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 return supplyTransactionOfFuellingPoint;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                exec.GeneraLogInfo("CODEVOL_FIN ERROR" , "@SHELLMX- SE OBTUBO UN ERROR INTERNO AL OBTENER LA INFOMACION DEL SURTIDOR CON EL SIGUIENTE ERROR LOG: " + e.ToString());
+                exec.GeneraLogInfo("CODEVOL_FIN ERROR", "@SHELLMX- SE OBTUBO UN ERROR INTERNO AL OBTENER LA INFOMACION DEL SURTIDOR CON EL SIGUIENTE ERROR LOG: " + e.ToString());
                 return new GetAllSupplyTransactionsOfFuellingPointResponse { Message = "SE OBTUVO UN ERROR INTERNO EN LOS SUMINISTROS AL OBTNER LA BOMBA", Status = -5 };
             }
         }

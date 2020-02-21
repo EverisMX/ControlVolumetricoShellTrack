@@ -12,6 +12,7 @@ using Conection.HubbleWS.Models.Facturacion;
 using NodaTime;
 using MX_LogsHPTPV;
 using Conection.HubbleWS.Models.Hubble;
+using ControlVolumetricoShellWS.Transaction.Dominio.InterfaceWCF;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -918,7 +919,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                 GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
-                if (request.Info_Forma_Pago.Count == 2 || Convert.ToInt32(request.Id_Transaccion) != 0)
+               /* if (request.Info_Forma_Pago.Count == 2 || Convert.ToInt32(request.Id_Transaccion) != 0)
                 {
                     if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
                     {
@@ -1054,7 +1055,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
 
                     #endregion
-                }
+                }*/
 
                 #endregion
 
@@ -1676,39 +1677,39 @@ namespace ControlVolumetricoShellWS.Implementation
                             {
                                 int processPaymentsCombuCount = processPaymentsCombu.Length;
                                 int processAmountOfSaleCount = processAmountOfSaleCombu.Length;
-                                foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
-                                {
+                             // foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                             // {
                                     //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                    if (paymentMethods.Description.ToUpper() == "TARJETA")
-                                    {
+                             //     if (paymentMethods.Description.ToUpper() == "TARJETA")
+                             //     {
                                         for (int i = 0; i < processPaymentsCombuCount; i++)
                                         {
                                             CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
                                             foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                             {
-                                                if (Convert.ToInt32(processPaymentsCombu[i]) != 3) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
-                                                {
+                                             // if (Convert.ToInt32(processPaymentsCombu[i]) != 3) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
+                                             // {
                                                     if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                                     {
                                                         if (i < processAmountOfSaleCount)
                                                         {
                                                             createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
                                                             createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                            createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                            createDocumentPaymentDetailDAO.PaymentMethodId = getPOSInformationResponse.PosInformation.CompanyCode + getPaymentTypeByIdPC(Convert.ToInt32(processPaymentsCombu[i])); //paymentMethods.Id;
                                                             createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                             createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                             PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                             currencyId = CurrenciesBase.Id;
-                                                            paymentCard = paymentMethods.Id;
+                                                            //paymentCard = paymentMethods.Id;
                                                         }
                                                     }
                                                     //createDocumentPaymentDetailDAO = null;
-                                                }
+                                             // }
                                             }
                                         }
-                                    }
-                                    if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                                //  }
+                                   /* if (paymentMethods.Description.ToUpper() == "EFECTIVO")
                                     {
                                         for (int i = 0; i < processPaymentsCombuCount; i++)
                                         {
@@ -1736,7 +1737,8 @@ namespace ControlVolumetricoShellWS.Implementation
                                                 }
                                             }
                                         }
-                                    }
+                                    }*/
+
                                     //if (paymentMethods.Description.ToUpper() == "AMERICAN EXPRESS")
                                     //{
                                     //    for (int i = 0; i < processPaymentsCombuCount; i++)
@@ -1766,7 +1768,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                     //        }
                                     //    }
                                     //}//end
-                                }
+                              //}
                             }
                         }
                     }
@@ -1795,39 +1797,39 @@ namespace ControlVolumetricoShellWS.Implementation
                         {
                             int processPaymentsPeriCount = processPaymentsPeri.Length;
                             int processAmountOfSaleCount = processAmountOfSalePeri.Length;
-                            foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
-                            {
+                       //   foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                       //   {
                                 //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                if (paymentMethods.Description.ToUpper() == "TARJETA")
+                       //       if (paymentMethods.Description.ToUpper() == "TARJETA")
                                 {
                                     for (int i = 0; i < processPaymentsPeriCount; i++)
                                     {
                                         CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
                                         foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                         {
-                                            if (Convert.ToInt32(processPaymentsPeri[i]) != 3) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
-                                            {
+                                          //if (Convert.ToInt32(processPaymentsPeri[i]) != 3) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
+                                          //{
                                                 if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                                 {
                                                     if (i < processAmountOfSaleCount)
                                                     {
                                                         createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
                                                         createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
-                                                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                        createDocumentPaymentDetailDAO.PaymentMethodId = getPOSInformationResponse.PosInformation.CompanyCode + getPaymentTypeByIdPC(Convert.ToInt32(processPaymentsPeri[i])); // paymentMethods.Id;
                                                         createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                         createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                         createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                         PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                         currencyId = CurrenciesBase.Id;
-                                                        paymentCard = paymentMethods.Id;
+                                                        //paymentCard = paymentMethods.Id;
                                                     }
                                                 }
                                                 //createDocumentPaymentDetailDAO = null;
-                                            }
+                                          //}
                                         }
                                     }
                                 }
-                                if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                              /*if (paymentMethods.Description.ToUpper() == "EFECTIVO")
                                 {
                                     for (int i = 0; i < processPaymentsPeriCount; i++)
                                     {
@@ -1855,7 +1857,8 @@ namespace ControlVolumetricoShellWS.Implementation
                                             }
                                         }
                                     }
-                                }
+                                }*/
+
                                 //if (paymentMethods.Description.ToUpper() == "AMERICAN EXPRESS")
                                 //{
                                 //    for (int i = 0; i < processPaymentsPeriCount; i++)
@@ -1885,7 +1888,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 //        }
                                 //    }
                                 //}//end
-                            }
+                         // }
                         }
                     }
                 }
@@ -1904,6 +1907,8 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 #region PREPARE OF UNIFIQUE PAYMENTS OF THE DOCUMENTS
                 List<CreateDocumentPaymentDetailDAO> PaymentDetailList = new List<CreateDocumentPaymentDetailDAO>();
+                PaymentDetailList = PaymentDetailListPreview; // SHLMX - SE ASIGNA LA LISTA DIRECTA DE LA LECTURA DE MEDIOS DE PAGO
+                /*
                 bool iscash = false;
                 bool isCard = false;
                 bool isAny = false;
@@ -1964,7 +1969,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         anyT = true;
                     }
                 }
-
+                */
                 #endregion
 
                 #endregion
@@ -3842,10 +3847,14 @@ namespace ControlVolumetricoShellWS.Implementation
                         item.PaymentMethodId = "CHEQUE";
                         //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
                     }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "03")
+                    {
+                        item.PaymentMethodId = "AMERICAN EXPRESS";
+                    }
+                  
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "04")
                     {
                         item.PaymentMethodId = "TRANSFERENCIA";
-
                     }
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "07")
                     {
@@ -3855,14 +3864,72 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "08")
                     {
                         item.PaymentMethodId = "TARJETA";
-
                     }
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "09")
                     {
                         item.PaymentMethodId = "FUGA";
                         //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
                     }
-
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "10")
+                    {
+                        item.PaymentMethodId = "SODEXO";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "11")
+                    {
+                        item.PaymentMethodId = "MORRALLA";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "12")
+                    {
+                        item.PaymentMethodId = "VALE INBURSA";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "13")
+                    {
+                        item.PaymentMethodId = "SERVIBONOS";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "14")
+                    {
+                        item.PaymentMethodId = "VALES GASOCHECK";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "15")
+                    {
+                        item.PaymentMethodId = "VALES ACCOR";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "16")
+                    {
+                        item.PaymentMethodId = "VALES EFECTIVALE";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "19")
+                    {
+                        item.PaymentMethodId = "HIDROVALE";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "25")
+                    {
+                        item.PaymentMethodId = "CHEQUE (TARJETA DESECHABLE)";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "27")
+                    {
+                        item.PaymentMethodId = "TICKET CAR (ACCOR)";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "30")
+                    {
+                        item.PaymentMethodId = "PUNTO CLAVE";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "31")
+                    {
+                        item.PaymentMethodId = "EFECTICAR";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "91")
+                    {
+                        item.PaymentMethodId = "MERCADO PAGO";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "98")
+                    {
+                        item.PaymentMethodId = "PUNTOS";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "99")
+                    {
+                        item.PaymentMethodId = "TARJETA INTELIGENTE";
+                    }
 
 
 
@@ -4448,5 +4515,39 @@ namespace ControlVolumetricoShellWS.Implementation
             }*/
             return salida;
         }
+
+        // SLMX -  Obtener correspondiente medio pago de BOS para el valor de PC
+        private string getPaymentTypeByIdPC(int idPC)
+        {
+            string ptBOS = "";
+
+            switch (idPC)
+            {
+                case (int)PaymentMethodPC.AMERICAN_EXPRESS : { ptBOS = "03"; break; }
+                case (int)PaymentMethodPC.MORRALLA: { ptBOS = "11"; break; }
+                case (int)PaymentMethodPC.EFECTIVO: { ptBOS = "01"; break; }
+                case (int)PaymentMethodPC.VALE_INBURSA: { ptBOS = "12"; break; }
+                case (int)PaymentMethodPC.SERVIBONOS: { ptBOS = "13"; break; }
+                case (int)PaymentMethodPC.VALES_GASOCHECK: { ptBOS = "14"; break; }
+                case (int)PaymentMethodPC.VALES_ACCOR: { ptBOS = "15"; break; }
+                case (int)PaymentMethodPC.VALES_EFECTIVALE: { ptBOS = "16"; break; }
+                case (int)PaymentMethodPC.HIDROVALE: { ptBOS = "19"; break; }
+                case (int)PaymentMethodPC.CHEQUE_TARJETA_DESECHABLE: { ptBOS = "25"; break; }
+                case (int)PaymentMethodPC.TICKET_CAR_ACCOR: { ptBOS = "27"; break; }
+                case (int)PaymentMethodPC.SODEXHOPASS: { ptBOS = "10";  break; }
+                case (int)PaymentMethodPC.PUNTO_CLAVE: { ptBOS = "30"; break; }
+                case (int)PaymentMethodPC.EFECTICAR: { ptBOS = "31"; break; }
+                case (int)PaymentMethodPC.TARJETA_BANCARIA: { ptBOS = "08"; break; }
+                case (int)PaymentMethodPC.MERCADO_PAGO: { ptBOS = "91"; break; }
+                case (int)PaymentMethodPC.PUNTOS: { ptBOS = "98"; break; }                
+                case (int)PaymentMethodPC.TARJETA_INTELIGENTE: { ptBOS = "99"; break; }
+                default: { ptBOS = ""; break; } 
+                
+            }
+
+            return ptBOS;
+        }
+        
     }
+        
 }

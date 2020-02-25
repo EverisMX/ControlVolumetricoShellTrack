@@ -101,6 +101,8 @@
     <Compile Include="Models\Hubble\CreatePaymentUsageType.cs" />
     <Compile Include="Models\Hubble\Currency.cs" />
     <Compile Include="Models\Hubble\CurrencyPriorityType.cs" />
+    <Compile Include="Models\Hubble\FinalizeSupplyTransactionForFuelTestRequest.cs" />
+    <Compile Include="Models\Hubble\FinalizeSupplyTransactionForFuelTestResponse.cs" />
     <Compile Include="Models\Hubble\GetCurrenciesRequest.cs" />
     <Compile Include="Models\Hubble\GetCurrenciesResponse.cs" />
     <Compile Include="Models\Hubble\GetOperatorRequest.cs" />

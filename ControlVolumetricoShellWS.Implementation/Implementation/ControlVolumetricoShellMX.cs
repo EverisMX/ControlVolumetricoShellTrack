@@ -3841,21 +3841,12 @@ namespace ControlVolumetricoShellWS.Implementation
                     {
                         item.PaymentMethodId = "EFECTIVO";
 
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "02")
-                    {
-                        item.PaymentMethodId = "CHEQUE";
-                        //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
-                    }
+                    }                  
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "03")
                     {
                         item.PaymentMethodId = "AMERICAN EXPRESS";
-                    }
-                  
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "04")
-                    {
-                        item.PaymentMethodId = "TRANSFERENCIA";
-                    }
+                    }                  
+                   
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "07")
                     {
                         item.PaymentMethodId = "VALE";
@@ -3874,64 +3865,6 @@ namespace ControlVolumetricoShellWS.Implementation
                     {
                         item.PaymentMethodId = "SODEXO";
                     }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "11")
-                    {
-                        item.PaymentMethodId = "MORRALLA";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "12")
-                    {
-                        item.PaymentMethodId = "VALE INBURSA";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "13")
-                    {
-                        item.PaymentMethodId = "SERVIBONOS";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "14")
-                    {
-                        item.PaymentMethodId = "VALES GASOCHECK";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "15")
-                    {
-                        item.PaymentMethodId = "VALES ACCOR";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "16")
-                    {
-                        item.PaymentMethodId = "VALES EFECTIVALE";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "19")
-                    {
-                        item.PaymentMethodId = "HIDROVALE";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "25")
-                    {
-                        item.PaymentMethodId = "CHEQUE (TARJETA DESECHABLE)";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "27")
-                    {
-                        item.PaymentMethodId = "TICKET CAR (ACCOR)";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "30")
-                    {
-                        item.PaymentMethodId = "PUNTO CLAVE";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "31")
-                    {
-                        item.PaymentMethodId = "EFECTICAR";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "91")
-                    {
-                        item.PaymentMethodId = "MERCADO PAGO";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "98")
-                    {
-                        item.PaymentMethodId = "PUNTOS";
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "99")
-                    {
-                        item.PaymentMethodId = "TARJETA INTELIGENTE";
-                    }
-
-
 
 
                     pagosimpreso.Add(new pagosimprimir_FP { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
@@ -4524,23 +4457,23 @@ namespace ControlVolumetricoShellWS.Implementation
             switch (idPC)
             {
                 case (int)PaymentMethodPC.AMERICAN_EXPRESS : { ptBOS = "03"; break; }
-                case (int)PaymentMethodPC.MORRALLA: { ptBOS = "11"; break; }
+                case (int)PaymentMethodPC.MORRALLA: { ptBOS = "01"; break; }
                 case (int)PaymentMethodPC.EFECTIVO: { ptBOS = "01"; break; }
-                case (int)PaymentMethodPC.VALE_INBURSA: { ptBOS = "12"; break; }
-                case (int)PaymentMethodPC.SERVIBONOS: { ptBOS = "13"; break; }
-                case (int)PaymentMethodPC.VALES_GASOCHECK: { ptBOS = "14"; break; }
-                case (int)PaymentMethodPC.VALES_ACCOR: { ptBOS = "15"; break; }
-                case (int)PaymentMethodPC.VALES_EFECTIVALE: { ptBOS = "16"; break; }
-                case (int)PaymentMethodPC.HIDROVALE: { ptBOS = "19"; break; }
-                case (int)PaymentMethodPC.CHEQUE_TARJETA_DESECHABLE: { ptBOS = "25"; break; }
-                case (int)PaymentMethodPC.TICKET_CAR_ACCOR: { ptBOS = "27"; break; }
-                case (int)PaymentMethodPC.SODEXHOPASS: { ptBOS = "10";  break; }
-                case (int)PaymentMethodPC.PUNTO_CLAVE: { ptBOS = "30"; break; }
-                case (int)PaymentMethodPC.EFECTICAR: { ptBOS = "31"; break; }
+                case (int)PaymentMethodPC.VALE_INBURSA: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.SERVIBONOS: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALES_GASOCHECK: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALES_ACCOR: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALES_EFECTIVALE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.HIDROVALE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.CHEQUE_TARJETA_DESECHABLE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.TICKET_CAR_ACCOR: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.SODEXHOPASS: { ptBOS = "07";  break; }
+                case (int)PaymentMethodPC.PUNTO_CLAVE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.EFECTICAR: { ptBOS = "07"; break; }
                 case (int)PaymentMethodPC.TARJETA_BANCARIA: { ptBOS = "08"; break; }
-                case (int)PaymentMethodPC.MERCADO_PAGO: { ptBOS = "91"; break; }
-                case (int)PaymentMethodPC.PUNTOS: { ptBOS = "98"; break; }                
-                case (int)PaymentMethodPC.TARJETA_INTELIGENTE: { ptBOS = "99"; break; }
+                case (int)PaymentMethodPC.MERCADO_PAGO: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.PUNTOS: { ptBOS = "07"; break; }                
+                case (int)PaymentMethodPC.TARJETA_INTELIGENTE: { ptBOS = "07"; break; }
                 default: { ptBOS = ""; break; } 
                 
             }

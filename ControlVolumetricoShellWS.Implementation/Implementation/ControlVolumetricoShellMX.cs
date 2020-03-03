@@ -919,7 +919,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 GetPosInformationRequest getPosInformationRequest = new GetPosInformationRequest { Identity = bsObj.Identity };
                 GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(getPosInformationRequest);
 
-               /* if (request.Info_Forma_Pago.Count == 2 || Convert.ToInt32(request.Id_Transaccion) != 0)
+                if (request.Info_Forma_Pago.Count == 2 || Convert.ToInt32(request.Id_Transaccion) != 0)
                 {
                     if (conectionSignalRDomsInform.StatusConectionHubbleR() < 0)
                     {
@@ -1055,7 +1055,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     }
 
                     #endregion
-                }*/
+                }
 
                 #endregion
 
@@ -2217,14 +2217,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 #region VALIDACION SOBRE EL WEBID Y OTROS COMPONENTES PARA LA FACTURA
 
                 DateTimeOffset fechaTicketSale = DateTimeOffset.Parse(emissionLocalDateTime);
-                string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
-                string horaFormatFact = fechaTicketFact.Replace(" ", "");
+                //string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
+                //string horaFormatFact = fechaTicketFact.Replace("", "");
 
-                string hourWebID = horaFormatFact.Substring(10, 2);
+                string hourWebID = fechaTicketSale.Hour.ToString(); // horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = horaFormatFact.Substring(13, 2);
+                string minutWebID = fechaTicketSale.Minute.ToString(); // horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = horaFormatFact.Substring(16, 2);
+                string secontWebID = fechaTicketSale.Second.ToString(); // horaFormatFact.Substring(16, 2);
 
                 string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 
@@ -3891,13 +3891,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
                 string fechaticket = Convert.ToString(fechaticketstring.DateTime);
                 string nticketco = responsegetdocument.Document.Id;
-                string horaFormatFact = fechaticket.Replace(" ", "");
+                //string horaFormatFact = fechaticket.Replace(" ", "");
 
-                string hourWebID = horaFormatFact.Substring(10, 2);
+                string hourWebID = fechaticketstring.Hour.ToString(); // horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = horaFormatFact.Substring(13, 2);
+                string minutWebID = fechaticketstring.Minute.ToString(); // horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = horaFormatFact.Substring(16, 2);
+                string secontWebID = fechaticketstring.Second.ToString(); // horaFormatFact.Substring(16, 2);
 
                 string webidnwe = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 

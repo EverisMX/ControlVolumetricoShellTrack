@@ -12,6 +12,7 @@ using Conection.HubbleWS.Models.Facturacion;
 using NodaTime;
 using MX_LogsHPTPV;
 using Conection.HubbleWS.Models.Hubble;
+using ControlVolumetricoShellWS.Transaction.Dominio.InterfaceWCF;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
@@ -1678,39 +1679,39 @@ namespace ControlVolumetricoShellWS.Implementation
                             {
                                 int processPaymentsCombuCount = processPaymentsCombu.Length;
                                 int processAmountOfSaleCount = processAmountOfSaleCombu.Length;
-                                foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
-                                {
+                             // foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                             // {
                                     //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                    if (paymentMethods.Description.ToUpper() == "TARJETA")
-                                    {
+                             //     if (paymentMethods.Description.ToUpper() == "TARJETA")
+                             //     {
                                         for (int i = 0; i < processPaymentsCombuCount; i++)
                                         {
                                             CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
                                             foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                             {
-                                                if (Convert.ToInt32(processPaymentsCombu[i]) != 3) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
-                                                {
+                                             // if (Convert.ToInt32(processPaymentsCombu[i]) != 3) //if (processPaymentsCombu[i].ToUpper() == "TARJETA")
+                                             // {
                                                     if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                                     {
                                                         if (i < processAmountOfSaleCount)
                                                         {
                                                             createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
                                                             createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSaleCombu[i]);
-                                                            createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                            createDocumentPaymentDetailDAO.PaymentMethodId = getPOSInformationResponse.PosInformation.CompanyCode + getPaymentTypeByIdPC(Convert.ToInt32(processPaymentsCombu[i])); //paymentMethods.Id;
                                                             createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                             createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                             createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                             PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                             currencyId = CurrenciesBase.Id;
-                                                            paymentCard = paymentMethods.Id;
+                                                            //paymentCard = paymentMethods.Id;
                                                         }
                                                     }
                                                     //createDocumentPaymentDetailDAO = null;
-                                                }
+                                             // }
                                             }
                                         }
-                                    }
-                                    if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                                //  }
+                                   /* if (paymentMethods.Description.ToUpper() == "EFECTIVO")
                                     {
                                         for (int i = 0; i < processPaymentsCombuCount; i++)
                                         {
@@ -1738,7 +1739,8 @@ namespace ControlVolumetricoShellWS.Implementation
                                                 }
                                             }
                                         }
-                                    }
+                                    }*/
+
                                     //if (paymentMethods.Description.ToUpper() == "AMERICAN EXPRESS")
                                     //{
                                     //    for (int i = 0; i < processPaymentsCombuCount; i++)
@@ -1768,7 +1770,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                     //        }
                                     //    }
                                     //}//end
-                                }
+                              //}
                             }
                         }
                     }
@@ -1797,39 +1799,39 @@ namespace ControlVolumetricoShellWS.Implementation
                         {
                             int processPaymentsPeriCount = processPaymentsPeri.Length;
                             int processAmountOfSaleCount = processAmountOfSalePeri.Length;
-                            foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
-                            {
+                       //   foreach (var paymentMethods in getPaymentMethodsResponse.PaymentMethodList)
+                       //   {
                                 //CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
-                                if (paymentMethods.Description.ToUpper() == "TARJETA")
+                       //       if (paymentMethods.Description.ToUpper() == "TARJETA")
                                 {
                                     for (int i = 0; i < processPaymentsPeriCount; i++)
                                     {
                                         CreateDocumentPaymentDetailDAO createDocumentPaymentDetailDAO = new CreateDocumentPaymentDetailDAO();
                                         foreach (var CurrenciesBase in getCurrenciesResponse.CurrencyList)
                                         {
-                                            if (Convert.ToInt32(processPaymentsPeri[i]) != 3) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
-                                            {
+                                          //if (Convert.ToInt32(processPaymentsPeri[i]) != 3) //if (processPaymentsPeri[i].ToUpper() == "TARJETA")
+                                          //{
                                                 if (CurrenciesBase.PriorityType == CurrencyPriorityType.Base)
                                                 {
                                                     if (i < processAmountOfSaleCount)
                                                     {
                                                         createDocumentPaymentDetailDAO.PrimaryCurrencyGivenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
                                                         createDocumentPaymentDetailDAO.PrimaryCurrencyTakenAmount = Convert.ToDecimal(processAmountOfSalePeri[i]);
-                                                        createDocumentPaymentDetailDAO.PaymentMethodId = paymentMethods.Id;
+                                                        createDocumentPaymentDetailDAO.PaymentMethodId = getPOSInformationResponse.PosInformation.CompanyCode + getPaymentTypeByIdPC(Convert.ToInt32(processPaymentsPeri[i])); // paymentMethods.Id;
                                                         createDocumentPaymentDetailDAO.CurrencyId = CurrenciesBase.Id;
                                                         createDocumentPaymentDetailDAO.ChangeFactorFromBase = Convert.ToDecimal(CurrenciesBase.ChangeFactorFromBase);
                                                         createDocumentPaymentDetailDAO.UsageType = CreatePaymentUsageType.PendingPayment;
                                                         PaymentDetailListPreview.Add(createDocumentPaymentDetailDAO);
                                                         currencyId = CurrenciesBase.Id;
-                                                        paymentCard = paymentMethods.Id;
+                                                        //paymentCard = paymentMethods.Id;
                                                     }
                                                 }
                                                 //createDocumentPaymentDetailDAO = null;
-                                            }
+                                          //}
                                         }
                                     }
                                 }
-                                if (paymentMethods.Description.ToUpper() == "EFECTIVO")
+                              /*if (paymentMethods.Description.ToUpper() == "EFECTIVO")
                                 {
                                     for (int i = 0; i < processPaymentsPeriCount; i++)
                                     {
@@ -1857,7 +1859,8 @@ namespace ControlVolumetricoShellWS.Implementation
                                             }
                                         }
                                     }
-                                }
+                                }*/
+
                                 //if (paymentMethods.Description.ToUpper() == "AMERICAN EXPRESS")
                                 //{
                                 //    for (int i = 0; i < processPaymentsPeriCount; i++)
@@ -1887,7 +1890,7 @@ namespace ControlVolumetricoShellWS.Implementation
                                 //        }
                                 //    }
                                 //}//end
-                            }
+                         // }
                         }
                     }
                 }
@@ -1906,6 +1909,8 @@ namespace ControlVolumetricoShellWS.Implementation
 
                 #region PREPARE OF UNIFIQUE PAYMENTS OF THE DOCUMENTS
                 List<CreateDocumentPaymentDetailDAO> PaymentDetailList = new List<CreateDocumentPaymentDetailDAO>();
+                PaymentDetailList = PaymentDetailListPreview; // SHLMX - SE ASIGNA LA LISTA DIRECTA DE LA LECTURA DE MEDIOS DE PAGO
+                /*
                 bool iscash = false;
                 bool isCard = false;
                 bool isAny = false;
@@ -1966,7 +1971,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         anyT = true;
                     }
                 }
-
+                */
                 #endregion
 
                 #endregion
@@ -2214,14 +2219,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 #region VALIDACION SOBRE EL WEBID Y OTROS COMPONENTES PARA LA FACTURA
 
                 DateTimeOffset fechaTicketSale = DateTimeOffset.Parse(emissionLocalDateTime);
-                string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
-                string horaFormatFact = fechaTicketFact.Replace(" ", "");
+                //string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
+                //string horaFormatFact = fechaTicketFact.Replace("", "");
 
-                string hourWebID = horaFormatFact.Substring(10, 2);
+                string hourWebID = fechaTicketSale.Hour.ToString(); // horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = horaFormatFact.Substring(13, 2);
+                string minutWebID = fechaTicketSale.Minute.ToString(); // horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = horaFormatFact.Substring(16, 2);
+                string secontWebID = fechaTicketSale.Second.ToString(); // horaFormatFact.Substring(16, 2);
 
                 string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 
@@ -3910,17 +3915,12 @@ namespace ControlVolumetricoShellWS.Implementation
                     {
                         item.PaymentMethodId = "EFECTIVO";
 
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "02")
+                    }                  
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "03")
                     {
-                        item.PaymentMethodId = "CHEQUE";
-                        //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
-                    }
-                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "04")
-                    {
-                        item.PaymentMethodId = "TRANSFERENCIA";
-
-                    }
+                        item.PaymentMethodId = "AMERICAN EXPRESS";
+                    }                  
+                   
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "07")
                     {
                         item.PaymentMethodId = "VALE";
@@ -3929,16 +3929,16 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "08")
                     {
                         item.PaymentMethodId = "TARJETA";
-
                     }
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "09")
                     {
                         item.PaymentMethodId = "FUGA";
                         //porcentajelistaguardar2.Add(new Iva2 { TaxPercentage = "targeta", TaxAmount = strImprime2 });
                     }
-
-
-
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "10")
+                    {
+                        item.PaymentMethodId = "SODEXO";
+                    }
 
 
                     pagosimpreso.Add(new pagosimprimir_FP { PaymentMethodId = item.PaymentMethodId, PrimaryCurrencyTakenAmount = item.PrimaryCurrencyTakenAmount });
@@ -3965,13 +3965,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
                 string fechaticket = Convert.ToString(fechaticketstring.DateTime);
                 string nticketco = responsegetdocument.Document.Id;
-                string horaFormatFact = fechaticket.Replace(" ", "");
+                //string horaFormatFact = fechaticket.Replace(" ", "");
 
-                string hourWebID = horaFormatFact.Substring(10, 2);
+                string hourWebID = fechaticketstring.Hour.ToString(); // horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = horaFormatFact.Substring(13, 2);
+                string minutWebID = fechaticketstring.Minute.ToString(); // horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = horaFormatFact.Substring(16, 2);
+                string secontWebID = fechaticketstring.Second.ToString(); // horaFormatFact.Substring(16, 2);
 
                 string webidnwe = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 
@@ -4522,5 +4522,39 @@ namespace ControlVolumetricoShellWS.Implementation
             }*/
             return salida;
         }
+
+        // SLMX -  Obtener correspondiente medio pago de BOS para el valor de PC
+        private string getPaymentTypeByIdPC(int idPC)
+        {
+            string ptBOS = "";
+
+            switch (idPC)
+            {
+                case (int)PaymentMethodPC.AMERICAN_EXPRESS : { ptBOS = "03"; break; }
+                case (int)PaymentMethodPC.MORRALLA: { ptBOS = "01"; break; }
+                case (int)PaymentMethodPC.EFECTIVO: { ptBOS = "01"; break; }
+                case (int)PaymentMethodPC.VALE_INBURSA: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.SERVIBONOS: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALES_GASOCHECK: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALES_ACCOR: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALES_EFECTIVALE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.HIDROVALE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.CHEQUE_TARJETA_DESECHABLE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.TICKET_CAR_ACCOR: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.SODEXHOPASS: { ptBOS = "07";  break; }
+                case (int)PaymentMethodPC.PUNTO_CLAVE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.EFECTICAR: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.TARJETA_BANCARIA: { ptBOS = "08"; break; }
+                case (int)PaymentMethodPC.MERCADO_PAGO: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.PUNTOS: { ptBOS = "07"; break; }                
+                case (int)PaymentMethodPC.TARJETA_INTELIGENTE: { ptBOS = "07"; break; }
+                default: { ptBOS = ""; break; } 
+                
+            }
+
+            return ptBOS;
+        }
+        
     }
+        
 }

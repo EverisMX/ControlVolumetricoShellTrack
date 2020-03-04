@@ -716,6 +716,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    nHD: " + request.nHD + "," + "\n" +
                         "    parciales: " + request.parciales.ToString() + "," + "\n" +
                         "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
+                        "    Propina: " + request.Propina.ToString() + "," + "\n" +
                         "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 }
                 else
@@ -742,6 +743,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    nHD: " + request.nHD + "," + "\n" +
                         "    parciales: " + request.parciales.ToString() + "," + "\n" +
                         "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
+                        "    Propina: " + request.Propina.ToString() + "," + "\n" +
                         "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 }
                 if (request.Id_Transaccion == null)
@@ -2245,6 +2247,66 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
 
                 #endregion
+
+                #region SHLMX - REGISTRAR PROPINA
+                try
+                {
+                    decimal _possibletip = 0M;
+                    if (!request.Propina.Equals("NULL"))
+                    {
+                        _possibletip = decimal.Parse(request.Propina);
+                    }
+                    else
+                    {
+                        Log("CODEVOL_FIN INFO", "NO SE HA ENCONTRADO PROPINA . IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + "request.Propina.HasValue == false");
+                    }
+                    
+                    RegisterTipDAO tipObject = new RegisterTipDAO
+                    {
+                        nticket = possibleDocumentId,
+                        ntienda = getPOSInformationResponse.PosInformation.ShopCode,
+                        propina = _possibletip,
+                        operador = codeOperator,
+                        fecha = fechaTicketSale.DateTime
+                    };
+                    #region INVOCAR HUBBLEPOS TIPREGISTER CONTROLLER
+                    RegisterTipRequest registerTipRequest = new RegisterTipRequest { RegisterTip = tipObject, Identity = bsObj.Identity };
+                    RegisterTipResponse registerTipResponse = await invokeHubbleWebAPIServices.RegisterTip(registerTipRequest);
+                    if (registerTipResponse.Status < 0)
+                    {
+                        Log("CODEVOL_FIN ERROR 98", "@SHELLMX- FALLO EN PROCESO INTERNO HUBBLE NO SE ALMACENO EN BDPROYECTO REINTENTAR Y VERIFICAR LOS DATOS CORRECTOS DE ENTRADA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO:" + criptoInfoFor + "\n " +
+                        "registerTipResponse: \n {" + "\n" + "    status: " + registerTipResponse.Status.ToString() + ", \n" + "    message :" + registerTipResponse.Message + "\n" + "}");
+                        return new Salida_Info_Forma_Pago
+                        {
+                            Resultado = true,
+                            Msj = "ERROR EN ALMACENAR LA PROPINA."
+                        };
+                    }
+
+                    string registerTipId = null;
+                    registerTipId = registerTipResponse.Id.ToString();
+
+                    Log("CODEVOL_TR INFO", "RESPUESTA DE REGISTERTIP() SUCCESFULL  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n " + "RegisterTipResponse: \n {" + "\n" +
+                     "    status: " + registerTipResponse.Status.ToString() + "," + "\n" +
+                     "    message: " + registerTipResponse.Message.ToString() + "," + "\n" +
+                     "    registerTipId: " + registerTipId.ToString() + "\n" + "}");
+                    #endregion
+
+
+                }
+                catch (Exception ex)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO EL REGISTRO DE LA PROPINA CON EL ID_TRANSACTION.  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + ex.GetHashCode().ToString() + ", \n" + "    mesagge: " + ex.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR AL REGISTRAR LA PROPINA"
+                    };
+                }
+
+                #endregion SHLMX - REGISTRAR PROPINA
 
                 #region COMUNICACION CON EL DOMS
 

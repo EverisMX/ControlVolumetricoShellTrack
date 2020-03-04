@@ -72,5 +72,11 @@ namespace ControlVolumetricoShellWS.Dominio
         /// </summary>
         [DataMember]
         public bool aprobado { get; set; }
+
+        /// <summary>
+        /// Importe de la propina. "NULL" si es vacío
+        /// </summary>
+        [DataMember]
+        public string Propina { get; set; }
     }
 }

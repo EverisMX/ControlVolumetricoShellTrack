@@ -12,13 +12,18 @@ namespace Conection.HubbleWS
     public class InvokeWSIntegracionShellMXServices
     {
         #region Variables
-        private static string URL_SERVICE_INTEGRACIONSHL = "http://localhost:50490/api/";
+        private static string URL_SERVICE_INTEGRACIONSHL = "http://localhost:50490/api/"; //PRE
+        private readonly string USER_BBDD = "arr"; // PRE
         #endregion Variables
 
         // SHELLMX- Este metodo se encuentra en <<<WSIntegracionShellMX/Controller/TipController.cs>>> se extrajo del metodo Original del RegisterTip
         public async Task<RegisterTipResponse> RegisterTip(RegisterTipRequest registerTipRequest)
         {
             URL_SERVICE_INTEGRACIONSHL += "tip/";
+
+            //SHELLMX- Completa campos de DSN
+            registerTipRequest.User = USER_BBDD;
+            registerTipRequest.nCliente = registerTipRequest.Company;
 
             //SHELLMX- Se manda a llamar el metodo HttpClient.
             using (HttpClient client = new HttpClient())

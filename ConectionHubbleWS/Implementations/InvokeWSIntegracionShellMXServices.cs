@@ -19,7 +19,7 @@ namespace Conection.HubbleWS
         // SHELLMX- Este metodo se encuentra en <<<WSIntegracionShellMX/Controller/TipController.cs>>> se extrajo del metodo Original del RegisterTip
         public async Task<RegisterTipResponse> RegisterTip(RegisterTipRequest registerTipRequest)
         {
-            URL_SERVICE_INTEGRACIONSHL += "tip/";
+            URL_SERVICE_INTEGRACIONSHL += "api/tip/";
 
             //SHELLMX- Completa campos de DSN
             registerTipRequest.User = USER_BBDD;
@@ -39,7 +39,7 @@ namespace Conection.HubbleWS
                 client.DefaultRequestHeaders.Add("Signature", signature);
 
                 //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
-                using (HttpResponseMessage response = await client.PostAsJsonAsync("register", registerTipRequest))
+                using (HttpResponseMessage response = await client.PostAsJsonAsync("tipregister", registerTipRequest))
                 {
                     response.EnsureSuccessStatusCode();
                     if (response.IsSuccessStatusCode)

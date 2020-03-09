@@ -12,14 +12,14 @@ namespace Conection.HubbleWS
     public class InvokeWSIntegracionShellMXServices
     {
         #region Variables
-        private static string URL_SERVICE_INTEGRACIONSHL = "http://localhost:50490/api/"; //PRE
-        private readonly string USER_BBDD = "arr"; // PRE
+        private static string URL_SERVICE_INTEGRACIONSHL = "https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/Transmisor/"; //PRE AZURE
+        private readonly string USER_BBDD = "agonzalb"; // PRE AZURE
         #endregion Variables
 
         // SHELLMX- Este metodo se encuentra en <<<WSIntegracionShellMX/Controller/TipController.cs>>> se extrajo del metodo Original del RegisterTip
         public async Task<RegisterTipResponse> RegisterTip(RegisterTipRequest registerTipRequest)
         {
-            URL_SERVICE_INTEGRACIONSHL += "api/tip/";
+            string URI = URL_SERVICE_INTEGRACIONSHL + "api/tip/";
 
             //SHELLMX- Completa campos de DSN
             registerTipRequest.User = USER_BBDD;
@@ -32,7 +32,7 @@ namespace Conection.HubbleWS
                 string timestamp = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
                 string signature = Convert.ToString(GenericHelper.GeneratedSignature(objInput, timestamp, "0x12A6"));
 
-                client.BaseAddress = new Uri(URL_SERVICE_INTEGRACIONSHL);
+                client.BaseAddress = new Uri(URI);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("TimeStamp", timestamp);
@@ -45,9 +45,18 @@ namespace Conection.HubbleWS
                     if (response.IsSuccessStatusCode)
                     {
                         var responseJson = response.Content.ReadAsStringAsync().Result;
+                        RegisterTipResponse deserializeJson = null;
 
                         //SHELLMX- Se desSerializa para transformarlo en un Objeto.
-                        RegisterTipResponse deserializeJson = JsonConvert.DeserializeObject<RegisterTipResponse>(responseJson);
+                        try
+                        {
+                            deserializeJson = JsonConvert.DeserializeObject<RegisterTipResponse>(responseJson);
+                        }
+                        catch (Exception ex)
+                        {
+                            
+                        }
+                        
 
                         return deserializeJson;
                     }

@@ -2219,39 +2219,19 @@ namespace ControlVolumetricoShellWS.Implementation
                 #region VALIDACION SOBRE EL WEBID Y OTROS COMPONENTES PARA LA FACTURA
 
                 DateTimeOffset fechaTicketSale = DateTimeOffset.Parse(emissionLocalDateTime);
-                //string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
-                //string horaFormatFact = fechaTicketFact.Replace("", "");
+                string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
+                string horaFormatFact = fechaTicketFact.Replace(" ", "");
 
-                string hourWebID = fechaTicketSale.Hour.ToString(); // horaFormatFact.Substring(10, 2);
+                string hourWebID = horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = fechaTicketSale.Minute.ToString(); // horaFormatFact.Substring(13, 2);
+                string minutWebID = horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = fechaTicketSale.Second.ToString(); // horaFormatFact.Substring(16, 2);
+                string secontWebID = horaFormatFact.Substring(16, 2);
 
                 string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 
                 #endregion
 
-                // Se Revisa que se realizo correctamente la subida de la venta de producto menos carburante.
-                if (IsCombustibleEnabler == false)
-                {
-                    Log("CODEVOL_FIN INFO", "SE TERMINO LA VENTA DE PERIFERICOS DONDE NO SE LIBERA NINGUNA BOMBA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "Salida_Info_Forma_Pago: \n {" + "\n" +
-                        "    msj: " + "VENTA SATISFACTORIA DE PERIFERICOS OK," + "\n" +
-                        "    Resultado: " + "true," + "\n" +
-                        "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," + "\n" +
-                        "    Nticket: " + possibleDocumentId.ToString() + "," + "\n" +
-                        "    WebId: " + webIDFact + "\n" + "}");
-                    return new Salida_Info_Forma_Pago
-                    {
-                        Msj = "SHELLHUBBLE- VENTA SATISFACTORIA DE PERIFERICOS OK.",
-                        Resultado = true,
-                        EESS = getPOSInformationResponse.PosInformation.ShopCode,
-                        Nticket = possibleDocumentId,
-                        WebId = webIDFact
-                    };
-                }
-
-                #endregion
 
                 #region SHLMX - REGISTRAR PROPINA
                 try
@@ -2269,12 +2249,12 @@ namespace ControlVolumetricoShellWS.Implementation
                         Log("CODEVOL_FIN ERROR 72", "NO SE HA ENCONTRADO PROPINA . IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + "request.Propina.HasValue == false");
                     }
 
-                    if(_possibletip > 0)
-                    {                    
+                    if (_possibletip >= 0)
+                    {
                         RegisterTipDAO tipObject = new RegisterTipDAO
                         {
                             nticket = possibleDocumentId,
-                            ntienda = getPOSInformationResponse.PosInformation.ShopCode,
+                            ntienda = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.ShopCode,
                             propina = _possibletip,
                             operador = codeOperator,
                             fecha = fechaTicketSale.DateTime
@@ -2324,6 +2304,31 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
 
                 #endregion SHLMX - REGISTRAR PROPINA
+
+
+
+                // Se Revisa que se realizo correctamente la subida de la venta de producto menos carburante.
+                if (IsCombustibleEnabler == false)
+                {
+                    Log("CODEVOL_FIN INFO", "SE TERMINO LA VENTA DE PERIFERICOS DONDE NO SE LIBERA NINGUNA BOMBA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n" + "Salida_Info_Forma_Pago: \n {" + "\n" +
+                        "    msj: " + "VENTA SATISFACTORIA DE PERIFERICOS OK," + "\n" +
+                        "    Resultado: " + "true," + "\n" +
+                        "    EESS: " + getPOSInformationResponse.PosInformation.ShopCode.ToString() + "," + "\n" +
+                        "    Nticket: " + possibleDocumentId.ToString() + "," + "\n" +
+                        "    WebId: " + webIDFact + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Msj = "SHELLHUBBLE- VENTA SATISFACTORIA DE PERIFERICOS OK.",
+                        Resultado = true,
+                        EESS = getPOSInformationResponse.PosInformation.ShopCode,
+                        Nticket = possibleDocumentId,
+                        WebId = webIDFact
+                    };
+                }
+
+                #endregion
+
+               
 
                 #region COMUNICACION CON EL DOMS
 
@@ -3965,13 +3970,13 @@ namespace ControlVolumetricoShellWS.Implementation
                 DateTimeOffset fechaticketstring = DateTimeOffset.Parse(formatofecha);
                 string fechaticket = Convert.ToString(fechaticketstring.DateTime);
                 string nticketco = responsegetdocument.Document.Id;
-                //string horaFormatFact = fechaticket.Replace(" ", "");
+                string horaFormatFact = fechaticket.Replace(" ", "");
 
-                string hourWebID = fechaticketstring.Hour.ToString(); // horaFormatFact.Substring(10, 2);
+                string hourWebID = horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = fechaticketstring.Minute.ToString(); // horaFormatFact.Substring(13, 2);
+                string minutWebID = horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = fechaticketstring.Second.ToString(); // horaFormatFact.Substring(16, 2);
+                string secontWebID = horaFormatFact.Substring(16, 2);
 
                 string webidnwe = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 

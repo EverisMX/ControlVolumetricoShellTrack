@@ -11,7 +11,7 @@ namespace Conection.HubbleWS
         /// <summary>
         /// Response: Id de propina
         /// </summary>
-        public int Signature { get; set; } = 0;
+        public string Signature { get; set; } 
         public string Timestamp { get; set; }
         public TipResponse ObjResponse { get; set; }
     }

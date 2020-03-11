@@ -12,8 +12,10 @@ namespace Conection.HubbleWS
     public class InvokeWSIntegracionShellMXServices
     {
         #region Variables
-        private static string URL_SERVICE_INTEGRACIONSHL = "https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/Transmisor/"; //PRE AZURE
-        private readonly string USER_BBDD = "agonzalb"; // PRE AZURE
+        //private static string URL_SERVICE_INTEGRACIONSHL = "https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/Transmisor/"; //PRE AZURE
+        //private readonly string USER_BBDD = "agonzalb"; // PRE AZURE
+        private static string URL_SERVICE_INTEGRACIONSHL = "https://shellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/Transmisor/"; //PRO
+        private readonly string USER_BBDD = "MAP"; // PRO
         #endregion Variables
 
         // SHELLMX- Este metodo se encuentra en <<<WSIntegracionShellMX/Controller/TipController.cs>>> se extrajo del metodo Original del RegisterTip

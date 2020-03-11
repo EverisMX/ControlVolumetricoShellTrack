@@ -717,6 +717,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    nHD: " + request.nHD + "," + "\n" +
                         "    parciales: " + request.parciales.ToString() + "," + "\n" +
                         "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
+                        "    Propina: " + request.Propina == null ? "0.00" : request.Propina + "," + "\n" +
                         "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 }
                 else
@@ -743,6 +744,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    nHD: " + request.nHD + "," + "\n" +
                         "    parciales: " + request.parciales.ToString() + "," + "\n" +
                         "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
+                        "    Propina: " + request.Propina == null ? "0.00" : request.Propina + "," + "\n" +
                         "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 }
                 if (request.Id_Transaccion == null)
@@ -2220,15 +2222,90 @@ namespace ControlVolumetricoShellWS.Implementation
                 string fechaTicketFact = Convert.ToString(fechaTicketSale.DateTime);
                 string horaFormatFact = fechaTicketFact.Replace(" ", "");
 
-                string hourWebID =   horaFormatFact.Substring(10, 2); 
+                string hourWebID = horaFormatFact.Substring(10, 2);
                 string companyEESS = getPOSInformationResponse.PosInformation.CompanyCode;
-                string minutWebID = horaFormatFact.Substring(13, 2);  
+                string minutWebID = horaFormatFact.Substring(13, 2);
                 string serieTicket = serieWebId;
-                string secontWebID = horaFormatFact.Substring(16, 2); 
+                string secontWebID = horaFormatFact.Substring(16, 2);
 
                 string webIDFact = string.Concat(hourWebID + companyEESS + minutWebID + serieTicket + secontWebID);
 
                 #endregion
+
+
+                #region SHLMX - REGISTRAR PROPINA
+                try
+                {
+                    decimal _possibletip = 0M;
+                    if (!request.Propina.Equals("NULL"))
+                    {
+                        if (!decimal.TryParse(request.Propina, out _possibletip))
+                        {
+                            Log("CODEVOL_FIN ERROR 71", "EL VALOR PROPINA ES INCORRECTO. IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + "request.Propina.HasValue == false");
+                        }
+                    }
+                    else
+                    {
+                        Log("CODEVOL_FIN ERROR 72", "NO SE HA ENCONTRADO PROPINA . IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + "request.Propina.HasValue == false");
+                    }
+
+                    if (_possibletip >= 0)
+                    {
+                        RegisterTipDAO tipObject = new RegisterTipDAO
+                        {
+                            nticket = possibleDocumentId,
+                            ntienda = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.ShopCode,
+                            propina = _possibletip,
+                            operador = codeOperator,
+                            fecha = fechaTicketSale.DateTime
+                        };
+
+                        #region INVOCAR HUBBLEPOS TIPREGISTER CONTROLLER
+                        InvokeWSIntegracionShellMXServices invokeWSIntegracionShell = new InvokeWSIntegracionShellMXServices();
+
+                        RegisterTipRequest registerTipRequest = new RegisterTipRequest { RegisterTip = tipObject, Identity = bsObj.Identity };
+                        registerTipRequest.Company = getPOSInformationResponse.PosInformation.CompanyCode;
+                        RegisterTipResponse registerTipResponse = await invokeWSIntegracionShell.RegisterTip(registerTipRequest);
+                        if (registerTipResponse.Status != 200)
+                        {
+                            Log("CODEVOL_FIN ERROR 98", "@SHELLMX- FALLO EN PROCESO INTERNO HUBBLE NO SE ALMACENO EN BDPROYECTO REINTENTAR Y VERIFICAR LOS DATOS CORRECTOS DE ENTRADA  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO:" + criptoInfoFor + "\n " +
+                            "registerTipResponse: \n {" + "\n" + "    status: " + registerTipResponse.Status.ToString() + ", \n" + "    message :" + registerTipResponse.Message + "\n" + "}");
+                            return new Salida_Info_Forma_Pago
+                            {
+                                Resultado = true,
+                                Msj = "ERROR EN ALMACENAR LA PROPINA."
+                            };
+                        }
+
+                        string TipSaved = null;
+                        TipSaved = registerTipResponse.ObjResponse.Guardado.ToString();
+
+                        Log("CODEVOL_TR INFO", "RESPUESTA DE REGISTERTIP() SUCCESFULL  ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + " IDSEGUIMIENTO: " + criptoInfoFor + "\n " + "RegisterTipResponse: \n {" + "\n" +
+                         "    status: " + registerTipResponse.Status.ToString() + "," + "\n" +
+                         "    message: " + registerTipResponse.Message.ToString() + "," + "\n" +
+                         "    saved: " + TipSaved + "\n" + "}");
+                        #endregion
+                    }
+                    else
+                    {
+                        Log("CODEVOL_FIN INFO", "EL IMPORTE DE LA PROPINA ES MENOR A CERO. IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + "request.Propina.HasValue == false");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log("CODEVOL_FIN ERROR 70", "@SHELLMX- FALLO EL REGISTRO DE LA PROPINA CON EL ID_TRANSACTION.  ---> ID_TRANSACTION: " + request.Id_Transaccion.ToString() + " IDSEGUIMIENTO: " + criptoInfoFor + "\n LOG:" + "\n" +
+                                       "FinalizeSupplyTransactionResponse: \n {" + "\n" +
+                                       "    status: " + ex.GetHashCode().ToString() + ", \n" + "    mesagge: " + ex.Message.ToString() + "\n" + "}");
+                    return new Salida_Info_Forma_Pago
+                    {
+                        Resultado = false,
+                        Msj = "<VENTA GENERADA EXITOSAMENTE> ERROR AL REGISTRAR LA PROPINA"
+                    };
+                }
+
+                #endregion SHLMX - REGISTRAR PROPINA
+
+
 
                 // Se Revisa que se realizo correctamente la subida de la venta de producto menos carburante.
                 if (IsCombustibleEnabler == false)
@@ -2250,6 +2327,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
 
                 #endregion
+
+               
 
                 #region COMUNICACION CON EL DOMS
 

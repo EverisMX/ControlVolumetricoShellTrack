@@ -60,7 +60,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\GenericHelper.cs" />
     <Compile Include="Implementations\InvokeHubbleWebAPIServices.cs" />
+    <Compile Include="Implementations\InvokeWSIntegracionShellMXServices.cs" />
     <Compile Include="Models\Facturacion\Address.cs" />
     <Compile Include="Models\Facturacion\AddressType.cs" />
     <Compile Include="Models\Facturacion\Company.cs" />
@@ -123,6 +125,9 @@
     <Compile Include="Models\Hubble\PaymentMethod.cs" />
     <Compile Include="Models\Hubble\PaymentMethodType.cs" />
     <Compile Include="Models\Hubble\POSInformation.cs" />
+    <Compile Include="Models\Hubble\RegisterTipDAO.cs" />
+    <Compile Include="Models\Hubble\RegisterTipRequest.cs" />
+    <Compile Include="Models\Hubble\RegisterTipResponse.cs" />
     <Compile Include="Models\Hubble\SearchCriteriaRelationshipType.cs" />
     <Compile Include="Models\Hubble\SearchOperator.cs" />
     <Compile Include="Models\Hubble\SearchOperatorCriteria.cs" />

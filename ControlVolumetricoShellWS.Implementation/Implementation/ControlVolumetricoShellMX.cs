@@ -4562,7 +4562,363 @@ namespace ControlVolumetricoShellWS.Implementation
 
             return ptBOS;
         }
-        
+
+        #region PROCESO PARA EL CIERRE DE CAJA
+        public async Task<Salida_CloseCashboxVolumetrico> CloseCashboxVolumetrico(Entrada_CloseCashboxVolumetrico request)
+        {
+            Salida_CloseCashboxVolumetrico response = new Salida_CloseCashboxVolumetrico();
+            var criptoCierre = DateTime.Now.ToString("yyyyMM") + "_Cierre_Caja_" + DateTime.Now.ToString("h-mm-ss-ffff");
+            try
+            {
+                Log("CODEVOL_INI INFO", "@SHELLMX- INICIA EL CIERRE DE CAJA CON EL SIGUIENTE REQUEST. IDSEGUIMIENTO: " + criptoCierre + "\n" + "CloseCashboxVolumetrico:" + "\n" + "{" + "\n" +
+                    "    Idpos: " + request.Idpos + "," + "\n" +
+                    "    Teller: " + request.Id_teller + "," + "\n" +
+                    "    NHD: " + request.Nhd + "," + "\n" +
+                    "    Pos_carga: " + request.Pos_Carga + "," + "\n" +
+                    "    Pss: " + request.Pss + "," + "\n" +
+                    "    Serial: " + request.Serial + "\n" + "}");
+
+                if (request.Nhd < 0 || request.Pos_Carga <= 0)
+                {
+                    Log("CODEVOL_FIN ERROR", "@SHELLX- HA OCURRIDO UN ERROR EN EL REQUEST DEL CIERRE DE CAJA IDSEGUIMIENTO: " + criptoCierre + " El valor de NHD = " + request.Nhd + " o el Pos_Carga = " + request.Pos_Carga + " no pueden ser valores 0 o negativos");
+                    response.Resultado = false;
+                    response.Mensaje = "Datos de entrada incorrectos";
+                    return response;
+                }
+                if (request.Idpos == null || request.Id_teller == null || request.Serial == null || request.Pss == null)
+                {
+                    Log("CODEVOL_FIN ERROR", "@SHELLX- HA OCURRIDO UN ERROR EN EL REQUEST DEL CIERRE DE CAJA IDSEGUIMIENTO: " + criptoCierre + " El valor de Idpos = " + request.Idpos + " , el Teller = " + request.Id_teller + " , el Serial = " + request.Serial + " , el Pss = " + request.Pss + " no pueden ser valores nulos");
+                    response.Resultado = false;
+                    response.Mensaje = "Datos de entrada incorrectos";
+                    return response;
+                }
+
+                //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
+                // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
+                var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+                TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+                InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+
+                #region VALIDACION DEL OPERADOR ID | CODE
+                List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
+                {
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Id , MatchingType = SearchOperatorCriteriaMatchingType.Exact },
+                new SearchOperatorCriteria{ Text = request.Id_teller , Field = SearchOperatorCriteriaFieldType.Code , MatchingType = SearchOperatorCriteriaMatchingType.Exact }
+                };
+                SearchOperatorRequest searchOperatorRequest = new SearchOperatorRequest
+                {
+                    Identity = bsObj.Identity,
+                    CriteriaList = SearchOperatorCriteriaOperator,
+                    CriteriaRelationshipType = SearchCriteriaRelationshipType.Or,
+                    MustIncludeDischarged = false
+                };
+
+                SearchOperatorResponse searchOperatorResponse = await invokeHubbleWebAPIServices.SearchOperator(searchOperatorRequest);
+                string idOperator = null;
+                string codeOperator = null;
+                string nameOperator = null;
+
+                if (searchOperatorResponse.OperatorList.Count == 0)
+                {
+                    //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
+                    Log("CODEVOL_FIN WARNING", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA " + " IDSEGUIMIENTO: " + criptoCierre);
+                    response.Resultado = false;
+                    response.Mensaje = "Datos de entrada incorrectos";
+                    return response;
+                }
+                foreach (var searchOperator in searchOperatorResponse.OperatorList)
+                {
+                    idOperator = searchOperator.Id;
+                    codeOperator = searchOperator.Code;
+                    nameOperator = searchOperator.Name;
+                }
+
+                #endregion
+
+                //Extraer la informacion de parametros
+                GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(new GetPosInformationRequest { Identity = bsObj.Identity });
+                GetPOSConfigurationFullResponse getPOSConfigurationFullResponse = await invokeHubbleWebAPIServices.GetPOSConfigurationFull(new GetPOSConfigurationRequest { Identity = bsObj.Identity });
+
+                string userBD = null;//MX_USER_BBDD_ELECTRONIC_BILLING
+                string uriModular = null;//MX_URI_EVERILION_WS_MODULAR
+                string runawayPayment = null;//RUNAWAY_PAYMENT_METHOD_ID
+
+                foreach (ConfigurationParameter parameters in getPOSConfigurationFullResponse.ConfigurationParameterList)
+                {
+                    if (parameters.Name == "MX_USER_BBDD_ELECTRONIC_BILLING" || parameters.Name == "USER_BBDD_ELECTRONIC_BILLING")
+                    {
+                        userBD = parameters.MeaningfulStringValue;
+                    }
+                    if (parameters.Name == "MX_URI_EVERILION_WS_MODULAR" || parameters.Name == "URI_EVERILION_WS_MODULAR")
+                    {
+                        uriModular = parameters.MeaningfulStringValue;
+                    }
+                    if (parameters.Name == "RUNAWAY_PAYMENT_METHOD_ID")
+                    {
+                        runawayPayment = parameters.MeaningfulStringValue;
+                    }
+                }
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EL OPERADOR QUE REALIZA EL CIERRE DE CAJA => " + nameOperator + " IDSEGUIMIENTO: " + criptoCierre);
+                InvokeWebAPIServicesExternalProy invokeWebAPIServicesExternalProy = new InvokeWebAPIServicesExternalProy();
+                AreThereAnyPendingToCloseItemByCashBoxIdResponse areThereAnyPendingToCloseItemByCashBoxIdResponse = await invokeWebAPIServicesExternalProy.AreThereAnyPendingToCloseItemByCashBox(new AreThereAnyPendingToCloseItemByCashBoxIdRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    IdCompany = getPOSInformationResponse.PosInformation.CompanyCode,
+                    IdCashbox = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    CashboxOpeningAnnotationTypeId = "",
+                    CashboxClosureMode = 1,
+                    Idoperator = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELMX- ES STATUS SOBRE LA CAJA CON EL OPERADOR ASIGNADO ES: " + areThereAnyPendingToCloseItemByCashBoxIdResponse.Status + " CON EL MENSAJE: " + areThereAnyPendingToCloseItemByCashBoxIdResponse.Message + " IDSEGUIMIENTO " + criptoCierre);
+
+                ClousureCashBoxTerminalResponse clousureCashBoxTerminalResponse = await invokeWebAPIServicesExternalProy.ClousureCashBoxTerminal(new ClousureCashBoxTerminalRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Empresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Datefecha = DateTime.Today,
+                    Horafecha = DateTime.Today,
+                    Caja_Operario = idOperator,
+                    Operario = ""
+                });
+
+                if (clousureCashBoxTerminalResponse.Error >= 1)
+                {
+                    Log("CODEVOL_FIN WARNING", "@SHELLX- HA OCURRIDO UNA ADVERTENCIA EN LA VERIFICACION DEL EFECTIVO DEL OPERADOR DE CAJA " + clousureCashBoxTerminalResponse.Message + " IDSEGUIMIENTO: " + criptoCierre);
+                    response.Resultado = false;
+                    response.Mensaje = "No hay ventas realizadas o ya se realizo un cierre posterior";
+                    return response;
+                }
+
+                PreViewInsertClousureCashBoxResponse preViewInsertClousureCashBoxResponse = await invokeWebAPIServicesExternalProy.PreViewInsertClousureCashBox(new PreViewInsertClousureCashBoxRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Nempresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    CajaOperario = idOperator,
+                    Dfecha = DateTime.Today,
+                    Hfecha = DateTime.Today,
+                    Operario = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EN EL preViewInsertClousureCashBox DONDE TRAE LA INFOAMACION SIGUIENTE STATUS: " + preViewInsertClousureCashBoxResponse.Status + " CON EL NUMERROR: " + preViewInsertClousureCashBoxResponse.Error + " CON EL SIGUIENTE MENSAJE: " + preViewInsertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                GetCashBoxTotalResponse getCashBoxTotalResponse = await invokeWebAPIServicesExternalProy.GetTempCierresTpagoFromCaja(new ClousureCashBoxTerminalRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Empresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Datefecha = DateTime.Today,
+                    Horafecha = DateTime.Today,
+                    Caja_Operario = idOperator,
+                    Operario = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EN EL GetTempCierresTpagoFromCaja DONDE TRAE LA INFOAMACION SIGUIENTE STATUS: " + getCashBoxTotalResponse.Status + " CON EL SIGUIENTE MENSAJE: " + getCashBoxTotalResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                GetTempCierresSeriesGlobResponse getTempCierresSeriesGlobResponse1 = await invokeWebAPIServicesExternalProy.GetTMPCierresSerieFromCaja(new ClousureCashBoxTerminalRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Empresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Datefecha = DateTime.Today,
+                    Horafecha = DateTime.Today,
+                    Caja_Operario = idOperator,
+                    Operario = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EN EL GetTMPCierresSerieFromCaja DONDE TRAE LA INFOAMACION SIGUIENTE STATUS: " + getTempCierresSeriesGlobResponse1.Status + " CON EL SIGUIENTE MENSAJE: " + getTempCierresSeriesGlobResponse1.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                GetTempCierresSeriesGlobResponse getTempCierresSeriesGlobResponse2 = await invokeWebAPIServicesExternalProy.GetTempCierresV_TpagoFromCaja(new ClousureCashBoxTerminalRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Empresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Datefecha = DateTime.Today,
+                    Horafecha = DateTime.Today,
+                    Caja_Operario = idOperator,
+                    Operario = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EN EL GetTempCierresV_TpagoFromCaja DONDE TRAE LA INFOAMACION SIGUIENTE STATUS: " + getTempCierresSeriesGlobResponse2.Status + " CON EL SIGUIENTE MENSAJE: " + getTempCierresSeriesGlobResponse2.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                GetTempCierresSeriesGlobResponse getTempCierresSeriesGlobResponse3 = await invokeWebAPIServicesExternalProy.GetTempCierresOperadorFromCaja(new ClousureCashBoxTerminalRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Empresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Datefecha = DateTime.Today,
+                    Horafecha = DateTime.Today,
+                    Caja_Operario = idOperator,
+                    Operario = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EN EL GetTempCierresOperadorFromCaja DONDE TRAE LA INFOAMACION SIGUIENTE STATUS: " + getTempCierresSeriesGlobResponse3.Status + " CON EL SIGUIENTE MENSAJE: " + getTempCierresSeriesGlobResponse3.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                GetCheckCierresTempFromCajaResponse getCheckCierresTempFromCajaResponse = await invokeWebAPIServicesExternalProy.GetCheckCierresTempFromCaja(new GetCheckCierresTempFromCajaRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Nempresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    CajaOperario = idOperator,
+                    Operario = idOperator
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- EN EL GetCheckCierresTempFromCaja DONDE TRAE LA INFOAMACION SIGUIENTE STATUS: " + getCheckCierresTempFromCajaResponse.Status + " CON EL SIGUIENTE MENSAJE: " + getCheckCierresTempFromCajaResponse.Resultado + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                DateFromTicketResponse dateFromTicketRequest = await invokeWebAPIServicesExternalProy.GetTimesTicketsForOperador(new DateFromTicketRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    TicketFin = clousureCashBoxTerminalResponse.HastaTicket,
+                    TicketIni = clousureCashBoxTerminalResponse.DesdeTicket
+                });
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- LAS FECHA DE LA PRIMERA VENTA DEL OPERADOR PARA EL CIERRE ES ==> " + dateFromTicketRequest.TicketIni + " PARA EL ULTIMO CIERRE DE LA FECHA ==> " + dateFromTicketRequest.TicketFin + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                //SE INSERTARA EL PROCESO DEL CIERRE DE CAJA.
+
+                DateTime insertDateClosureCashBox = DateTime.Today;
+                GetPaymentMethodsResponse getPaymentMethodsResponse = await invokeHubbleWebAPIServices.GetPaymentMethods(new GetPaymentMethodsRequest
+                {
+                    Identity = bsObj.Identity
+                });
+                string cashFormPay = null;
+                foreach (PaymentMethod paymentMethod in getPaymentMethodsResponse.PaymentMethodList)
+                {
+                    if (paymentMethod.Description.ToLower() == "efectivo")
+                    {
+                        cashFormPay = paymentMethod.Id;
+                    }
+                }
+
+                InsertClousureCashBoxResponse insertClousureCashBoxResponse = await invokeWebAPIServicesExternalProy.InsertClousureCashBoxForOperator(new InsertClousureCashBoxRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    NcierreTPV = "",
+                    Operario = idOperator,
+                    Caja = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Dfecha = dateFromTicketRequest.TicketIni,
+                    Hfecha = dateFromTicketRequest.TicketFin,
+                    Nempresa = getPOSInformationResponse.PosInformation.CompanyCode,
+                    CajaOperario = idOperator,
+                    SaldoApertura = 0.0000M,
+                    SaldoMetalico = clousureCashBoxTerminalResponse.Saldo_Metalico,
+                    MetalicoReal = clousureCashBoxTerminalResponse.Saldo_Metalico,
+                    Descuadre = 0.0000M,
+                    SalidaCaja = clousureCashBoxTerminalResponse.Saldo_Metalico,
+                    SaldoCierre = 0.0000M,
+                    FechaSalida = insertDateClosureCashBox,
+                    PagoSalida = cashFormPay,
+                    AnotarSalidasNoMetalicos = -1
+                });
+
+                if (insertClousureCashBoxResponse.Error < 0 || insertClousureCashBoxResponse.Status == -1)
+                {
+                    Log("CODEVOL_FIN WARNING", "@SHELLX- NO SE PUDO REALIZA EL CIERRE DE CAJA MANDADO EL SIGUIENTE ESTATUS" + insertClousureCashBoxResponse.Status + " Y EL MENSAJE: " + insertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+                    response.Resultado = false;
+                    response.Mensaje = "No se realizo el cierre, hacerlo desde el BackOffice";
+                    return response;
+                }
+
+                Log("CODEVOL_TR INFO", "@SHELLMX- SE EJECUTO EL CIERRE DE CAJA CON EL NUMERO DE CAJA " + insertClousureCashBoxResponse.Ncierre + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                GetDocumentsForCashboxClosureExtendedResponse forCashboxClosureExtendedResponse = await invokeWebAPIServicesExternalProy.GetDocumentsForCashboxClosureExtended(new GetDocumentsForCashboxClosureExtendedRequest
+                {
+                    Id = getPOSInformationResponse.PosInformation.CompanyCode,
+                    User = userBD,
+                    UriModular = uriModular,
+                    Idcompany = getPOSInformationResponse.PosInformation.CompanyCode,
+                    Idcashbox = getPOSInformationResponse.PosInformation.CompanyCode + getPOSInformationResponse.PosInformation.CashboxCode,
+                    Dateto = insertDateClosureCashBox,
+                    Idrunaway = runawayPayment,
+                    Idcashboxopeningannotationtype = "",
+                    CashboxClosureMode = 1,
+                    Idoperator = idOperator
+                });
+
+                if (forCashboxClosureExtendedResponse.Status != "Succesful")
+                {
+                    Log("CODEVOL_FIN WARNING", "@SHELLX- NO SE PUDO REALIZA EL CIERRE DE CAJA MANDADO EL SIGUIENTE ESTATUS" + insertClousureCashBoxResponse.Status + " Y EL MENSAJE: " + insertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
+                    response.Resultado = false;
+                    response.Mensaje = "Se realizo el cierre de caja con el siguiente Num. " + insertClousureCashBoxResponse.Ncierre + " no se pudo imprimir";
+                    return response;
+                }
+
+                foreach(CashboxClosureSummarySectionLine cashboxClosureSummarySectionLine in forCashboxClosureExtendedResponse.Sections)
+                {
+                    if (cashboxClosureSummarySectionLine.SectionLineType.ToLower() == "fuels")
+                    {
+                        response.VentasCombustible.Add(new VentasGenerals
+                        {
+                            Categoria = cashboxClosureSummarySectionLine.Reference,
+                            Monto = cashboxClosureSummarySectionLine.Amount.ToString(),
+                            Total = cashboxClosureSummarySectionLine.Amount.ToString(),
+                            Unidad = cashboxClosureSummarySectionLine.Quantity.ToString()
+                        });
+                    }
+                    if (cashboxClosureSummarySectionLine.SectionLineType.ToLower() == "categories")
+                    {
+                        response.VentasCombustible.Add(new VentasGenerals
+                        {
+                            Categoria = cashboxClosureSummarySectionLine.Reference,
+                            Monto = cashboxClosureSummarySectionLine.Amount.ToString(),
+                            Total = cashboxClosureSummarySectionLine.Amount.ToString(),
+                            Unidad = cashboxClosureSummarySectionLine.Quantity.ToString()
+                        });
+                    }
+                    if (cashboxClosureSummarySectionLine.SectionLineType.ToLower() == "paymentmedia")
+                    {
+                        response.VentaPayments.Add(new VentasPaymentsList
+                        {
+                            TipoPago = cashboxClosureSummarySectionLine.Reference,
+                            Monto = cashboxClosureSummarySectionLine.Amount.ToString(),
+                            Total = cashboxClosureSummarySectionLine.Amount.ToString()
+                        });
+                    }
+                }
+
+                response.Resultado = true;
+                response.Mensaje = "Successful";
+                response.Num_Cierre = insertClousureCashBoxResponse.Ncierre;
+                response.Operador = nameOperator;
+                response.Tienda = getPOSInformationResponse.PosInformation.ShopCode;
+                response.Fecha = insertDateClosureCashBox.ToString("dd/MM/yyyy hh:MM:ss");
+                Log("CODEVOL_FIN INFO", "@SHELLX- SE REALIZO LA IMPRESION DEL CIERRE DEL OPERADOR EXITOSAMENTE " + "  IDSEGUIMIENTO: " + criptoCierre);
+
+            }
+            catch (Exception e)
+            {
+                Log("CODEVOL_FIN ERROR", "@SHELLX- ENTRO A UNA EXEPCION PARA EL METODO DE CIERE DE CAJA DONDE SE CACHA EL MENSAJE:  "+ e.Message + " SOURCE DEL ERROR: " + e.StackTrace + "  IDSEGUIMIENTO: " + criptoCierre);
+                response.Resultado = false;
+                response.Mensaje = "Ha ocurrido un error en el cierre intentar nuevamente";
+                return response;
+            }
+            return response;
+        }
+
+        #endregion
     }
-        
+
 }

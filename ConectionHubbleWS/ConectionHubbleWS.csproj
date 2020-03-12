@@ -62,7 +62,25 @@
   <ItemGroup>
     <Compile Include="Helpers\GenericHelper.cs" />
     <Compile Include="Implementations\InvokeHubbleWebAPIServices.cs" />
+    <Compile Include="Implementations\InvokeWebAPIServicesExternalProy.cs" />
     <Compile Include="Implementations\InvokeWSIntegracionShellMXServices.cs" />
+    <Compile Include="Models\External\ClousureCash\AreThereAnyPendingToCloseItemByCashBoxIdRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\AreThereAnyPendingToCloseItemByCashBoxIdResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\CashboxClosureSummarySectionLine.cs" />
+    <Compile Include="Models\External\ClousureCash\ClousureCashBoxTerminalRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\ClousureCashBoxTerminalResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\DateFromTicketRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\DateFromTicketResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\GetCashBoxTotalResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\GetCheckCierresTempFromCajaRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\GetCheckCierresTempFromCajaResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\GetDocumentsForCashboxClosureExtendedRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\GetDocumentsForCashboxClosureExtendedResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\GetTempCierresSeriesGlobResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\InsertClousureCashBoxRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\InsertClousureCashBoxResponse.cs" />
+    <Compile Include="Models\External\ClousureCash\PreViewInsertClousureCashBoxRequest.cs" />
+    <Compile Include="Models\External\ClousureCash\PreViewInsertClousureCashBoxResponse.cs" />
     <Compile Include="Models\Facturacion\Address.cs" />
     <Compile Include="Models\Facturacion\AddressType.cs" />
     <Compile Include="Models\Facturacion\Company.cs" />
@@ -94,6 +112,7 @@
     <Compile Include="Models\Facturacion\UsecasePrintingConfiguration.cs" />
     <Compile Include="Models\Hubble\BaseRequest.cs" />
     <Compile Include="Models\Hubble\BaseResponse.cs" />
+    <Compile Include="Models\Hubble\ConfigurationParameter.cs" />
     <Compile Include="Models\Hubble\CreateDocumentDAO.cs" />
     <Compile Include="Models\Hubble\CreateDocumentLineDAO.cs" />
     <Compile Include="Models\Hubble\CreateDocumentLinePromotionDAO.cs" />
@@ -111,6 +130,7 @@
     <Compile Include="Models\Hubble\GetOperatorResponse.cs" />
     <Compile Include="Models\Hubble\GetPaymentMethodsRequest.cs" />
     <Compile Include="Models\Hubble\GetPaymentMethodsResponse.cs" />
+    <Compile Include="Models\Hubble\GetPOSConfigurationFullResponse.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationRequest.cs" />
     <Compile Include="Models\Hubble\GetPOSConfigurationResponse.cs" />
     <Compile Include="Models\Hubble\GetPosInformationRequest.cs" />

@@ -24,5 +24,8 @@ namespace ControlVolumetricoShellWS.Contract
 
         [OperationContract]
         Task<Salida_Electronic_billing_FP> Electronic_billing_FP(Entrada_Electronic_billing_FP request);
+
+        [OperationContract]
+        Task<Salida_CloseCashboxVolumetrico> CloseCashboxVolumetrico(Entrada_CloseCashboxVolumetrico request);
     }
 }

@@ -565,6 +565,34 @@ namespace Conection.HubbleWS
             }
         }
 
+        // SHELLMX- Este metodo se encuentra en <<<HubblePOSWebAPI/Controller/MainController.cs>>> se extrajo del metodo Original del GetPOSConfiguration Sobrecaragado.
+        public async Task<GetPOSConfigurationFullResponse> GetPOSConfigurationFull(GetPOSConfigurationRequest getPOSConfigurationRequest)
+        {
+            //SHELLMX- Se manda a llamar el metodo HttpClient.
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri("http://localhost:8091");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                //SHELLMX se crea el llamado de la solicitud para la peticion HTTP.
+                using (HttpResponseMessage response = await client.PostAsJsonAsync("/main/GetPOSConfiguration", getPOSConfigurationRequest))
+                {
+                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseJson = response.Content.ReadAsStringAsync().Result;
+
+                        //SHELLMX- Se desSerializa para transformarlo en un Objeto.
+                        GetPOSConfigurationFullResponse deserializeJson = JsonConvert.DeserializeObject<GetPOSConfigurationFullResponse>(responseJson);
+
+                        return deserializeJson;
+                    }
+                    else
+                        return null;
+                }
+            }
+        }
         #endregion
     }
 }

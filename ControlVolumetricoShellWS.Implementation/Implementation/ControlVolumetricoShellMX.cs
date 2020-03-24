@@ -3499,8 +3499,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
                 bool isFacturar = false;
                 #endregion
-                bool isFacturar_publicogenral = false;
-                bool isFacturar_publicogenralEnero = false;
+               // bool isFacturar_publicogenral = false;
+               // bool isFacturar_publicogenralEnero = false;
                 string numeroclientere = "";
                 if (request.NoCliente == null || request.NoCliente.Trim() == "" || request.NoCliente == String.Empty)
                 {
@@ -4038,7 +4038,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (responsegetdocument.Document != null && numeroclientere == null)
                     {
                         isFacturar = false;
-                        isFacturar_publicogenralEnero = true;
+                        //isFacturar_publicogenralEnero = true;
                         salida.Resultado = true;
                         salida.Msj = "NUMERO DE CLIENTE NO VALIDO.";
 
@@ -4238,117 +4238,6 @@ namespace ControlVolumetricoShellWS.Implementation
 
 
                 }
-                #region facturacion publico genral
-                 string Primero_Enero()
-                {
-
-                    try
-                    {
-                        string Param_Enero = System.IO.File.ReadAllText(@"C:\HubblePOS\Logs\Facturacion.txt");
-                        string varEnero = Param_Enero;
-
-
-                        if (varEnero.Trim() == "" || varEnero == String.Empty)
-                        {
-                            return "SI";
-                        }
-                        else
-                        {
-                            if (varEnero != "NO")
-                            {
-                                return "SI";
-                            }
-                            else
-                            {
-                                return varEnero;
-                            }
-                        }
-
-                    }
-                    catch (Exception)
-                    {
-
-                        return "SI";
-                    }
-                }
-
-
-                if (isFacturar_publicogenralEnero)
-                {
-                    string res_Enero = Primero_Enero();
-                    if (res_Enero=="SI")
-                    {
-                        isFacturar_publicogenral = true;
-                        Log("status facturado publico general", " Se esta facturando a nombre de publico en general");
-
-                    }
-                    else
-                    {
-                        isFacturar_publicogenral = false;
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
-                        Log("status facturado publico general", "Cambie el parametro a "+"SI"+" para facturar a publico en genral");
-
-                    }
-
-                }
-                if (isFacturar_publicogenral)
-                {
-
-                    GetCompanyRequest GetCompanyreques = new GetCompanyRequest
-                    {
-                        Identity = bsObj.Identity
-                    };
-
-                    GetCompanyResponse responseCompany = await invokeHubbleWebAPIServices.GetCompany(GetCompanyreques);
-
-                    #region facturacion
-                    GenerateElectronicInvoice requestfac = new GenerateElectronicInvoice
-                    {
-                        EmpresaPortal = "01",
-                        Company = responseCompany.Company.Id,
-                        ListTicket = new List<ListTicketDAO>
-                    {
-                        new ListTicketDAO
-                        {
-                            EESS =request.EESS,
-                            NTicket=request.Nticket,
-                            RFC="XAXX010101000",
-                            WebID=request.WebID
-                        }
-                    }
-                    };
-
-                    facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
-
-                    if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
-                    {
-                        Log("factura publico genral= \n\n",
-                        "\n SelloDigitaSAT= " + responsefacturacion.SelloDigitaSAT +
-                        "\n SelloDigitaCFDI= " + responsefacturacion.SelloDigitaCFDI +
-                        "\n CadenaOrigTimbre= " + responsefacturacion.CadenaOrigTimbre +
-                        "\n FolioFiscal= " + responsefacturacion.FolioFiscal +
-                        "\n RFCProveedorCert= " + responsefacturacion.RFCProveedorCert +
-                        "\n NumCertificado= " + responsefacturacion.NumCertificado +
-                        "\n DateCertificacion= " + responsefacturacion.DateCertificacion);
-
-                        Log("status facturado publico general", "factura emitida con exito");
-
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
-                    }
-                    else
-                    {
-                        Log("status facturado publico general", "factura no emitida con exito, Respuesta de facturacion: " + responsefacturacion.mensaje);
-                        salida.Resultado = true;
-                        salida.Msj = "OPERACION REALIZADA CON EXITO";
-                    }
-
-
-                    #endregion
-
-                }
-                #endregion
                 Log("CODEVOL_TR **", "EL RESPONSE QUE SE ENTREGA DE ELECTRONIC_BILLING IDSEGUIMIENTO: " +criptoElecB + "\n RESPONSE " + "\n" + "{" + "\n" +
                     "    ticket: " + request.Nticket + "," + "\n" +
                     "    terminal: " + responsegetdocument.Document.PosId.ToString() + "," + "\n" +

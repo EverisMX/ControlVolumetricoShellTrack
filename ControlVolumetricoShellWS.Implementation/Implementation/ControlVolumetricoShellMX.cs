@@ -4131,7 +4131,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         isFacturar = false;
                         salida.Resultado = true;
                         salida.Msj = "NUMERO DE CLIENTE NO VALIDO.";
-                        return salida;
+                        //return salida;
                     }
                     if (responsegetdocument.Document != null && responsecustomer.Customer != null)
                     {
@@ -4245,7 +4245,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         //salida.Estacion = informationresponses.PosInformation.ShopCode;
                         salida.Msj = responsefacturacion.mensaje;
                         salida.Resultado = false;
-                        return salida;
+                        //return salida;
                     }
                     if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
                     {
@@ -4266,14 +4266,14 @@ namespace ControlVolumetricoShellWS.Implementation
                         //salida.Estacion = informationresponses.PosInformation.ShopCode;
                         salida.Msj = responsefacturacion.mensaje;
                         salida.Resultado = false;
-                        return salida;
+                        //return salida;
                     }
                     if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
                     {
                         Log("CODEVOL_FIN 38", "@SHELLMX- NO SE ENCONTRO EL SERVICIO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = responsefacturacion.mensaje;
                         salida.Resultado = true;
-                        return salida;
+                        //return salida;
                     }
                     if (responsefacturacion.mensaje == "FACTURACION CORRECTA")
                     {
@@ -4295,7 +4295,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         Log("CODEVOL_FIN 37", "@SHELLMX- ERROR DE TIMBRADO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = responsefacturacion.mensaje;
                         salida.Resultado = true;
-                        return salida;
+                        //return salida;
                     }
 
                     if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")
@@ -4303,7 +4303,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         Log("CODEVOL_FIN 36", "@SHELLMX- NO SE ENCONTRO EL METODO DE FACTURACION : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         salida.Msj = "NO SE PUDO FACTURAR  INTENTELO MAS TARDE";
                         salida.Resultado = true;
-                        return salida;
+                        //return salida;
 
                     }
                     //else

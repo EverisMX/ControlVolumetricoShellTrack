@@ -14,6 +14,12 @@ namespace ControlVolumetricoShellWS.Dominio
         public string Tienda { get; set; }
 
         [DataMember]
+        public string FechaIn { get; set; }
+
+        [DataMember]
+        public string FechaFin { get; set; }
+
+        [DataMember]
         public string Num_Cierre { get; set; }
 
         [DataMember]

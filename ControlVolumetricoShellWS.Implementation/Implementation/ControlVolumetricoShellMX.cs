@@ -3926,9 +3926,10 @@ namespace ControlVolumetricoShellWS.Implementation
                     }                  
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "03")
                     {
-                        item.PaymentMethodId = "AMERICAN EXPRESS";
-                    }                  
-                   
+                        //item.PaymentMethodId = "AMERICAN EXPRESS";
+                        item.PaymentMethodId = "AMEX";
+                    }
+
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "07")
                     {
                         item.PaymentMethodId = "VALE";
@@ -4244,7 +4245,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         //salida.WebID = webidnwe;
                         //salida.Estacion = informationresponses.PosInformation.ShopCode;
                         salida.Msj = responsefacturacion.mensaje;
-                        salida.Resultado = false;
+                        salida.Resultado = true;
                         //return salida;
                     }
                     if (responsefacturacion.mensaje == "DATOS DEL TICKET INCORRECTO PARA FACTURAR")
@@ -4265,7 +4266,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         //salida.WebID = webidnwe;
                         //salida.Estacion = informationresponses.PosInformation.ShopCode;
                         salida.Msj = responsefacturacion.mensaje;
-                        salida.Resultado = false;
+                        salida.Resultado = true;
                         //return salida;
                     }
                     if (responsefacturacion.mensaje == "NO SE PUDO ENCONTRAR EL SERVICIO DE FACTURACION")

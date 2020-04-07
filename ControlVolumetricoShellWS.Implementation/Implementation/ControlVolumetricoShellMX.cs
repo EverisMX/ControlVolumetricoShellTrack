@@ -4640,7 +4640,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 GetPOSConfigurationFullResponse getPOSConfigurationFullResponse = await invokeHubbleWebAPIServices.GetPOSConfigurationFull(new GetPOSConfigurationRequest { Identity = bsObj.Identity });
 
                 string userBD = null;
-                string uriModular = null; // "https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/CierreCaja/"; // null;
+                string uriModular = "https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/CierreCaja/"; // null;
                 string runawayPayment = null;
                 string cashOpeningAnon = null;
 
@@ -4650,10 +4650,10 @@ namespace ControlVolumetricoShellWS.Implementation
                     {
                         userBD = parameters.MeaningfulStringValue;
                     }
-                    if (parameters.Name == "MX_URI_EVERILION_WS_MODULAR" || parameters.Name == "URI_EVERILION_WS_MODULAR")
+                    /*if (parameters.Name == "MX_URI_EVERILION_WS_MODULAR" || parameters.Name == "URI_EVERILION_WS_MODULAR")
                     {
                         uriModular = parameters.MeaningfulStringValue;
-                    }
+                    }*/
                     if (parameters.Name == "RUNAWAY_PAYMENT_METHOD_ID")
                     {
                         runawayPayment = parameters.MeaningfulStringValue;

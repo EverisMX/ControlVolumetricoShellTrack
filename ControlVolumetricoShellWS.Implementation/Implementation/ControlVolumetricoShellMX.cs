@@ -16,7 +16,7 @@ using ControlVolumetricoShellWS.Transaction.Dominio.InterfaceWCF;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
-    public class ControlVolumetricoShellMX : IControlVolumetricoShellMX
+    public class ControlVolumetricoShellMX : IControlVolumetricoShellMX , IControlVolumetricoPaymentHP
     {
         // propiedad el 1 indica cuantos pueden pasar por el semáforo. 
         /*private static System.Threading.SemaphoreSlim SemaphoreSlimObtener_tran { get; } = new System.Threading.SemaphoreSlim(1);
@@ -4924,6 +4924,76 @@ namespace ControlVolumetricoShellWS.Implementation
                 response.Resultado = false;
                 response.Mensaje = "Ha ocurrido un error en el cierre intentar nuevamente";
                 return response;
+            }
+            return response;
+        }
+        #endregion
+
+        #region PROCESO HEREDADO SOBRE LA INVOCACION DEL PINPAD A PUNTO CLAVE.
+        public async Task<Salida_PaymentPinpadHP> PaymentPinpadHP(Entrada_PaymentPinpadHP request)
+        {
+            Salida_PaymentPinpadHP response = new Salida_PaymentPinpadHP();
+            try
+            {
+                // Validcion de la entrada.
+                if (request.Monto == "" || request.Monto == null)
+                {
+                    return new Salida_PaymentPinpadHP
+                    {
+                        Respuesta = false,
+                        Descripcion = "El monto no debe ser vacio o nulo"
+                    };
+                }
+                else if (request.Autorizar <= 0)
+                {
+                    return new Salida_PaymentPinpadHP
+                    {
+                        Respuesta = false,
+                        Descripcion = "Numero de autorizar debe ser mayor a 0"
+                    };
+                }
+                else if (request.Var_pinpad == null || request.Var_timeout == null)
+                {
+                    return new Salida_PaymentPinpadHP
+                    {
+                        Respuesta = false,
+                        Descripcion = "No pueden ser Nulos Var_pinpad y Var_timeout"
+                    };
+                }
+                //SHELLMX- Indentificamos que el Operador este registrado en el Sistema de Everilion.Shell
+                // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
+                var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
+                TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
+                InvokeHubbleWebAPIServicesPayment invokeHubbleWebAPIServicesPayment = new InvokeHubbleWebAPIServicesPayment();
+
+                // SHLMX- Se manda a invocar el API del pinpad en el Hubble.
+                string jsonPinpadResponse = await invokeHubbleWebAPIServicesPayment.ServiciosPinpad(new Request_IC0
+                {
+                    Monto = request.Monto,
+                    enlacepinpad = request.Enlacepinpad,
+                    autorizar = request.Autorizar,
+                    var_pinpad = request.Var_pinpad,
+                    var_timeout = request.Var_timeout
+                });
+
+                if(jsonPinpadResponse == null || jsonPinpadResponse.Length == 0)
+                {
+                    return new Salida_PaymentPinpadHP
+                    {
+                        Respuesta = false,
+                        Descripcion = "La API de pinpad no entrego ninguna respuesta"
+                    };
+                }
+
+                response = JsonConvert.DeserializeObject<Salida_PaymentPinpadHP>(jsonPinpadResponse);
+            }
+            catch (Exception ext)
+            {
+                return new Salida_PaymentPinpadHP
+                {
+                    Respuesta = false,
+                    Descripcion = "Ha pasado una Exepccion ==> " + ext.Message + "  ==>  " + ext.StackTrace
+                };
             }
             return response;
         }

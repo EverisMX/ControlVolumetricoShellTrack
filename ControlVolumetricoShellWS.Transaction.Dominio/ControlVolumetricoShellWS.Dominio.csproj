@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="InterfaceWCF\Entrada_CloseCashboxVolumetrico.cs" />
     <Compile Include="InterfaceWCF\Entrada_Electronic_billing_FP.cs" />
+    <Compile Include="InterfacePayment\Entrada_PaymentPinpadHP.cs" />
     <Compile Include="InterfaceWCF\Info_Pagos_Parciales.cs" />
     <Compile Include="InterfaceWCF\PaymentMethodPC.cs" />
     <Compile Include="InterfaceWCF\Salida_CloseCashboxVolumetrico.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="InterfaceWCF\Entrada_Info_Forma_Pago_List.cs" />
     <Compile Include="InterfaceWCF\Salida_Obtiene_Tran.cs" />
     <Compile Include="InterfaceWCF\Entrada_Obtiene_Tran.cs" />
+    <Compile Include="InterfacePayment\Salida_PaymentPinpadHP.cs" />
     <Compile Include="InterfaceWCF\VentasGenerals.cs" />
     <Compile Include="InterfaceWCF\VentasPaymentsList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

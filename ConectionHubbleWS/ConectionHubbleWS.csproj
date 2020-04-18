@@ -64,6 +64,7 @@
     <Compile Include="Implementations\InvokeHubbleWebAPIServices.cs" />
     <Compile Include="Implementations\InvokeWebAPIServicesExternalProy.cs" />
     <Compile Include="Implementations\InvokeWSIntegracionShellMXServices.cs" />
+    <Compile Include="Implementations\Payment\InvokeHubbleWebAPIServicesPayment.cs" />
     <Compile Include="Models\External\ClousureCash\AreThereAnyPendingToCloseItemByCashBoxIdRequest.cs" />
     <Compile Include="Models\External\ClousureCash\AreThereAnyPendingToCloseItemByCashBoxIdResponse.cs" />
     <Compile Include="Models\External\ClousureCash\CashboxClosureSummarySectionLine.cs" />
@@ -148,6 +149,7 @@
     <Compile Include="Models\Hubble\RegisterTipDAO.cs" />
     <Compile Include="Models\Hubble\RegisterTipRequest.cs" />
     <Compile Include="Models\Hubble\RegisterTipResponse.cs" />
+    <Compile Include="Models\Payment\Request_IC0.cs" />
     <Compile Include="Models\Hubble\SearchCriteriaRelationshipType.cs" />
     <Compile Include="Models\Hubble\SearchOperator.cs" />
     <Compile Include="Models\Hubble\SearchOperatorCriteria.cs" />

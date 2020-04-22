@@ -4964,19 +4964,20 @@ namespace ControlVolumetricoShellWS.Implementation
                 // SHELLMX- Se consigue el Token del TPV para hacer las pruebas. 
                 var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
                 TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
-                InvokeHubbleWebAPIServicesPayment invokeHubbleWebAPIServicesPayment = new InvokeHubbleWebAPIServicesPayment();
+                //InvokeHubbleWebAPIServicesPayment invokeHubbleWebAPIServicesPayment = new InvokeHubbleWebAPIServicesPayment();
 
                 // SHLMX- Se manda a invocar el API del pinpad en el Hubble.
-                string jsonPinpadResponse = await invokeHubbleWebAPIServicesPayment.ServiciosPinpad(new Request_IC0
+                IC0SaleMethod iC0SaleMethod = new IC0SaleMethod();
+                string jsonPinpadResponse = await iC0SaleMethod.IC0SaleMethods(new Request_IC0
                 {
                     Monto = request.Monto,
-                    enlacepinpad = request.Enlacepinpad,
                     autorizar = request.Autorizar,
+                    enlacepinpad = request.Enlacepinpad,
                     var_pinpad = request.Var_pinpad,
                     var_timeout = request.Var_timeout
                 });
 
-                if(jsonPinpadResponse == null || jsonPinpadResponse.Length == 0)
+                if (jsonPinpadResponse == null || jsonPinpadResponse.Length == 0)
                 {
                     return new Salida_PaymentPinpadHP
                     {

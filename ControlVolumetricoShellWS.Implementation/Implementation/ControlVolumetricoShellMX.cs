@@ -16,7 +16,7 @@ using ControlVolumetricoShellWS.Transaction.Dominio.InterfaceWCF;
 
 namespace ControlVolumetricoShellWS.Implementation
 {
-    public class ControlVolumetricoShellMX : IControlVolumetricoShellMX , IControlVolumetricoPaymentHP
+    public class ControlVolumetricoShellMX : IControlVolumetricoShellMX , IControlVolumetricoPaymentHP , IControlVolumetricoBilletero
     {
         // propiedad el 1 indica cuantos pueden pasar por el semáforo. 
         /*private static System.Threading.SemaphoreSlim SemaphoreSlimObtener_tran { get; } = new System.Threading.SemaphoreSlim(1);
@@ -4998,6 +4998,39 @@ namespace ControlVolumetricoShellWS.Implementation
             }
             return response;
         }
+
+        #region BILLETERO
+        public Salida_ConexionBilletero ConexionBilletero(Entrada_ConexionBilletero request)
+        {
+            return new Salida_ConexionBilletero
+            {
+                Conexion = "Idle",
+                Resultado = true
+            };
+        }
+
+        public Salida_RecibirBilletes RecibirBilletes(Entrada_RecibirBilletes request)
+        {
+            return new Salida_RecibirBilletes
+            {
+                LibreBill = true,
+                Monto = request.MontoMock,
+                Status = "Billetes en Stack",
+                Stock = "Full"
+            };
+        }
+
+        public Salida_AlmacenarStatusBill AlmacenarStatusBill(Entrada_AlmacenarStatusBill request)
+        {
+            return new Salida_AlmacenarStatusBill
+            {
+                Almacenar = "KO",
+                Resultado = true,
+                StatusBill = "Stack Vacio"
+            };
+        }
+
+        #endregion
 
         #endregion
     }

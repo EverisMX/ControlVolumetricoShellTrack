@@ -4912,9 +4912,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 response.Num_Cierre = insertClousureCashBoxResponse.Ncierre;
                 response.Operador = nameOperator;
                 response.Tienda = getPOSInformationResponse.PosInformation.ShopCode;
-                response.Fecha = insertDateClosureCashBox.ToString("dd/MM/yyyy hh:MM:ss");
-                response.FechaIn = dateFromTicketRequest.TicketIni.ToString("dd/MM/yyyy hh:MM:ss");
-                response.FechaFin = dateFromTicketRequest.TicketFin.ToString("dd/MM/yyyy hh:MM:ss");
+                response.Fecha = insertDateClosureCashBox.ToString("dd/MM/yyyy hh:mm:ss");
+                response.FechaIn = dateFromTicketRequest.TicketIni.ToString("dd/MM/yyyy hh:mm:ss");
+                response.FechaFin = dateFromTicketRequest.TicketFin.ToString("dd/MM/yyyy hh:mm:ss");
                 Log("CODEVOL_FIN INFO", "@SHELLX- SE REALIZO LA IMPRESION DEL CIERRE DEL OPERADOR EXITOSAMENTE " + "  IDSEGUIMIENTO: " + criptoCierre);
 
             }

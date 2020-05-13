@@ -4569,6 +4569,8 @@ namespace ControlVolumetricoShellWS.Implementation
         {
             Salida_CloseCashboxVolumetrico response = new Salida_CloseCashboxVolumetrico();
             var criptoCierre = DateTime.Now.ToString("yyyyMM") + "_Cierre_Caja_" + DateTime.Now.ToString("hh-mm-ss-ffff");
+            string tienda = null;
+            string operador = null;
             try
             {
                 Log("CODEVOL_INI INFO", "@SHELLMX- INICIA EL CIERRE DE CAJA CON EL SIGUIENTE REQUEST. IDSEGUIMIENTO: " + criptoCierre + "\n" + "CloseCashboxVolumetrico:" + "\n" + "{" + "\n" +
@@ -4583,14 +4585,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     Log("CODEVOL_FIN ERROR", "@SHELLX- HA OCURRIDO UN ERROR EN EL REQUEST DEL CIERRE DE CAJA IDSEGUIMIENTO: " + criptoCierre + " El valor de NHD = " + request.Nhd + " o el Pos_Carga = " + request.Pos_Carga + " no pueden ser valores 0 o negativos");
                     response.Resultado = false;
-                    response.Mensaje = "Datos de entrada incorrectos";
+                    response.Mensaje = ("Datos de entrada incorrectos").ToUpper();
                     return response;
                 }
                 if (request.Idpos == null || request.Id_teller == null || request.Serial == null || request.Pss == null)
                 {
                     Log("CODEVOL_FIN ERROR", "@SHELLX- HA OCURRIDO UN ERROR EN EL REQUEST DEL CIERRE DE CAJA IDSEGUIMIENTO: " + criptoCierre + " El valor de Idpos = " + request.Idpos + " , el Teller = " + request.Id_teller + " , el Serial = " + request.Serial + " , el Pss = " + request.Pss + " no pueden ser valores nulos");
                     response.Resultado = false;
-                    response.Mensaje = "Datos de entrada incorrectos";
+                    response.Mensaje = ("Datos de entrada incorrectos").ToUpper();
                     return response;
                 }
 
@@ -4599,6 +4601,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 var jsonTPVToken = System.IO.File.ReadAllText("C:/dist/tpv.config.json");
                 TokenTPV bsObj = JsonConvert.DeserializeObject<TokenTPV>(jsonTPVToken);
                 InvokeHubbleWebAPIServices invokeHubbleWebAPIServices = new InvokeHubbleWebAPIServices();
+                GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(new GetPosInformationRequest { Identity = bsObj.Identity });
 
                 #region VALIDACION DEL OPERADOR ID | CODE
                 List<SearchOperatorCriteria> SearchOperatorCriteriaOperator = new List<SearchOperatorCriteria>
@@ -4619,12 +4622,15 @@ namespace ControlVolumetricoShellWS.Implementation
                 string codeOperator = null;
                 string nameOperator = null;
 
+                tienda = getPOSInformationResponse.PosInformation.ShopCode;
+
                 if (searchOperatorResponse.OperatorList.Count == 0)
                 {
                     //SHELLMX- Se manda una excepccion de que no corresponde el Operador en Turno.
                     Log("CODEVOL_FIN WARNING", "@SHELLMX- ERROR OPERADOR NO IDENTICADO O INEXISTENTE EN EL SISTEMA " + " IDSEGUIMIENTO: " + criptoCierre);
                     response.Resultado = false;
-                    response.Mensaje = "Operador no identificado o inexistente en el sistema";
+                    response.Mensaje = ("Operador no identificado o inexistente en el sistema").ToUpper();
+                    response.Tienda = tienda;
                     return response;
                 }
                 foreach (var searchOperator in searchOperatorResponse.OperatorList)
@@ -4633,15 +4639,15 @@ namespace ControlVolumetricoShellWS.Implementation
                     codeOperator = searchOperator.Code;
                     nameOperator = searchOperator.Name;
                 }
+                operador = nameOperator;
 
                 #endregion
 
                 //Extraer la informacion de parametros
-                GetPOSInformationResponse getPOSInformationResponse = await invokeHubbleWebAPIServices.GetPOSInformation(new GetPosInformationRequest { Identity = bsObj.Identity });
                 GetPOSConfigurationFullResponse getPOSConfigurationFullResponse = await invokeHubbleWebAPIServices.GetPOSConfigurationFull(new GetPOSConfigurationRequest { Identity = bsObj.Identity });
 
                 string userBD = null;
-                string uriModular = "https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/CierreCaja/"; // null;
+                string uriModular = null; //"https://preshellmx.everilion.com/ilionservices4/CUSTOM/ShellMexico/API/CierreCaja/"; // null;
                 string runawayPayment = null;
                 string cashOpeningAnon = null;
 
@@ -4651,10 +4657,10 @@ namespace ControlVolumetricoShellWS.Implementation
                     {
                         userBD = parameters.MeaningfulStringValue;
                     }
-                    /*if (parameters.Name == "MX_URI_EVERILION_WS_MODULAR" || parameters.Name == "URI_EVERILION_WS_MODULAR")
+                    if (parameters.Name == "MX_URI_EVERILION_WS_MODULAR" || parameters.Name == "URI_EVERILION_WS_MODULAR")
                     {
                         uriModular = parameters.MeaningfulStringValue;
-                    }*/
+                    }
                     if (parameters.Name == "RUNAWAY_PAYMENT_METHOD_ID")
                     {
                         runawayPayment = parameters.MeaningfulStringValue;
@@ -4698,7 +4704,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     Log("CODEVOL_FIN WARNING", "@SHELLX- HA OCURRIDO UNA ADVERTENCIA EN LA VERIFICACION DEL EFECTIVO DEL OPERADOR DE CAJA " + clousureCashBoxTerminalResponse.Message + " IDSEGUIMIENTO: " + criptoCierre);
                     response.Resultado = false;
-                    response.Mensaje = "No hay ventas realizadas o ya se realizo un cierre posterior";
+                    response.Mensaje = ("No hay ventas realizadas o ya se realizo un cierre posterior").ToUpper();
+                    response.Operador = nameOperator;
+                    response.Tienda = getPOSInformationResponse.PosInformation.ShopCode;
                     return response;
                 }
 
@@ -4846,7 +4854,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     Log("CODEVOL_FIN WARNING", "@SHELLX- NO SE PUDO REALIZA EL CIERRE DE CAJA MANDADO EL SIGUIENTE ESTATUS" + insertClousureCashBoxResponse.Status + " Y EL MENSAJE: " + insertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
                     response.Resultado = false;
-                    response.Mensaje = "No se realizo el cierre, hacerlo desde el BackOffice";
+                    response.Mensaje = ("No se realizo el cierre, hacerlo desde el BackOffice").ToUpper();
+                    response.Operador = nameOperator;
+                    response.Tienda = getPOSInformationResponse.PosInformation.ShopCode;
                     return response;
                 }
 
@@ -4870,7 +4880,9 @@ namespace ControlVolumetricoShellWS.Implementation
                 {
                     Log("CODEVOL_FIN WARNING", "@SHELLX- NO SE PUDO REALIZA EL CIERRE DE CAJA MANDADO EL SIGUIENTE ESTATUS" + insertClousureCashBoxResponse.Status + " Y EL MENSAJE: " + insertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
                     response.Resultado = false;
-                    response.Mensaje = "Se realizo el cierre de caja con el siguiente Num. " + insertClousureCashBoxResponse.Ncierre + " no se pudo imprimir";
+                    response.Mensaje = ("Se realizo el cierre de caja con el siguiente Num. " + insertClousureCashBoxResponse.Ncierre + " no se pudo imprimir").ToUpper();
+                    response.Operador = nameOperator;
+                    response.Tienda = getPOSInformationResponse.PosInformation.ShopCode;
                     return response;
                 }
 
@@ -4908,7 +4920,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 }
 
                 response.Resultado = true;
-                response.Mensaje = "Successful";
+                response.Mensaje = ("Successful").ToUpper();
                 response.Num_Cierre = insertClousureCashBoxResponse.Ncierre;
                 response.Operador = nameOperator;
                 response.Tienda = getPOSInformationResponse.PosInformation.ShopCode;
@@ -4916,13 +4928,14 @@ namespace ControlVolumetricoShellWS.Implementation
                 response.FechaIn = dateFromTicketRequest.TicketIni.ToString("dd/MM/yyyy hh:mm:ss");
                 response.FechaFin = dateFromTicketRequest.TicketFin.ToString("dd/MM/yyyy hh:mm:ss");
                 Log("CODEVOL_FIN INFO", "@SHELLX- SE REALIZO LA IMPRESION DEL CIERRE DEL OPERADOR EXITOSAMENTE " + "  IDSEGUIMIENTO: " + criptoCierre);
-
             }
             catch (Exception e)
             {
                 Log("CODEVOL_FIN ERROR", "@SHELLX- ENTRO A UNA EXEPCION PARA EL METODO DE CIERE DE CAJA DONDE SE CACHA EL MENSAJE:  "+ e.Message + " SOURCE DEL ERROR: " + e.StackTrace + "  IDSEGUIMIENTO: " + criptoCierre);
                 response.Resultado = false;
-                response.Mensaje = "Ha ocurrido un error en el cierre intentar nuevamente";
+                response.Mensaje = ("Ha ocurrido un error en el cierre intentar nuevamente").ToUpper();
+                response.Tienda = tienda;
+                response.Operador = operador;
                 return response;
             }
             return response;

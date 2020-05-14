@@ -11,6 +11,7 @@ namespace ControlVolumetricoShellWS.Transaction.Dominio.InterfaceWCF
         AMERICAN_EXPRESS = 1,
         MORRALLA = 2,
         EFECTIVO = 3,
+        VALE_GENERICO = 7,
         VALE_INBURSA = 9,
         SERVIBONOS = 13,
         VALES_GASOCHECK = 14,

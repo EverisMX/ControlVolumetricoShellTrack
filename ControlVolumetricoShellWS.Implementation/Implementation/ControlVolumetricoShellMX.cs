@@ -4542,6 +4542,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 case (int)PaymentMethodPC.AMERICAN_EXPRESS : { ptBOS = "03"; break; }
                 case (int)PaymentMethodPC.MORRALLA: { ptBOS = "01"; break; }
                 case (int)PaymentMethodPC.EFECTIVO: { ptBOS = "01"; break; }
+                case (int)PaymentMethodPC.VALE_GENERICO: { ptBOS = "07"; break; }
                 case (int)PaymentMethodPC.VALE_INBURSA: { ptBOS = "07"; break; }
                 case (int)PaymentMethodPC.SERVIBONOS: { ptBOS = "07"; break; }
                 case (int)PaymentMethodPC.VALES_GASOCHECK: { ptBOS = "07"; break; }

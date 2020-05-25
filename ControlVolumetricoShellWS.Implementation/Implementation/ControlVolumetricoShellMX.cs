@@ -680,6 +680,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 string[] tupleRequestCom = tupleProducts[0].Split(',');
                 string[] tupleRequestPer = tupleProducts.Length == 2 ? tupleProducts[1].Split(',') : null;
 
+                string propinaText = "";
+                if (!string.IsNullOrEmpty(request.Propina))
+                {
+                    propinaText = request.Propina.ToUpper();
+                }
+
                 if (tupleProducts.Length == 2)
                 {
                     Log("CODEVOL_TR INFO", "SOLICITUD PARA CONSUMIR EL METODO ---> ID_TRANSACCION_BOMBA: " + request.Id_Transaccion + "  IDSEGUIMIENTO: " + criptoInfoFor + "\n Info_Forma_Pago: " + "\n" + "{" + "\n" +
@@ -717,7 +723,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    nHD: " + request.nHD + "," + "\n" +
                         "    parciales: " + request.parciales.ToString() + "," + "\n" +
                         "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
-                        "    Propina: " + request.Propina == null ? "0.00" : request.Propina + "," + "\n" +
+                        "    Propina: " + propinaText + "," + "\n" +
                         "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 }
                 else
@@ -744,7 +750,7 @@ namespace ControlVolumetricoShellWS.Implementation
                         "    nHD: " + request.nHD + "," + "\n" +
                         "    parciales: " + request.parciales.ToString() + "," + "\n" +
                         "    Porpagarentrada: " + request.PorpagarEntrada.ToString() + "," + "\n" +
-                        "    Propina: " + request.Propina == null ? "0.00" : request.Propina + "," + "\n" +
+                        "    Propina: " + propinaText + "," + "\n" +
                         "    Pos_Carga: " + request.Pos_Carga.ToString() + "\n" + "}");
                 }
                 if (request.Id_Transaccion == null)
@@ -2236,10 +2242,10 @@ namespace ControlVolumetricoShellWS.Implementation
                 #region SHLMX - REGISTRAR PROPINA
                 try
                 {
-                    decimal _possibletip = 0M;
+                    decimal _possibletip = -1M;
                     if (request.Propina != null)
                     {
-                        if (!request.Propina.Equals("NULL"))
+                        if (!request.Propina.ToUpper().Equals("NULL") && !string.IsNullOrEmpty(request.Propina))
                         {
                             if (!decimal.TryParse(request.Propina, out _possibletip))
                             {
@@ -2251,7 +2257,7 @@ namespace ControlVolumetricoShellWS.Implementation
                             Log("CODEVOL_FIN ERROR 72", "NO SE HA ENCONTRADO PROPINA . IDSEGUIMIENTO: " + criptoInfoFor + "LOG:: " + "request.Propina.HasValue == false");
                         }
 
-                        if (_possibletip >= 0)
+                        if (_possibletip > 0)
                         {
                             RegisterTipDAO tipObject = new RegisterTipDAO
                             {

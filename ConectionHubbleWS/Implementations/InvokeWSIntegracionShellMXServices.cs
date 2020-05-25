@@ -27,6 +27,9 @@ namespace Conection.HubbleWS
             registerTipRequest.User = USER_BBDD;
             registerTipRequest.nCliente = registerTipRequest.Company;
 
+            // 
+            registerTipRequest.RegisterTip.fecha = registerTipRequest.RegisterTip.fecha.AddMinutes(-1);
+
             //SHELLMX- Se manda a llamar el metodo HttpClient.
             using (HttpClient client = new HttpClient())
             {

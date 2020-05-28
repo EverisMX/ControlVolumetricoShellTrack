@@ -4882,6 +4882,12 @@ namespace ControlVolumetricoShellWS.Implementation
                     Idoperator = idOperator
                 });
 
+                // SHLMX - Log serializado de Cierres Caja
+                string strResponsesCloseCashbox = JsonConvert.SerializeObject(forCashboxClosureExtendedResponse);
+                strResponsesCloseCashbox = strResponsesCloseCashbox.Replace("{", "\n { \n").Replace(",", ",\n").Replace("}", "\n }");
+                Log("CODEVOL_TR INFO", "RESPONSE DETALLE CIERRE DE CAJA: \n " + strResponsesCloseCashbox);
+                // SHLMX - FIN
+
                 if (forCashboxClosureExtendedResponse.Status != "Succesful")
                 {
                     Log("CODEVOL_FIN WARNING", "@SHELLX- NO SE PUDO REALIZA EL CIERRE DE CAJA MANDADO EL SIGUIENTE ESTATUS" + insertClousureCashBoxResponse.Status + " Y EL MENSAJE: " + insertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);

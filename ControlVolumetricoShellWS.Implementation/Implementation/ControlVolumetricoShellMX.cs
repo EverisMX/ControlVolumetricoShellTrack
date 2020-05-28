@@ -4882,12 +4882,7 @@ namespace ControlVolumetricoShellWS.Implementation
                     Idoperator = idOperator
                 });
 
-                // SHLMX - Log serializado de Cierres Caja
-                string strResponsesCloseCashbox = JsonConvert.SerializeObject(forCashboxClosureExtendedResponse);
-                strResponsesCloseCashbox = strResponsesCloseCashbox.Replace("{", "\n { \n").Replace(",", ",\n").Replace("}", "\n }");
-                Log("CODEVOL_TR INFO", "RESPONSE DETALLE CIERRE DE CAJA: \n " + strResponsesCloseCashbox);
-                // SHLMX - FIN
-
+                
                 if (forCashboxClosureExtendedResponse.Status != "Succesful")
                 {
                     Log("CODEVOL_FIN WARNING", "@SHELLX- NO SE PUDO REALIZA EL CIERRE DE CAJA MANDADO EL SIGUIENTE ESTATUS" + insertClousureCashBoxResponse.Status + " Y EL MENSAJE: " + insertClousureCashBoxResponse.Message + "  IDSEGUIMIENTO: " + criptoCierre);
@@ -4940,6 +4935,12 @@ namespace ControlVolumetricoShellWS.Implementation
                 response.FechaIn = dateFromTicketRequest.TicketIni.ToString("dd/MM/yyyy hh:mm:ss");
                 response.FechaFin = dateFromTicketRequest.TicketFin.ToString("dd/MM/yyyy hh:mm:ss");
                 Log("CODEVOL_FIN INFO", "@SHELLX- SE REALIZO LA IMPRESION DEL CIERRE DEL OPERADOR EXITOSAMENTE " + "  IDSEGUIMIENTO: " + criptoCierre);
+
+                // SHLMX - Log serializado de Cierres Caja
+                string strResponsesCloseCashbox = JsonConvert.SerializeObject(response);
+                strResponsesCloseCashbox = strResponsesCloseCashbox.Replace("{", "\n { \n").Replace(",", ",\n").Replace("}", "\n }");
+                Log("CODEVOL_TR INFO", "RESPONSE DETALLE CIERRE DE CAJA: \n " + strResponsesCloseCashbox);
+                // SHLMX - FIN
             }
             catch (Exception e)
             {

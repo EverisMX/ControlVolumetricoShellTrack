@@ -26,7 +26,8 @@ namespace ControlVolumetricoShellWS.Transaction.Dominio.InterfaceWCF
         TARJETA_BANCARIA = 32,
         MERCADO_PAGO = 91,
         PUNTOS = 98,
-        TARJETA_INTELIGENTE = 99
+        TARJETA_INTELIGENTE = 99,
+        VALE_EXTERNO = 8
     }
 
 }

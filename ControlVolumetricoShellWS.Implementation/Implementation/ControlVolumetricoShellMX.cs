@@ -4563,6 +4563,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 case (int)PaymentMethodPC.MERCADO_PAGO: { ptBOS = "07"; break; }
                 case (int)PaymentMethodPC.PUNTOS: { ptBOS = "07"; break; }                
                 case (int)PaymentMethodPC.TARJETA_INTELIGENTE: { ptBOS = "07"; break; }
+                case (int)PaymentMethodPC.VALE_EXTERNO: { ptBOS = "13"; break; }
                 default: { ptBOS = ""; break; } 
                 
             }

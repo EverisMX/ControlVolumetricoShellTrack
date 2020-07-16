@@ -176,7 +176,8 @@ namespace Conection.HubbleWS
 
                             facresponse respuestanueva = new facresponse
                             {
-                                mensaje = "DATOS DEL TICKET NO VALIDOS PARA FACTURAR"
+                                //mensaje = "DATOS DEL TICKET NO VALIDOS PARA FACTURAR"
+                                mensaje = "EL TICKET NO ES FACTURABLE, DEBIDO A LA FORMA DE PAGO O PROBLEMA ESPECIFICO"
                             };
                             return respuestanueva;
                         }

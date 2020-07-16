@@ -3425,8 +3425,8 @@ namespace ControlVolumetricoShellWS.Implementation
                 facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
 
 
-
-                if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
+                //if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
+                if (responsefacturacion.mensaje == "EL TICKET NO ES FACTURABLE, DEBIDO A LA FORMA DE PAGO O PROBLEMA ESPECIFICO")
                 {
                     //salida.Ticket = request.Nticket;
                     //salida.FormaPago = metodopago;//"EFECTIVO"; //(responsegetdocument.Document.PaymentDetailList[0].PaymentMethodId);//pendiente por modificar
@@ -4232,8 +4232,8 @@ namespace ControlVolumetricoShellWS.Implementation
                     facresponse responsefacturacion = await invokeHubbleWebAPIServices.tpvfacturacionn(requestfac);
 
 
-
-                    if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
+                    //if (responsefacturacion.mensaje == "DATOS DEL TICKET NO VALIDOS PARA FACTURAR")
+                    if (responsefacturacion.mensaje == "EL TICKET NO ES FACTURABLE, DEBIDO A LA FORMA DE PAGO O PROBLEMA ESPECIFICO")
                     {
                         Log("CODEVOL_FIN 40", "@SHELLMX- DATOS NO VALIDOS PARA FACTURAR : " + responsefacturacion.mensaje + " IDSEGUIMIENTO: " + criptoElecB);
                         //salida.Ticket = request.Nticket;

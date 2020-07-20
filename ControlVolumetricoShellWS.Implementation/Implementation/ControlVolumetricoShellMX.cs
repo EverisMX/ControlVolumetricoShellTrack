@@ -3154,6 +3154,7 @@ namespace ControlVolumetricoShellWS.Implementation
                 .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "08", "TARJETA")
                 .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "09", "FUGA")
                 .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "10", "PRUEBA")
+                .Replace(getPOSInformationResponse.PosInformation.CompanyCode + "13", "VALE EXTERNO")
 
                 ;
 
@@ -3953,6 +3954,10 @@ namespace ControlVolumetricoShellWS.Implementation
                     if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "10")
                     {
                         item.PaymentMethodId = "SODEXO";
+                    }
+                    if (item.PaymentMethodId == getPOSInformationResponse.PosInformation.CompanyCode + "13")
+                    {
+                        item.PaymentMethodId = "VALE EXTERNO";
                     }
 
 
